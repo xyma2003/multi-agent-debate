@@ -40,7 +40,7 @@ Plans:
   1. Given two agent outputs, the divergence detector returns a numeric score based on semantic similarity of key_claims — not raw text comparison
   2. When divergence score exceeds the threshold, the rebuttal loop fires and agents receive compact summaries of opposing arguments in the next round
   3. The loop terminates automatically when divergence drops below threshold or after 3 rounds, whichever comes first
-  4. When an agent concedes a point, the concession record names the source agent whose argument triggered it and includes a one-line reason
+  4. When an agent concedes a point, the concession record names the source agent whose argument triggered it and includes a one-line line reason
 **Plans**: 3 plans
 
 Plans:
@@ -70,7 +70,11 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. After a debate completes, a row is written to SQLite containing debate_id, topic, timestamp, and the full DebateReport serialized as JSON — verifiable with a direct DB query
   2. Given a valid debate_id, the system loads the stored JSON and reconstructs the DebateReport without re-running any agents
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — debate/store.py (SQLite save/load/list), debate/nodes/save.py, graph.py topology update
+- [ ] 04-02-PLAN.md — tests/test_phase4.py: unit tests for store functions, integration test full graph saves to DB, replay test
 
 ### Phase 5: Streamlit UI
 **Goal**: A demo-ready Streamlit app where a user enters a topic, watches agents debate round by round, and reads the final structured report — with no broken states on a fresh run
@@ -91,5 +95,5 @@ Plans:
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
 | 3. Synthesis & Report | 2/2 | Complete    | 2026-04-24 |
-| 4. Persistence | 0/TBD | Not started | - |
+| 4. Persistence | 0/2 | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

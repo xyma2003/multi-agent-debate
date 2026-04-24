@@ -74,6 +74,10 @@ class RoundRecord(BaseModel):
     arguments: list[AgentArgument] = Field(
         description="Exactly 3 AgentArguments: optimist, pessimist, devil"
     )
+    divergence_score: float = Field(
+        default=0.0,
+        description="Divergence score computed after this round (0.0=converged, 1.0=max divergence). Written by divergence_check_node.",
+    )
 
 
 class DebateState(TypedDict, total=False):

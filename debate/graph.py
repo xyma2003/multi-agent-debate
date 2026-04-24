@@ -36,6 +36,7 @@ from debate.nodes.collect import collect_round1
 from debate.nodes.dispatch import dispatch_round1, route_divergence
 from debate.nodes.divergence_check import divergence_check_node
 from debate.nodes.initialize import initialize_node
+from debate.nodes.save import save_node
 from debate.nodes.synthesize import synthesize_stub
 from debate.state import DebateState
 
@@ -79,8 +80,10 @@ def build_graph():
     # LangGraph 1.1.9 handles both return types correctly.
     builder.add_conditional_edges("divergence_check_node", route_divergence)
 
-    # Termination: synthesize_stub → END
-    builder.add_edge("synthesize_stub", END)
+    # Termination: synthesize_stub → save_node → END
+    builder.add_node("save_node", save_node)
+    builder.add_edge("synthesize_stub", "save_node")
+    builder.add_edge("save_node", END)
 
     # InMemorySaver required for interrupt() support in Phase 4
     checkpointer = InMemorySaver()

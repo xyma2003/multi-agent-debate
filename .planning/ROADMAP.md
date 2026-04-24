@@ -25,7 +25,12 @@ portfolio app that produces auditable consensus reports from adversarial agent r
   2. Each agent's system prompt enforces its cognitive bias via methodology instructions, not personality adjectives — inspectable in source
   3. Pydantic validation failure triggers up to 2 retries; a sentinel AgentArgument is injected on the third failure without crashing the graph
   4. Anti-sycophancy instructions are present and verifiable in the agent prompt templates
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 01-PLAN.md — Project setup, DebateState TypedDict, AgentArgument/Concession/RoundRecord Pydantic models
+- [ ] 02-PLAN.md — _make_llm() helper, methodology-based persona prompts, all six graph node implementations
+- [ ] 03-PLAN.md — StateGraph wiring with Send fan-out, smoke test confirming 3 AgentArguments returned
 
 ### Phase 2: Debate Engine
 **Goal**: A functioning multi-round debate loop where agents rebut each other based on semantically detected divergence and can concede points with traceable attribution
@@ -75,7 +80,7 @@ portfolio app that produces auditable consensus reports from adversarial agent r
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Graph Foundation | 0/TBD | Not started | - |
+| 1. Graph Foundation | 0/3 | Planning done | - |
 | 2. Debate Engine | 0/TBD | Not started | - |
 | 3. Synthesis & Report | 0/TBD | Not started | - |
 | 4. Persistence | 0/TBD | Not started | - |

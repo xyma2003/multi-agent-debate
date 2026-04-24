@@ -12,8 +12,9 @@ RoundRecord:   Pydantic model collecting all three arguments from one round.
 """
 from __future__ import annotations
 
+from datetime import datetime
 from operator import add
-from typing import Annotated, Optional
+from typing import Annotated, Literal, Optional
 
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
@@ -80,6 +81,53 @@ class RoundRecord(BaseModel):
     )
 
 
+class DisputedPoint(BaseModel):
+    """One topic where agents took opposing positions."""
+
+    topic: str = Field(description="The specific point of disagreement")
+    agent_positions: dict[str, str] = Field(
+        description="Map of agent_role to their position on this point: "
+                    "{'optimist': '...', 'pessimist': '...', 'devil': '...'}"
+    )
+
+
+class DebateReport(BaseModel):
+    """Final output of the debate system. Written to state['final_report'].
+
+    confidence_score is formula-derived (SYNTH-03): (1 - max_divergence_score) * round_adjustment.
+    It is computed in Python code in synthesize.py, never produced by the LLM.
+    """
+
+    debate_id: str
+    topic: str
+    consensus_points: list[str] = Field(
+        description="Points all agents agreed on (can be empty list)"
+    )
+    disputed_points: list[DisputedPoint] = Field(
+        description="Points where agents held opposing positions"
+    )
+    verdict: str = Field(
+        description="Synthesizer's final 2-4 sentence assessment of the debate outcome"
+    )
+    confidence_score: float = Field(
+        ge=0.0,
+        le=1.0,
+        description="Formula-derived score: (1 - max_divergence_score) * round_adjustment",
+    )
+    convergence_status: Literal["converged", "max_rounds", "partial"] = Field(
+        description="How the debate loop terminated"
+    )
+    reasoning_trace: list[RoundRecord] = Field(
+        description="All RoundRecords from round_history — full argument provenance"
+    )
+    concession_log: list[Concession] = Field(
+        description="All Concession objects across all rounds, flattened"
+    )
+    created_at: datetime = Field(
+        description="UTC timestamp when this report was assembled"
+    )
+
+
 class DebateState(TypedDict, total=False):
     """
     LangGraph StateGraph state for the multi-agent debate system.
@@ -122,5 +170,5 @@ class DebateState(TypedDict, total=False):
     diverged_pairs: list[tuple[str, str]]
 
     # --- Phase 3 fields ---
-    final_report: Optional[object]  # DebateReport type added in Phase 3
+    final_report: Optional["DebateReport"]  # Written by Phase 3 synthesizer
     status: str

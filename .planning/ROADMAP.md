@@ -8,7 +8,7 @@ portfolio app that produces auditable consensus reports from adversarial agent r
 
 ## Phases
 
-- [ ] **Phase 1: Graph Foundation** - State schema, graph skeleton, agent nodes, and persona enforcement
+- [x] **Phase 1: Graph Foundation** - State schema, graph skeleton, agent nodes, and persona enforcement (completed 2026-04-24)
 - [ ] **Phase 2: Debate Engine** - Divergence detection, multi-round rebuttal loop, concession tracking
 - [ ] **Phase 3: Synthesis & Report** - Synthesizer verdict, confidence scoring, full reasoning trace
 - [ ] **Phase 4: Persistence** - SQLite debate storage and replay by debate_id
@@ -30,7 +30,7 @@ portfolio app that produces auditable consensus reports from adversarial agent r
 Plans:
 - [x] 01-PLAN.md — Project setup, DebateState TypedDict, AgentArgument/Concession/RoundRecord Pydantic models
 - [x] 02-PLAN.md — _make_llm() helper, methodology-based persona prompts, all six graph node implementations
-- [ ] 03-PLAN.md — StateGraph wiring with Send fan-out, smoke test confirming 3 AgentArguments returned
+- [x] 03-PLAN.md — StateGraph wiring with Send fan-out, smoke test confirming 3 AgentArguments returned
 
 ### Phase 2: Debate Engine
 **Goal**: A functioning multi-round debate loop where agents rebut each other based on semantically detected divergence and can concede points with traceable attribution
@@ -80,7 +80,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Graph Foundation | 2/3 | In Progress|  |
+| 1. Graph Foundation | 3/3 | Complete   | 2026-04-24 |
 | 2. Debate Engine | 0/TBD | Not started | - |
 | 3. Synthesis & Report | 0/TBD | Not started | - |
 | 4. Persistence | 0/TBD | Not started | - |

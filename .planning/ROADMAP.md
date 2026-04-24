@@ -10,7 +10,7 @@ portfolio app that produces auditable consensus reports from adversarial agent r
 
 - [x] **Phase 1: Graph Foundation** - State schema, graph skeleton, agent nodes, and persona enforcement (completed 2026-04-24)
 - [x] **Phase 2: Debate Engine** - Divergence detection, multi-round rebuttal loop, concession tracking (completed 2026-04-24)
-- [ ] **Phase 3: Synthesis & Report** - Synthesizer verdict, confidence scoring, full reasoning trace
+- [x] **Phase 3: Synthesis & Report** - Synthesizer verdict, confidence scoring, full reasoning trace (completed 2026-04-24)
 - [ ] **Phase 4: Persistence** - SQLite debate storage and replay by debate_id
 - [ ] **Phase 5: Streamlit UI** - Live debate feed, final report display, demo-ready polish
 
@@ -61,7 +61,7 @@ Plans:
 
 Plans:
 - [x] 03-01-PLAN.md — DebateReport + DisputedPoint models in state.py; full synthesize_stub replacement with LLM call, confidence formula, DebateReport assembly
-- [ ] 03-02-PLAN.md — tests/test_phase3.py: confidence formula unit tests, non-convergence path test, full graph integration tests
+- [x] 03-02-PLAN.md — tests/test_phase3.py: confidence formula unit tests, non-convergence path test, full graph integration tests
 
 ### Phase 4: Persistence
 **Goal**: Completed debates are saved to SQLite and can be reloaded and displayed by debate_id
@@ -90,6 +90,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
-| 3. Synthesis & Report | 1/2 | In Progress|  |
+| 3. Synthesis & Report | 2/2 | Complete   | 2026-04-24 |
 | 4. Persistence | 0/TBD | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

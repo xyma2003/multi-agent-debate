@@ -64,23 +64,56 @@ def _invoke_with_retry(
 def _agent_node(state: dict, role: str) -> dict:
     """Shared implementation for all three agent nodes.
 
-    Receives a minimal Send payload (not the full DebateState):
-        {"topic": str, "agent_role": str, "prior_arguments": [], "round_num": int}
+    Round 1 (round_num == 0): receives minimal payload with no prior arguments.
+    Rebuttal rounds (round_num > 0): receives compact opposing summaries and
+    appends concession instructions to the human message (DEBATE-07).
 
     Returns a single-item list in current_round_arguments so the `add` reducer
     appends it to the accumulator without overwriting the other agents' results.
     """
     topic = state.get("topic", "")
     round_num = state.get("round_num", 0)
+    prior_arguments = state.get("prior_arguments", [])
     system_prompt = AGENT_PROMPTS[role]
+
+    # Base human message — same for all rounds
+    human_content = f"Topic for analysis: {topic}\n\nRound: {round_num + 1}"
+
+    # Rebuttal rounds: inject opposing arguments and concession instructions
+    if prior_arguments and round_num > 0:
+        human_content += "\n\n--- Opposing arguments from the previous round ---"
+        for arg_summary in prior_arguments:
+            if arg_summary.get("agent_role") == role:
+                continue  # Skip own prior argument — only show opponents
+            claims_text = "\n".join(
+                f"  - {c}" for c in arg_summary.get("key_claims", [])
+            )
+            human_content += (
+                f"\n\n[{arg_summary['agent_role'].upper()}]"
+                f"\nPosition: {arg_summary['position']}"
+                f"\nKey claims:\n{claims_text}"
+                f"\nConfidence: {arg_summary['confidence']:.0%}"
+            )
+
+        human_content += (
+            "\n\n--- Rebuttal instructions ---"
+            "\nRebut the opposing arguments above. Maintain your analytical stance."
+            "\nIf (and ONLY if) an opponent's specific claim is logically superior,"
+            " record it in your concessions list with:"
+            "\n  triggered_by_agent: the opponent's role (e.g., 'pessimist')"
+            "\n  triggered_by_claim: copy the EXACT claim text shown above"
+            "\n  conceded_point: what specific position you are yielding"
+            "\n  rationale: one sentence explaining why this argument is superior"
+            "\nDo NOT concede to avoid conflict or to appear balanced."
+            " Only concede on logical grounds."
+        )
 
     llm = _make_llm()
     messages = [
         SystemMessage(content=system_prompt),
-        HumanMessage(content=f"Topic for analysis: {topic}\n\nRound: {round_num + 1}"),
+        HumanMessage(content=human_content),
     ]
     argument = _invoke_with_retry(llm, messages, role, round_num)
-    # Return as single-item list — add reducer appends, not overwrites
     return {"current_round_arguments": [argument]}
 
 

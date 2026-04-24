@@ -2,9 +2,9 @@
 """
 StateGraph assembly for the multi-agent debate system.
 
-Phase 1 topology (linear + fan-out/fan-in):
+Phase 2 topology (loop + fan-out/fan-in):
 
-  START --> initialize --> dispatch_round1
+  START --> initialize --> dispatch_round1 (routing fn)
                               |
              (Send fan-out -- 3 parallel branches)
              |               |               |
@@ -12,56 +12,75 @@ Phase 1 topology (linear + fan-out/fan-in):
              |               |               |
              +-----------+---+---------------+
                          |
-                    collect_round1 --> END
-
-Phase 2 will replace the collect_round1 --> END edge with conditional routing
-to a divergence detector and rebuttal loop.
+                    collect_round1
+                         |
+                  divergence_check_node
+                         |
+              [route_divergence — routing fn]
+                /                          \\
+    diverged (list[Send])         converged or max_rounds
+         /                                  \\
+   fan-out: optimist/pessimist/devil     synthesize_stub
+         \\                                  |
+          collect_round1 (reused)          END
+          (loop back to divergence_check)
 
 Import: `from debate.graph import graph` then
         `graph.invoke({"topic": ..., "max_rounds": 3}, config=...)`
 """
-from langgraph.checkpoint.memory import InMemorySaver  # NOT MemorySaver -- deprecated alias
+from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 
 from debate.nodes.agents import devil_node, optimist_node, pessimist_node
 from debate.nodes.collect import collect_round1
-from debate.nodes.dispatch import dispatch_round1
+from debate.nodes.dispatch import dispatch_round1, route_divergence
+from debate.nodes.divergence_check import divergence_check_node
 from debate.nodes.initialize import initialize_node
+from debate.nodes.synthesize import synthesize_stub
 from debate.state import DebateState
 
 
 def build_graph():
-    """Build and compile the Phase 1 debate graph."""
+    """Build and compile the Phase 2 debate graph."""
     builder = StateGraph(DebateState)
 
-    # Register agent and collect nodes
-    # NOTE: dispatch_round1 is NOT registered as a node -- it is a routing function.
-    # When passed directly to add_conditional_edges, LangGraph calls it with the
-    # current state and uses the returned list[Send] for parallel fan-out.
-    # Registering it as a node causes InvalidUpdateError because LangGraph then
-    # tries to merge the list[Send] return value as a state update dict.
+    # --- Register nodes ---
+    # NOTE: dispatch_round1 and route_divergence are NOT registered as nodes.
+    # They are routing functions passed to add_conditional_edges. Registering
+    # them as nodes causes InvalidUpdateError (list[Send] is not a state dict).
     builder.add_node("initialize", initialize_node)
     builder.add_node("optimist_node", optimist_node)
     builder.add_node("pessimist_node", pessimist_node)
     builder.add_node("devil_node", devil_node)
     builder.add_node("collect_round1", collect_round1)
+    builder.add_node("divergence_check_node", divergence_check_node)
+    builder.add_node("synthesize_stub", synthesize_stub)
 
-    # Linear edge from START to initialize
+    # --- Edges ---
+
+    # START → initialize (linear)
     builder.add_edge(START, "initialize")
 
-    # Fan-out: pass dispatch_round1 directly as the routing function.
-    # It receives the current state and returns list[Send], which LangGraph
-    # uses to dispatch optimist_node, pessimist_node, and devil_node in parallel.
-    # DO NOT use add_edge here -- that creates a single edge, not a parallel fan-out.
+    # initialize → parallel fan-out (Round 1)
+    # dispatch_round1 returns list[Send]; passed as routing fn, NOT a node.
     builder.add_conditional_edges("initialize", dispatch_round1)
 
-    # Fan-in: all three agent nodes converge to collect_round1
+    # Three agent nodes → collect_round1 (fan-in; same node reused for rebuttal rounds)
     builder.add_edge("optimist_node", "collect_round1")
     builder.add_edge("pessimist_node", "collect_round1")
     builder.add_edge("devil_node", "collect_round1")
 
-    # Phase 1 terminal edge -- Phase 2 will replace this
-    builder.add_edge("collect_round1", END)
+    # collect_round1 → divergence_check_node (Phase 2 replaces the old → END edge)
+    builder.add_edge("collect_round1", "divergence_check_node")
+
+    # divergence_check_node → route_divergence (routing fn)
+    # route_divergence returns EITHER list[Send] (rebuttal fan-out)
+    # OR the string "synthesize_stub" (termination).
+    # LangGraph 1.1.9 handles both return types correctly.
+    builder.add_conditional_edges("divergence_check_node", route_divergence)
+
+    # Termination: synthesize_stub → END
+    builder.add_edge("synthesize_stub", END)
 
     # InMemorySaver required for interrupt() support in Phase 4
     checkpointer = InMemorySaver()

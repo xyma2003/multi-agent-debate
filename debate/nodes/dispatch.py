@@ -8,6 +8,7 @@ prior rounds, violating Round 1 isolation (PITFALL 4 in RESEARCH.md).
 """
 from langgraph.types import Send
 
+from debate.divergence import DIVERGE_THRESHOLD
 from debate.state import DebateState
 
 
@@ -27,5 +28,89 @@ def dispatch_round1(state: DebateState) -> list[Send]:
         Send(
             "devil_node",
             {"topic": topic, "agent_role": "devil", "prior_arguments": [], "round_num": round_num},
+        ),
+    ]
+
+
+def _build_compact_summaries(round_history: list) -> list[dict]:
+    """Build compact (~100-word) per-agent summaries from the most recent round.
+
+    Only the most recent round is summarized to prevent token growth across rounds.
+    Earlier rounds are implicit in each agent's own prior reasoning.
+
+    Returns a list of dicts, one per agent argument in the latest round.
+    """
+    if not round_history:
+        return []
+    latest_round = round_history[-1]
+    summaries = []
+    for arg in latest_round.arguments:
+        summaries.append({
+            "agent_role": arg.agent_role,
+            "round_num": arg.round_num,
+            "position": arg.position,
+            "key_claims": arg.key_claims[:3],   # top 3 only — ~80 tokens per agent
+            "confidence": arg.confidence,
+        })
+    return summaries
+
+
+def route_divergence(state: DebateState):
+    """Routing function for add_conditional_edges('divergence_check_node', ...).
+
+    Returns list[Send] to fan out rebuttal agents OR 'synthesize_stub' to terminate.
+
+    CRITICAL ORDERING (Pitfall 2 in RESEARCH.md):
+      Guard 1 — max_rounds check MUST come first. If divergence_score is stuck
+      (bug or genuinely persistent disagreement), max_rounds is the only escape.
+      Checking score first and then max_rounds would allow runaway loops if the
+      score check has a bug.
+
+    DO NOT register this as a node. Pass directly to add_conditional_edges.
+    (Pitfall 1: registering returns list[Send] as state update → InvalidUpdateError)
+    """
+    round_num = state.get("round_num", 0)
+    max_rounds = state.get("max_rounds", 3)
+    divergence_score = state.get("divergence_score", 0.0)
+    topic = state.get("topic", "")
+    round_history = state.get("round_history", [])
+
+    # Guard 1: hard stop — max rounds reached regardless of divergence
+    if round_num >= max_rounds:
+        return "synthesize_stub"
+
+    # Guard 2: converged — agents have reached semantic agreement
+    if divergence_score < DIVERGE_THRESHOLD:
+        return "synthesize_stub"
+
+    # Diverged and within round budget: fan out rebuttal agents
+    compact_summaries = _build_compact_summaries(round_history)
+    return [
+        Send(
+            "optimist_node",
+            {
+                "topic": topic,
+                "agent_role": "optimist",
+                "prior_arguments": compact_summaries,
+                "round_num": round_num,
+            },
+        ),
+        Send(
+            "pessimist_node",
+            {
+                "topic": topic,
+                "agent_role": "pessimist",
+                "prior_arguments": compact_summaries,
+                "round_num": round_num,
+            },
+        ),
+        Send(
+            "devil_node",
+            {
+                "topic": topic,
+                "agent_role": "devil",
+                "prior_arguments": compact_summaries,
+                "round_num": round_num,
+            },
         ),
     ]

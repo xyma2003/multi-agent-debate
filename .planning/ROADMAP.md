@@ -9,7 +9,7 @@ portfolio app that produces auditable consensus reports from adversarial agent r
 ## Phases
 
 - [x] **Phase 1: Graph Foundation** - State schema, graph skeleton, agent nodes, and persona enforcement (completed 2026-04-24)
-- [ ] **Phase 2: Debate Engine** - Divergence detection, multi-round rebuttal loop, concession tracking
+- [x] **Phase 2: Debate Engine** - Divergence detection, multi-round rebuttal loop, concession tracking (completed 2026-04-24)
 - [ ] **Phase 3: Synthesis & Report** - Synthesizer verdict, confidence scoring, full reasoning trace
 - [ ] **Phase 4: Persistence** - SQLite debate storage and replay by debate_id
 - [ ] **Phase 5: Streamlit UI** - Live debate feed, final report display, demo-ready polish
@@ -86,7 +86,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
-| 2. Debate Engine | 0/3 | Not started | - |
+| 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
 | 3. Synthesis & Report | 0/TBD | Not started | - |
 | 4. Persistence | 0/TBD | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

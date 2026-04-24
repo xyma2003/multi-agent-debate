@@ -191,3 +191,148 @@ def test_route_divergence_terminates_on_convergence():
 def test_concession_attribution():
     """Concession triggered_by_claim matches an opponent's key_claims entry."""
     pass
+
+
+# ---------------------------------------------------------------------------
+# Phase 2 Integration Tests — full graph.invoke calls
+# ---------------------------------------------------------------------------
+
+import os
+import uuid as _uuid
+
+
+def _live_skip():
+    """Skip helper for tests that require a live LLM."""
+    if not os.environ.get("ANTHROPIC_AUTH_TOKEN") and not os.environ.get("ANTHROPIC_API_KEY"):
+        pytest.skip("No ANTHROPIC credentials — skipping live LLM integration test")
+
+
+def test_full_graph_terminates_cleanly():
+    """Full graph.invoke with max_rounds=1 terminates without error.
+
+    max_rounds=1 means route_divergence will see round_num=1 >= max_rounds=1
+    and return 'synthesize_stub' immediately. Status must be set.
+
+    This is the smoke test for the assembled Phase 2 system.
+    Does NOT require high divergence — any topic works.
+    """
+    _live_skip()
+    from debate.graph import graph
+
+    config = {
+        "configurable": {"thread_id": str(_uuid.uuid4())},
+        "recursion_limit": 30,
+    }
+    result = graph.invoke(
+        {"topic": "Should cities invest in public transit?", "max_rounds": 1},
+        config=config,
+    )
+    assert result.get("status") in ("converged", "max_rounds"), \
+        f"Graph did not terminate cleanly. status={result.get('status')!r}"
+    assert len(result.get("round_history", [])) >= 1, \
+        "round_history is empty — no rounds completed"
+
+
+def test_round_history_length_matches_round_num():
+    """After graph completes, len(round_history) == round_num.
+
+    collect_round1 increments round_num AND appends to round_history.
+    They must stay in sync.
+    """
+    _live_skip()
+    from debate.graph import graph
+
+    config = {
+        "configurable": {"thread_id": str(_uuid.uuid4())},
+        "recursion_limit": 30,
+    }
+    result = graph.invoke(
+        {"topic": "Is remote work more productive than office work?", "max_rounds": 1},
+        config=config,
+    )
+    round_num = result.get("round_num", -1)
+    round_history = result.get("round_history", [])
+    assert len(round_history) == round_num, (
+        f"round_history length ({len(round_history)}) != round_num ({round_num})"
+    )
+
+
+def test_each_round_has_three_arguments():
+    """Every RoundRecord in round_history contains exactly 3 AgentArguments."""
+    _live_skip()
+    from debate.graph import graph
+
+    config = {
+        "configurable": {"thread_id": str(_uuid.uuid4())},
+        "recursion_limit": 30,
+    }
+    result = graph.invoke(
+        {"topic": "Is nuclear energy safe?", "max_rounds": 1},
+        config=config,
+    )
+    for i, record in enumerate(result.get("round_history", [])):
+        assert len(record.arguments) == 3, (
+            f"Round {i} has {len(record.arguments)} arguments, expected 3. "
+            f"Roles: {[a.agent_role for a in record.arguments]}"
+        )
+
+
+def test_concession_fields_are_valid_if_present():
+    """Any concession in any argument has non-empty triggered_by_claim and triggered_by_agent.
+
+    This validates DEBATE-07 schema integrity. Concessions may be empty
+    in round 1 (agents haven't seen each other yet) — that is correct behavior.
+    In rebuttal rounds they may or may not appear depending on LLM judgment.
+    """
+    _live_skip()
+    from debate.graph import graph
+
+    config = {
+        "configurable": {"thread_id": str(_uuid.uuid4())},
+        "recursion_limit": 30,
+    }
+    # max_rounds=2 to give at least one rebuttal round where concessions can appear
+    result = graph.invoke(
+        {"topic": "Should AI be regulated by governments?", "max_rounds": 2},
+        config=config,
+    )
+    for record in result.get("round_history", []):
+        for arg in record.arguments:
+            for concession in arg.concessions:
+                assert concession.triggered_by_claim, (
+                    f"[{arg.agent_role} round {record.round_num}] "
+                    f"Concession has empty triggered_by_claim: {concession!r}"
+                )
+                assert concession.triggered_by_agent, (
+                    f"[{arg.agent_role} round {record.round_num}] "
+                    f"Concession has empty triggered_by_agent: {concession!r}"
+                )
+                assert concession.rationale, (
+                    f"[{arg.agent_role} round {record.round_num}] "
+                    f"Concession has empty rationale: {concession!r}"
+                )
+
+
+def test_recursion_limit_is_sufficient():
+    """Graph with max_rounds=3 completes within recursion_limit=30.
+
+    LangGraph counts each node execution as one step. For 3 rounds:
+      initialize(1) + fan-out x3(3) + collect x3(3) + divergence_check x3(3)
+      + synthesize_stub(1) = ~11 steps. 30 is conservative but safe.
+
+    If this test fails with GraphRecursionError, the recursion_limit must be raised.
+    """
+    _live_skip()
+    from debate.graph import graph
+
+    config = {
+        "configurable": {"thread_id": str(_uuid.uuid4())},
+        "recursion_limit": 30,
+    }
+    # This should NOT raise GraphRecursionError
+    result = graph.invoke(
+        {"topic": "Should social media platforms be broken up?", "max_rounds": 3},
+        config=config,
+    )
+    assert result.get("status") in ("converged", "max_rounds"), \
+        f"Unexpected termination status: {result.get('status')!r}"

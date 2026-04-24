@@ -50,7 +50,10 @@ A working Streamlit web app where:
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ 3 agents (Optimist, Pessimist, Devil's Advocate) independently analyze a topic with no cross-visibility — validated in Phase 1
+- ✓ Each agent produces structured output: position, reasoning, key_claims, confidence, concessions — validated in Phase 1
+- ✓ Methodology-based persona prompts with anti-sycophancy PROHIBITION blocks — validated in Phase 1
+- ✓ Pydantic retry wrapper (2 retries + sentinel injection) prevents graph crashes on parse failure — validated in Phase 1
 
 ### Active
 
@@ -88,4 +91,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 
 ---
-*Last updated: 2026-04-24 after initialization*
+*Last updated: 2026-04-24 after Phase 1 (Graph Foundation) completion*

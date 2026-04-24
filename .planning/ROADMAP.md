@@ -60,7 +60,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01-PLAN.md — DebateReport + DisputedPoint models in state.py; full synthesize_stub replacement with LLM call, confidence formula, DebateReport assembly
+- [x] 03-01-PLAN.md — DebateReport + DisputedPoint models in state.py; full synthesize_stub replacement with LLM call, confidence formula, DebateReport assembly
 - [ ] 03-02-PLAN.md — tests/test_phase3.py: confidence formula unit tests, non-convergence path test, full graph integration tests
 
 ### Phase 4: Persistence
@@ -90,6 +90,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
-| 3. Synthesis & Report | 0/2 | Not started | - |
+| 3. Synthesis & Report | 1/2 | In Progress|  |
 | 4. Persistence | 0/TBD | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

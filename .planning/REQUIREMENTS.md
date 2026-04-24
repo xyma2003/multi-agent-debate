@@ -20,11 +20,11 @@
 
 ### Synthesis & Output
 
-- [ ] **SYNTH-01**: Synthesizer agent produces a final verdict after debate completes
-- [ ] **SYNTH-02**: Final report contains: consensus points, disputed points, confidence score (formula-derived), verdict
-- [ ] **SYNTH-03**: Confidence score is formula-derived: `(1 - max_divergence_score) * round_adjustment` — never LLM-invented
-- [ ] **SYNTH-04**: Synthesizer has honest-uncertainty path: if debate did not converge, report says so explicitly
-- [ ] **SYNTH-05**: Full reasoning trace stored: all rounds, all arguments, all concessions with attribution
+- [x] **SYNTH-01**: Synthesizer agent produces a final verdict after debate completes
+- [x] **SYNTH-02**: Final report contains: consensus points, disputed points, confidence score (formula-derived), verdict
+- [x] **SYNTH-03**: Confidence score is formula-derived: `(1 - max_divergence_score) * round_adjustment` — never LLM-invented
+- [x] **SYNTH-04**: Synthesizer has honest-uncertainty path: if debate did not converge, report says so explicitly
+- [x] **SYNTH-05**: Full reasoning trace stored: all rounds, all arguments, all concessions with attribution
 
 ### Persistence
 
@@ -69,11 +69,11 @@
 | DEBATE-05 | Phase 2 | Complete |
 | DEBATE-06 | Phase 2 | Complete |
 | DEBATE-07 | Phase 2 | Complete |
-| SYNTH-01 | Phase 3 | Pending |
-| SYNTH-02 | Phase 3 | Pending |
-| SYNTH-03 | Phase 3 | Pending |
-| SYNTH-04 | Phase 3 | Pending |
-| SYNTH-05 | Phase 3 | Pending |
+| SYNTH-01 | Phase 3 | Complete |
+| SYNTH-02 | Phase 3 | Complete |
+| SYNTH-03 | Phase 3 | Complete |
+| SYNTH-04 | Phase 3 | Complete |
+| SYNTH-05 | Phase 3 | Complete |
 | STORE-01 | Phase 4 | Pending |
 | STORE-02 | Phase 4 | Pending |
 | UI-01 | Phase 5 | Pending |

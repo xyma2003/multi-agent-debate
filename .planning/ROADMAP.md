@@ -28,7 +28,7 @@ portfolio app that produces auditable consensus reports from adversarial agent r
 **Plans**: 3 plans
 
 Plans:
-- [ ] 01-PLAN.md — Project setup, DebateState TypedDict, AgentArgument/Concession/RoundRecord Pydantic models
+- [x] 01-PLAN.md — Project setup, DebateState TypedDict, AgentArgument/Concession/RoundRecord Pydantic models
 - [ ] 02-PLAN.md — _make_llm() helper, methodology-based persona prompts, all six graph node implementations
 - [ ] 03-PLAN.md — StateGraph wiring with Send fan-out, smoke test confirming 3 AgentArguments returned
 
@@ -80,7 +80,7 @@ Plans:
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Graph Foundation | 0/3 | Planning done | - |
+| 1. Graph Foundation | 1/3 | In Progress|  |
 | 2. Debate Engine | 0/TBD | Not started | - |
 | 3. Synthesis & Report | 0/TBD | Not started | - |
 | 4. Persistence | 0/TBD | Not started | - |

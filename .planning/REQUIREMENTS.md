@@ -4,9 +4,9 @@
 
 ### Core Debate Flow
 
-- [ ] **DEBATE-01**: User can enter any topic/question and trigger a multi-agent debate
-- [ ] **DEBATE-02**: 3 analysis agents (Optimist, Pessimist, Devil's Advocate) analyze the topic independently in Round 1 with no cross-visibility
-- [ ] **DEBATE-03**: Each agent produces structured output: position, reasoning, key_claims, confidence score, concessions list
+- [x] **DEBATE-01**: User can enter any topic/question and trigger a multi-agent debate
+- [x] **DEBATE-02**: 3 analysis agents (Optimist, Pessimist, Devil's Advocate) analyze the topic independently in Round 1 with no cross-visibility
+- [x] **DEBATE-03**: Each agent produces structured output: position, reasoning, key_claims, confidence score, concessions list
 - [ ] **DEBATE-04**: Debate engine detects real divergence between agents using semantic similarity on key_claims (not full text)
 - [ ] **DEBATE-05**: Multi-round rebuttal loop fires when divergence is detected; agents see compact summaries of opposing arguments
 - [ ] **DEBATE-06**: Debate loop terminates on convergence (divergence below threshold) or max 3 rounds
@@ -59,9 +59,9 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| DEBATE-01 | Phase 1 | Pending |
-| DEBATE-02 | Phase 1 | Pending |
-| DEBATE-03 | Phase 1 | Pending |
+| DEBATE-01 | Phase 1 | Complete |
+| DEBATE-02 | Phase 1 | Complete |
+| DEBATE-03 | Phase 1 | Complete |
 | AGENT-01 | Phase 1 | Pending |
 | AGENT-02 | Phase 1 | Pending |
 | AGENT-03 | Phase 1 | Pending |

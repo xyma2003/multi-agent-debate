@@ -57,10 +57,26 @@
 
 ## Traceability
 
-| REQ-ID | Phase |
-|--------|-------|
-| DEBATE-01, DEBATE-02, DEBATE-03, AGENT-01, AGENT-02, AGENT-03 | Phase 1 |
-| DEBATE-04, DEBATE-05, DEBATE-06, DEBATE-07 | Phase 2 |
-| SYNTH-01, SYNTH-02, SYNTH-03, SYNTH-04, SYNTH-05 | Phase 3 |
-| STORE-01, STORE-02 | Phase 4 |
-| UI-01, UI-02, UI-03, UI-04 | Phase 5 |
+| Requirement | Phase | Status |
+|-------------|-------|--------|
+| DEBATE-01 | Phase 1 | Pending |
+| DEBATE-02 | Phase 1 | Pending |
+| DEBATE-03 | Phase 1 | Pending |
+| AGENT-01 | Phase 1 | Pending |
+| AGENT-02 | Phase 1 | Pending |
+| AGENT-03 | Phase 1 | Pending |
+| DEBATE-04 | Phase 2 | Pending |
+| DEBATE-05 | Phase 2 | Pending |
+| DEBATE-06 | Phase 2 | Pending |
+| DEBATE-07 | Phase 2 | Pending |
+| SYNTH-01 | Phase 3 | Pending |
+| SYNTH-02 | Phase 3 | Pending |
+| SYNTH-03 | Phase 3 | Pending |
+| SYNTH-04 | Phase 3 | Pending |
+| SYNTH-05 | Phase 3 | Pending |
+| STORE-01 | Phase 4 | Pending |
+| STORE-02 | Phase 4 | Pending |
+| UI-01 | Phase 5 | Pending |
+| UI-02 | Phase 5 | Pending |
+| UI-03 | Phase 5 | Pending |
+| UI-04 | Phase 5 | Pending |

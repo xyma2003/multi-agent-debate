@@ -8,9 +8,9 @@
 - [x] **DEBATE-02**: 3 analysis agents (Optimist, Pessimist, Devil's Advocate) analyze the topic independently in Round 1 with no cross-visibility
 - [x] **DEBATE-03**: Each agent produces structured output: position, reasoning, key_claims, confidence score, concessions list
 - [x] **DEBATE-04**: Debate engine detects real divergence between agents using semantic similarity on key_claims (not full text)
-- [ ] **DEBATE-05**: Multi-round rebuttal loop fires when divergence is detected; agents see compact summaries of opposing arguments
-- [ ] **DEBATE-06**: Debate loop terminates on convergence (divergence below threshold) or max 3 rounds
-- [ ] **DEBATE-07**: Agents can concede points with structured attribution: which agent's argument triggered the concession and why
+- [x] **DEBATE-05**: Multi-round rebuttal loop fires when divergence is detected; agents see compact summaries of opposing arguments
+- [x] **DEBATE-06**: Debate loop terminates on convergence (divergence below threshold) or max 3 rounds
+- [x] **DEBATE-07**: Agents can concede points with structured attribution: which agent's argument triggered the concession and why
 
 ### Agent Quality
 
@@ -66,9 +66,9 @@
 | AGENT-02 | Phase 1 | Complete |
 | AGENT-03 | Phase 1 | Complete |
 | DEBATE-04 | Phase 2 | Complete |
-| DEBATE-05 | Phase 2 | Pending |
-| DEBATE-06 | Phase 2 | Pending |
-| DEBATE-07 | Phase 2 | Pending |
+| DEBATE-05 | Phase 2 | Complete |
+| DEBATE-06 | Phase 2 | Complete |
+| DEBATE-07 | Phase 2 | Complete |
 | SYNTH-01 | Phase 3 | Pending |
 | SYNTH-02 | Phase 3 | Pending |
 | SYNTH-03 | Phase 3 | Pending |

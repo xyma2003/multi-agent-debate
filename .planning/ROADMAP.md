@@ -45,7 +45,7 @@ Plans:
 
 Plans:
 - [x] 02-01-PLAN.md — Install sentence-transformers, create debate/divergence.py (compute_divergence), extend RoundRecord with divergence_score, create tests/test_phase2.py scaffold
-- [ ] 02-02-PLAN.md — divergence_check_node, synthesize_stub, route_divergence + compact summaries, rebuttal context in agents, full Phase 2 graph loop wiring
+- [x] 02-02-PLAN.md — divergence_check_node, synthesize_stub, route_divergence + compact summaries, rebuttal context in agents, full Phase 2 graph loop wiring
 - [ ] 02-03-PLAN.md — Live integration tests: full graph termination, round_history integrity, concession field validation, recursion limit verification
 
 ### Phase 3: Synthesis & Report

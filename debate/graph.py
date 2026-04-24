@@ -34,21 +34,26 @@ def build_graph():
     """Build and compile the Phase 1 debate graph."""
     builder = StateGraph(DebateState)
 
-    # Register all nodes
+    # Register agent and collect nodes
+    # NOTE: dispatch_round1 is NOT registered as a node -- it is a routing function.
+    # When passed directly to add_conditional_edges, LangGraph calls it with the
+    # current state and uses the returned list[Send] for parallel fan-out.
+    # Registering it as a node causes InvalidUpdateError because LangGraph then
+    # tries to merge the list[Send] return value as a state update dict.
     builder.add_node("initialize", initialize_node)
-    builder.add_node("dispatch_round1", dispatch_round1)
     builder.add_node("optimist_node", optimist_node)
     builder.add_node("pessimist_node", pessimist_node)
     builder.add_node("devil_node", devil_node)
     builder.add_node("collect_round1", collect_round1)
 
-    # Linear edges
+    # Linear edge from START to initialize
     builder.add_edge(START, "initialize")
-    builder.add_edge("initialize", "dispatch_round1")
 
-    # Fan-out: dispatch_round1 returns list[Send] -- identity lambda passes it through
-    # DO NOT use add_edge here -- that creates a single edge, not a parallel fan-out
-    builder.add_conditional_edges("dispatch_round1", lambda s: s)
+    # Fan-out: pass dispatch_round1 directly as the routing function.
+    # It receives the current state and returns list[Send], which LangGraph
+    # uses to dispatch optimist_node, pessimist_node, and devil_node in parallel.
+    # DO NOT use add_edge here -- that creates a single edge, not a parallel fan-out.
+    builder.add_conditional_edges("initialize", dispatch_round1)
 
     # Fan-in: all three agent nodes converge to collect_round1
     builder.add_edge("optimist_node", "collect_round1")

@@ -41,7 +41,12 @@ Plans:
   2. When divergence score exceeds the threshold, the rebuttal loop fires and agents receive compact summaries of opposing arguments in the next round
   3. The loop terminates automatically when divergence drops below threshold or after 3 rounds, whichever comes first
   4. When an agent concedes a point, the concession record names the source agent whose argument triggered it and includes a one-line reason
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Install sentence-transformers, create debate/divergence.py (compute_divergence), extend RoundRecord with divergence_score, create tests/test_phase2.py scaffold
+- [ ] 02-02-PLAN.md — divergence_check_node, synthesize_stub, route_divergence + compact summaries, rebuttal context in agents, full Phase 2 graph loop wiring
+- [ ] 02-03-PLAN.md — Live integration tests: full graph termination, round_history integrity, concession field validation, recursion limit verification
 
 ### Phase 3: Synthesis & Report
 **Goal**: A Synthesizer agent that consumes the completed debate state and produces a final report with formula-derived confidence score, explicit consensus/disputed split, and full reasoning trace
@@ -81,7 +86,7 @@ Plans:
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
-| 2. Debate Engine | 0/TBD | Not started | - |
+| 2. Debate Engine | 0/3 | Not started | - |
 | 3. Synthesis & Report | 0/TBD | Not started | - |
 | 4. Persistence | 0/TBD | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

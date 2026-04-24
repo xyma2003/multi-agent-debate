@@ -85,8 +85,11 @@ Plans:
   2. Final report section renders consensus points and disputed points in separate visual blocks, with confidence score prominently displayed
   3. Full reasoning trace is accessible via an expandable section without cluttering the main report view
   4. A fresh browser session with no prior state completes a full debate end-to-end without errors or blank screens
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — requirements.txt (streamlit==1.56.0), app.py (full streaming Streamlit app, session state machine, render_report), tests/test_phase5.py
+- [ ] 05-02-PLAN.md — .streamlit/config.toml (demo-stable server config), README.md (setup-to-run docs), human verify checkpoint
 
 ## Progress
 
@@ -96,4 +99,4 @@ Plans:
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
 | 3. Synthesis & Report | 2/2 | Complete    | 2026-04-24 |
 | 4. Persistence | 1/2 | Complete    | 2026-04-24 |
-| 5. Streamlit UI | 0/TBD | Not started | - |
+| 5. Streamlit UI | 0/2 | Not started | - |

@@ -57,6 +57,9 @@ A working Streamlit web app where:
 - ✓ Semantic divergence detection on key_claims (BAAI/bge-small-en-v1.5, normalize_embeddings=True) — validated in Phase 2
 - ✓ Multi-round rebuttal loop with max_rounds guard + convergence threshold — validated in Phase 2
 - ✓ Concession tracking with triggered_by_agent + triggered_by_claim attribution — validated in Phase 2
+- ✓ Synthesizer produces DebateReport with consensus/disputed split and full reasoning trace — validated in Phase 3
+- ✓ Confidence score formula (1 - max_divergence_score) * round_adjustment computed in Python, not LLM — validated in Phase 3
+- ✓ Non-convergence path: verdict starts with "Agents did not reach consensus" when max_rounds hit — validated in Phase 3
 
 ### Active
 
@@ -94,4 +97,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 
 ---
-*Last updated: 2026-04-24 after Phase 2 (Debate Engine) completion*
+*Last updated: 2026-04-24 after Phase 3 (Synthesis & Report) completion*

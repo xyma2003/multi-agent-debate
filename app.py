@@ -35,11 +35,18 @@ if "debate_status" not in st.session_state:
 
 # ---------------------------------------------------------------------------
 # API key guard (fail loudly on fresh run with no key — UI-04)
+# Supports both direct API key and internal proxy (ANTHROPIC_AUTH_TOKEN)
 # ---------------------------------------------------------------------------
-if not os.environ.get("ANTHROPIC_API_KEY"):
-    st.error(
-        "ANTHROPIC_API_KEY environment variable is not set. "
-        "Export it before running: export ANTHROPIC_API_KEY=sk-..."
+_has_api_key = bool(
+    os.environ.get("ANTHROPIC_API_KEY")
+    or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+)
+if not _has_api_key:
+    st.warning(
+        "⚠️ No API credentials found. Set one of:\n\n"
+        "- `ANTHROPIC_API_KEY=sk-ant-...` (direct Anthropic API)\n"
+        "- `ANTHROPIC_AUTH_TOKEN=...` + `ANTHROPIC_BASE_URL=...` (internal proxy)\n\n"
+        "See README.md for setup instructions."
     )
     st.stop()
 

@@ -74,7 +74,7 @@ Plans:
 
 Plans:
 - [x] 04-01-PLAN.md — debate/store.py (SQLite save/load/list), debate/nodes/save.py, graph.py topology update
-- [ ] 04-02-PLAN.md — tests/test_phase4.py: unit tests for store functions, integration test full graph saves to DB, replay test
+- [x] 04-02-PLAN.md — tests/test_phase4.py: unit tests for store functions, integration test full graph saves to DB, replay test
 
 ### Phase 5: Streamlit UI
 **Goal**: A demo-ready Streamlit app where a user enters a topic, watches agents debate round by round, and reads the final structured report — with no broken states on a fresh run

@@ -90,3 +90,13 @@ None — no external service configuration required.
 ---
 *Phase: 03-synthesis-report*
 *Completed: 2026-04-24*
+
+## Self-Check: PASSED
+
+Files exist:
+- tests/test_phase3.py — FOUND (8 tests: compute_confidence_formula, compute_confidence_zero_divergence, compute_confidence_formula_round3, non_convergence_verdict, full_graph_produces_debate_report, debate_report_has_all_required_fields, reasoning_trace_contains_all_rounds, confidence_score_not_llm_generated)
+- .planning/phases/03-synthesis-report/03-02-SUMMARY.md — FOUND
+
+Commits exist:
+- 205e4f0 — feat(03-02): add Phase 3 test suite with 8 tests covering SYNTH-01 through SYNTH-05
+- ef2a90f — docs(03-02): complete Phase 3 test suite plan — all SYNTH requirements validated

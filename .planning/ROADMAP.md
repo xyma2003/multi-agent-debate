@@ -90,6 +90,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
-| 3. Synthesis & Report | 2/2 | Complete   | 2026-04-24 |
+| 3. Synthesis & Report | 2/2 | Complete    | 2026-04-24 |
 | 4. Persistence | 0/TBD | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

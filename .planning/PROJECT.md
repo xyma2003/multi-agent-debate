@@ -54,6 +54,9 @@ A working Streamlit web app where:
 - ✓ Each agent produces structured output: position, reasoning, key_claims, confidence, concessions — validated in Phase 1
 - ✓ Methodology-based persona prompts with anti-sycophancy PROHIBITION blocks — validated in Phase 1
 - ✓ Pydantic retry wrapper (2 retries + sentinel injection) prevents graph crashes on parse failure — validated in Phase 1
+- ✓ Semantic divergence detection on key_claims (BAAI/bge-small-en-v1.5, normalize_embeddings=True) — validated in Phase 2
+- ✓ Multi-round rebuttal loop with max_rounds guard + convergence threshold — validated in Phase 2
+- ✓ Concession tracking with triggered_by_agent + triggered_by_claim attribution — validated in Phase 2
 
 ### Active
 
@@ -91,4 +94,4 @@ This document evolves at phase transitions and milestone boundaries.
 3. Audit Out of Scope — reasons still valid?
 
 ---
-*Last updated: 2026-04-24 after Phase 1 (Graph Foundation) completion*
+*Last updated: 2026-04-24 after Phase 2 (Debate Engine) completion*

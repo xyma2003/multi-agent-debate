@@ -14,9 +14,9 @@
 
 ### Agent Quality
 
-- [ ] **AGENT-01**: Each agent has a structural persona prompt that enforces its cognitive bias via methodology (not just "be pessimistic")
-- [ ] **AGENT-02**: Anti-sycophancy instructions prevent agents from conceding to avoid conflict rather than on logical grounds
-- [ ] **AGENT-03**: Pydantic validation errors are handled with 2-retry wrapper; sentinel AgentArgument injected on third failure
+- [x] **AGENT-01**: Each agent has a structural persona prompt that enforces its cognitive bias via methodology (not just "be pessimistic")
+- [x] **AGENT-02**: Anti-sycophancy instructions prevent agents from conceding to avoid conflict rather than on logical grounds
+- [x] **AGENT-03**: Pydantic validation errors are handled with 2-retry wrapper; sentinel AgentArgument injected on third failure
 
 ### Synthesis & Output
 
@@ -62,9 +62,9 @@
 | DEBATE-01 | Phase 1 | Complete |
 | DEBATE-02 | Phase 1 | Complete |
 | DEBATE-03 | Phase 1 | Complete |
-| AGENT-01 | Phase 1 | Pending |
-| AGENT-02 | Phase 1 | Pending |
-| AGENT-03 | Phase 1 | Pending |
+| AGENT-01 | Phase 1 | Complete |
+| AGENT-02 | Phase 1 | Complete |
+| AGENT-03 | Phase 1 | Complete |
 | DEBATE-04 | Phase 2 | Pending |
 | DEBATE-05 | Phase 2 | Pending |
 | DEBATE-06 | Phase 2 | Pending |

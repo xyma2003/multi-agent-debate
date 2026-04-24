@@ -28,8 +28,8 @@
 
 ### Persistence
 
-- [ ] **STORE-01**: Completed debates saved to SQLite with debate_id, topic, timestamp, full DebateReport JSON
-- [ ] **STORE-02**: Debates are replayable by debate_id (load from SQLite and display)
+- [x] **STORE-01**: Completed debates saved to SQLite with debate_id, topic, timestamp, full DebateReport JSON
+- [x] **STORE-02**: Debates are replayable by debate_id (load from SQLite and display)
 
 ### UI
 
@@ -74,8 +74,8 @@
 | SYNTH-03 | Phase 3 | Complete |
 | SYNTH-04 | Phase 3 | Complete |
 | SYNTH-05 | Phase 3 | Complete |
-| STORE-01 | Phase 4 | Pending |
-| STORE-02 | Phase 4 | Pending |
+| STORE-01 | Phase 4 | Complete |
+| STORE-02 | Phase 4 | Complete |
 | UI-01 | Phase 5 | Pending |
 | UI-02 | Phase 5 | Pending |
 | UI-03 | Phase 5 | Pending |

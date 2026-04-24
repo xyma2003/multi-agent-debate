@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-04-24T08:09:55.489Z"
-last_activity: 2026-04-24 -- Phase 04 execution started
+stopped_at: Completed 04-01-PLAN.md
+last_updated: "2026-04-24T08:13:53.835Z"
+last_activity: 2026-04-24
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 10
-  completed_plans: 8
+  completed_plans: 9
   percent: 0
 ---
 
@@ -26,9 +26,9 @@ See: .planning/PROJECT.md (updated 2026-04-23)
 ## Current Position
 
 Phase: 04 (Persistence) — EXECUTING
-Plan: 1 of 2
-Status: Executing Phase 04
-Last activity: 2026-04-24 -- Phase 04 execution started
+Plan: 2 of 2
+Status: Ready to execute
+Last activity: 2026-04-24
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -60,6 +60,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-debate-engine P03 | 10 | 1 tasks | 1 files |
 | Phase 03-synthesis-report P01 | 3 | 2 tasks | 2 files |
 | Phase 03-synthesis-report P02 | 10 | 1 tasks | 1 files |
+| Phase 04-persistence P01 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -93,6 +94,9 @@ Recent decisions affecting current work:
 - [Phase 03-synthesis-report]: max_divergence reads from max(r.divergence_score for r in round_history) not state['divergence_score'] (last-write-wins would miss early high-divergence rounds)
 - [Phase 03-synthesis-report]: pytest.mark.integration pattern established for filtering live-LLM tests without pytest-timeout plugin
 - [Phase 03-synthesis-report]: SYNTH-04 non-convergence coverage via _build_synthesis_context unit test (deterministic, no LLM)
+- [Phase 04-persistence]: save_node returns {} (no state mutation): persistence is a pure side-effect, DebateState needs no new fields
+- [Phase 04-persistence]: get_connection() singleton keyed by resolved absolute path: safe for single-threaded LangGraph graph runs
+- [Phase 04-persistence]: save_debate uses INSERT OR REPLACE so re-running same debate_id updates rather than errors
 
 ### Pending Todos
 
@@ -104,6 +108,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-24T06:37:09.202Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-04-24T08:13:53.833Z
+Stopped at: Completed 04-01-PLAN.md
 Resume file: None

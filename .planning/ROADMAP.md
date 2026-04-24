@@ -73,7 +73,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — debate/store.py (SQLite save/load/list), debate/nodes/save.py, graph.py topology update
+- [x] 04-01-PLAN.md — debate/store.py (SQLite save/load/list), debate/nodes/save.py, graph.py topology update
 - [ ] 04-02-PLAN.md — tests/test_phase4.py: unit tests for store functions, integration test full graph saves to DB, replay test
 
 ### Phase 5: Streamlit UI
@@ -95,5 +95,5 @@ Plans:
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
 | 3. Synthesis & Report | 2/2 | Complete    | 2026-04-24 |
-| 4. Persistence | 0/2 | Not started | - |
+| 4. Persistence | 1/2 | In Progress|  |
 | 5. Streamlit UI | 0/TBD | Not started | - |

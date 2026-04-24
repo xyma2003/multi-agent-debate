@@ -64,6 +64,7 @@ def test_stream_dispatch(sample_report):
     # Import app only if it exists
     if not APP_PATH.exists():
         pytest.skip("app.py not yet created")
+    pytest.importorskip("streamlit", reason="streamlit not installed")
     import streamlit as st
     spec = importlib.util.spec_from_file_location("app", APP_PATH)
     app_mod = importlib.util.module_from_spec(spec)

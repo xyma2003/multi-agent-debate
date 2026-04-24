@@ -57,8 +57,11 @@ Plans:
   2. Confidence score is computed as `(1 - max_divergence_score) * round_adjustment` — the formula is in code, not prompted from the LLM
   3. If the debate did not converge, the report's verdict section explicitly states non-convergence rather than fabricating a consensus
   4. The full reasoning trace (all rounds, all arguments, all concessions with attribution) is accessible on the DebateReport object
-**Plans**: TBD
-**UI hint**: yes
+**Plans**: 2 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — DebateReport + DisputedPoint models in state.py; full synthesize_stub replacement with LLM call, confidence formula, DebateReport assembly
+- [ ] 03-02-PLAN.md — tests/test_phase3.py: confidence formula unit tests, non-convergence path test, full graph integration tests
 
 ### Phase 4: Persistence
 **Goal**: Completed debates are saved to SQLite and can be reloaded and displayed by debate_id
@@ -87,6 +90,6 @@ Plans:
 |-------|----------------|--------|-----------|
 | 1. Graph Foundation | 3/3 | Complete    | 2026-04-24 |
 | 2. Debate Engine | 0/3 | Complete    | 2026-04-24 |
-| 3. Synthesis & Report | 0/TBD | Not started | - |
+| 3. Synthesis & Report | 0/2 | Not started | - |
 | 4. Persistence | 0/TBD | Not started | - |
 | 5. Streamlit UI | 0/TBD | Not started | - |

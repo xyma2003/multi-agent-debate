@@ -83,7 +83,7 @@ cp .env.example .env
 ANTHROPIC_API_KEY=sk-ant-api03-...
 ```
 
-**Option B — Internal proxy (e.g. corporate/Meituan proxy):**
+**Option B — Internal proxy (e.g. corporate proxy):**
 
 ```bash
 # .env

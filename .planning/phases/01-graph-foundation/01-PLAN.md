@@ -74,7 +74,7 @@ langgraph-checkpoint-sqlite==3.0.3
 2. Create `.env.example` at project root:
 
 ```
-# Meituan internal proxy — all three vars required. No ANTHROPIC_API_KEY needed.
+# corporate proxy — all three vars required. No ANTHROPIC_API_KEY needed.
 ANTHROPIC_BASE_URL=https://your-proxy-base-url
 ANTHROPIC_AUTH_TOKEN=your-auth-token
 # Newline-separated "Key: Value" pairs, e.g.:

@@ -84,7 +84,7 @@ Each task was committed atomically:
 
 ## Files Created/Modified
 
-- `debate/llm.py` - _make_llm() factory for Meituan proxy auth with ANTHROPIC_CUSTOM_HEADERS parsing
+- `debate/llm.py` - _make_llm() factory for corporate proxy auth with ANTHROPIC_CUSTOM_HEADERS parsing
 - `debate/prompts.py` - AGENT_PROMPTS dict with methodology-based prompts for all 3 roles
 - `debate/nodes/initialize.py` - initialize_node stamps debate_id, sets all DebateState defaults
 - `debate/nodes/dispatch.py` - dispatch_round1 returns list[Send] for parallel fan-out, minimal payloads

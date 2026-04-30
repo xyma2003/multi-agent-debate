@@ -86,7 +86,7 @@ Create `debate/llm.py` with the proxy-aware `_make_llm()` helper. Copy this verb
 """
 Centralized LLM factory for all debate agent nodes.
 
-The Meituan internal proxy requires three env vars:
+The corporate proxy requires three env vars:
   ANTHROPIC_BASE_URL     — proxy endpoint (read automatically by anthropic SDK)
   ANTHROPIC_AUTH_TOKEN   — auth token (read automatically by anthropic SDK as api_key)
   ANTHROPIC_CUSTOM_HEADERS — newline-separated "Key: Value" pairs passed as default_headers
@@ -101,7 +101,7 @@ MODEL_ID = "claude-sonnet-4-6"  # Locked in CLAUDE.md. Do NOT change to claude-s
 
 
 def _make_llm() -> ChatAnthropic:
-    """Return ChatAnthropic configured for the Meituan internal proxy.
+    """Return ChatAnthropic configured for the corporate proxy.
 
     Reads ANTHROPIC_CUSTOM_HEADERS as newline-separated 'Key: Value' pairs.
     ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN are picked up automatically

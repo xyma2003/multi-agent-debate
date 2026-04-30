@@ -2,12 +2,22 @@
 """
 Centralized LLM factory for all debate agent nodes.
 
-The Meituan internal proxy requires three env vars:
-  ANTHROPIC_BASE_URL     — proxy endpoint (read automatically by anthropic SDK)
-  ANTHROPIC_AUTH_TOKEN   — auth token (read automatically by anthropic SDK as api_key)
-  ANTHROPIC_CUSTOM_HEADERS — newline-separated "Key: Value" pairs passed as default_headers
+Supports two auth modes (see README Option A / Option B):
 
-No ANTHROPIC_API_KEY is needed or used.
+  Option A — Direct Anthropic API key (standard):
+    ANTHROPIC_API_KEY=sk-ant-...
+
+  Option B — Corporate/internal proxy:
+    ANTHROPIC_BASE_URL      — proxy endpoint (read automatically by anthropic SDK)
+    ANTHROPIC_AUTH_TOKEN    — auth token (read automatically by anthropic SDK as api_key)
+    ANTHROPIC_CUSTOM_HEADERS — newline-separated "Key: Value" pairs for any extra
+                               headers required by the proxy (e.g. routing or auth headers)
+
+  Example ANTHROPIC_CUSTOM_HEADERS value:
+    X-Custom-Header: my-value
+    X-Another-Header: another-value
+
+No ANTHROPIC_API_KEY is needed when using Option B.
 """
 import os
 
@@ -17,11 +27,14 @@ MODEL_ID = "claude-sonnet-4-6"  # Locked in CLAUDE.md. Do NOT change to claude-s
 
 
 def _make_llm() -> ChatAnthropic:
-    """Return ChatAnthropic configured for the Meituan internal proxy.
+    """Return ChatAnthropic with optional custom headers for proxy environments.
 
-    Reads ANTHROPIC_CUSTOM_HEADERS as newline-separated 'Key: Value' pairs.
+    Reads ANTHROPIC_CUSTOM_HEADERS as newline-separated 'Key: Value' pairs and
+    passes them as default_headers to ChatAnthropic. If the env var is not set,
+    no extra headers are added (standard API key auth works as-is).
+
     ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN are picked up automatically
-    by the underlying anthropic SDK from the environment.
+    by the underlying anthropic SDK from the environment (Option B proxy setup).
     """
     custom_headers_str = os.environ.get("ANTHROPIC_CUSTOM_HEADERS", "")
     headers: dict[str, str] = {}

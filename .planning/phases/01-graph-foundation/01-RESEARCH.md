@@ -83,7 +83,7 @@ pip install "langgraph==1.1.9" "langchain-anthropic==1.4.1"
 # Pydantic 2.12.4 already present; langgraph will accept it (requires >=2.7.4)
 ```
 
-**Note on auth:** The project uses a Meituan internal proxy. No `ANTHROPIC_API_KEY` is required. The `_make_llm()` helper must read `ANTHROPIC_CUSTOM_HEADERS` and pass them as `default_headers` to `ChatAnthropic`. See the working implementation in `workdiary_agent/nodes/extract.py` — copy that helper verbatim and update the model name to `claude-sonnet-4-6`.
+**Note on auth:** The project uses a corporate proxy. No `ANTHROPIC_API_KEY` is required. The `_make_llm()` helper must read `ANTHROPIC_CUSTOM_HEADERS` and pass them as `default_headers` to `ChatAnthropic`. See the working implementation in `workdiary_agent/nodes/extract.py` — copy that helper verbatim and update the model name to `claude-sonnet-4-6`.
 
 ---
 
@@ -361,7 +361,7 @@ MODEL_ID = "claude-sonnet-4-6"   # Phase 1–5 (confirmed in STACK.md)
 
 
 def _make_llm() -> ChatAnthropic:
-    """Return ChatAnthropic configured for the Meituan internal proxy.
+    """Return ChatAnthropic configured for the corporate proxy.
 
     Reads ANTHROPIC_CUSTOM_HEADERS (newline-separated 'Key: Value' pairs).
     ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN are read automatically by the

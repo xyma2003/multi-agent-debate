@@ -97,7 +97,7 @@ None - plan executed exactly as written.
 
 ## User Setup Required
 None - no external service configuration required.
-Configure `.env.example` values by copying to `.env` and filling in the Meituan proxy credentials before Plan 02 execution (LLM calls begin there).
+Configure `.env.example` values by copying to `.env` and filling in the corporate proxy credentials before Plan 02 execution (LLM calls begin there).
 
 ## Next Phase Readiness
 - `debate/state.py` is ready to import from Plan 02 (`from debate.state import AgentArgument, Concession`) and Plan 03 (`from debate.state import DebateState`)

@@ -41,6 +41,11 @@ from debate.state import AgentArgument
 DIVERGE_THRESHOLD: float = 0.75      # cosine: max_sim below this → diverged
 CONVERGE_FAST_PATH: float = 0.97     # both modes: cosine fast-path threshold
 
+# Adaptive convergence constants (used by route_divergence / route_divergence_nli)
+PLATEAU_DELTA: float = 0.05          # min per-round score change to count as "progress"
+PLATEAU_MIN_ROUNDS: int = 2          # need ≥ this many rounds of history to check plateau
+ABSOLUTE_MAX_ROUNDS: int = 10        # hard safety cap regardless of convergence signal
+
 # NLI: contradiction probability above this → pair is diverged
 NLI_CONTRADICTION_THRESHOLD: float = 0.5
 

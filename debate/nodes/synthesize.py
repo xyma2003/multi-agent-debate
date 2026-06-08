@@ -18,7 +18,12 @@ from datetime import datetime, timezone
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
 
-from debate.divergence import DIVERGE_THRESHOLD
+from debate.divergence import (
+    ABSOLUTE_MAX_ROUNDS,
+    DIVERGE_THRESHOLD,
+    PLATEAU_DELTA,
+    PLATEAU_MIN_ROUNDS,
+)
 from debate.llm import _make_llm
 from debate.state import Concession, DebateReport, DebateState, DisputedPoint, RoundRecord
 
@@ -110,23 +115,33 @@ def _compute_confidence_score(round_history: list[RoundRecord], round_num: int) 
 def _determine_convergence_status(
     divergence_score: float,
     round_num: int,
-    max_rounds: int,
+    round_history: list,
 ) -> str:
     """Classify how the debate loop terminated.
 
-    Uses DIVERGE_THRESHOLD (0.75) imported from debate.divergence — same value
-    used by route_divergence. The stub's hardcoded 0.25 was a bug.
+    Mirrors the four-guard order in route_divergence so the status label
+    accurately reflects which condition fired.
 
-    "partial" is a defensive fallback: it should not occur in normal graph flow
-    (route_divergence only routes to synthesize_stub on max_rounds or convergence),
-    but is kept for robustness.
+    "partial" is a defensive fallback for unexpected states.
     """
-    # Mirror route_divergence guard order: max_rounds check comes first.
-    if round_num >= max_rounds:
+    # Guard 1: absolute safety cap
+    if round_num >= ABSOLUTE_MAX_ROUNDS:
         return "max_rounds"
-    elif divergence_score < DIVERGE_THRESHOLD:
+    # Guard 2: genuine convergence
+    if divergence_score < DIVERGE_THRESHOLD:
         return "converged"
-    return "partial"  # defensive fallback; see module docstring
+    # Guard 3: score plateau
+    if len(round_history) >= PLATEAU_MIN_ROUNDS:
+        prev_score = round_history[-2].divergence_score
+        curr_score = round_history[-1].divergence_score
+        if abs(prev_score - curr_score) < PLATEAU_DELTA:
+            return "plateau"
+    # Guard 4: no concessions
+    if len(round_history) >= 2:
+        last_round = round_history[-1]
+        if sum(len(arg.concessions) for arg in last_round.arguments) == 0:
+            return "stalled"
+    return "partial"  # defensive fallback
 
 
 # ---------------------------------------------------------------------------
@@ -174,11 +189,16 @@ def _build_synthesis_context(
         lines.append("")
 
     # Non-convergence honest-uncertainty path (SYNTH-04)
-    if convergence_status == "max_rounds":
+    _non_convergence_reasons = {
+        "max_rounds": "the absolute round limit was reached",
+        "plateau":    "the divergence score stopped changing (agents are stuck)",
+        "stalled":    "no agent made any concessions in the final round",
+    }
+    if convergence_status in _non_convergence_reasons:
+        reason = _non_convergence_reasons[convergence_status]
         lines.append(
-            "\n\nIMPORTANT: The agents did NOT reach consensus — the debate ended "
-            "because the maximum number of rounds was reached, not because divergence "
-            "dropped below the threshold. Your verdict MUST begin with exactly: "
+            f"\n\nIMPORTANT: The agents did NOT reach consensus — the debate ended "
+            f"because {reason}. Your verdict MUST begin with exactly: "
             "'Agents did not reach consensus on this topic.'"
         )
 
@@ -243,7 +263,7 @@ def synthesize_stub(state: DebateState) -> dict:
 
     # Step 1: convergence status
     convergence_status = _determine_convergence_status(
-        divergence_score, round_num, max_rounds
+        divergence_score, round_num, round_history
     )
 
     # Step 2: compact context

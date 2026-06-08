@@ -114,8 +114,15 @@ class DebateReport(BaseModel):
         le=1.0,
         description="Formula-derived score: (1 - max_divergence_score) * round_adjustment",
     )
-    convergence_status: Literal["converged", "max_rounds", "partial"] = Field(
-        description="How the debate loop terminated"
+    convergence_status: Literal["converged", "plateau", "stalled", "max_rounds", "partial"] = Field(
+        description=(
+            "How the debate loop terminated: "
+            "'converged' = score dropped below threshold; "
+            "'plateau' = score stopped changing (< PLATEAU_DELTA per round); "
+            "'stalled' = no concessions in last round; "
+            "'max_rounds' = absolute safety cap hit; "
+            "'partial' = defensive fallback"
+        )
     )
     reasoning_trace: list[RoundRecord] = Field(
         description="All RoundRecords from round_history — full argument provenance"

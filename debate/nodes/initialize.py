@@ -15,7 +15,7 @@ def initialize_node(state: DebateState) -> dict:
     return {
         "debate_id": str(uuid.uuid4()),
         "round_num": 0,
-        "max_rounds": state.get("max_rounds", 3),
+        "max_rounds": state.get("max_rounds", 8),  # advisory; hard cap is ABSOLUTE_MAX_ROUNDS=10
         "current_round_arguments": [],
         "round_history": [],
         "divergence_score": 0.0,

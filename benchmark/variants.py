@@ -548,24 +548,44 @@ def divergence_check_node_nli(state: DebateState) -> dict:
 
 
 def route_divergence_nli(state: DebateState):
-    """Routing function for NLI variant.
+    """Routing function for NLI variant — adaptive convergence with 4 guards.
 
-    Uses NLI_CONTRADICTION_THRESHOLD (0.5) instead of cosine DIVERGE_THRESHOLD (0.75).
-    NLI divergence_score = mean(max_contradiction_prob) so the scale is different.
+    Uses NLI_CONTRADICTION_THRESHOLD (0.5) for Guard 2 (genuine convergence)
+    instead of cosine DIVERGE_THRESHOLD (0.75). Guards 1/3/4 are identical
+    to the cosine route_divergence.
     """
-    from debate.divergence import NLI_CONTRADICTION_THRESHOLD
+    from debate.divergence import (
+        ABSOLUTE_MAX_ROUNDS,
+        NLI_CONTRADICTION_THRESHOLD,
+        PLATEAU_DELTA,
+        PLATEAU_MIN_ROUNDS,
+    )
 
     round_num = state.get("round_num", 0)
-    max_rounds = state.get("max_rounds", 3)
     divergence_score = state.get("divergence_score", 0.0)
     topic = state.get("topic", "")
     round_history = state.get("round_history", [])
 
-    if round_num >= max_rounds:
+    # Guard 1: absolute safety cap
+    if round_num >= ABSOLUTE_MAX_ROUNDS:
         return "synthesize_stub"
 
+    # Guard 2: genuine convergence (NLI threshold)
     if divergence_score < NLI_CONTRADICTION_THRESHOLD:
         return "synthesize_stub"
+
+    # Guard 3: score plateau
+    if len(round_history) >= PLATEAU_MIN_ROUNDS:
+        prev_score = round_history[-2].divergence_score
+        curr_score = round_history[-1].divergence_score
+        if abs(prev_score - curr_score) < PLATEAU_DELTA:
+            return "synthesize_stub"
+
+    # Guard 4: no concessions last round
+    if len(round_history) >= 2:
+        last_round = round_history[-1]
+        if sum(len(arg.concessions) for arg in last_round.arguments) == 0:
+            return "synthesize_stub"
 
     compact_summaries = _build_compact_summaries(round_history)
     return [

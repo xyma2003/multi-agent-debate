@@ -8,7 +8,12 @@ prior rounds, violating Round 1 isolation (PITFALL 4 in RESEARCH.md).
 """
 from langgraph.types import Send
 
-from debate.divergence import DIVERGE_THRESHOLD
+from debate.divergence import (
+    ABSOLUTE_MAX_ROUNDS,
+    DIVERGE_THRESHOLD,
+    PLATEAU_DELTA,
+    PLATEAU_MIN_ROUNDS,
+)
 from debate.state import DebateState
 
 
@@ -62,30 +67,48 @@ def route_divergence(state: DebateState):
 
     Returns list[Send] to fan out rebuttal agents OR 'synthesize_stub' to terminate.
 
-    CRITICAL ORDERING (Pitfall 2 in RESEARCH.md):
-      Guard 1 — max_rounds check MUST come first. If divergence_score is stuck
-      (bug or genuinely persistent disagreement), max_rounds is the only escape.
-      Checking score first and then max_rounds would allow runaway loops if the
-      score check has a bug.
+    Four-guard adaptive convergence (evaluated in order):
+      Guard 1 — absolute safety cap (ABSOLUTE_MAX_ROUNDS). Prevents infinite loops
+                regardless of all other signals. max_rounds from invoke() is ignored
+                here; use it as a per-invocation override via graph.invoke.
+      Guard 2 — genuine convergence: score dropped below DIVERGE_THRESHOLD.
+      Guard 3 — score plateau: score changed less than PLATEAU_DELTA for the last
+                two rounds. Agents are stuck — more rounds won't help.
+      Guard 4 — no concessions: no agent conceded anything last round. Agents are
+                just repeating themselves with different words.
 
     DO NOT register this as a node. Pass directly to add_conditional_edges.
-    (Pitfall 1: registering returns list[Send] as state update → InvalidUpdateError)
+    (Pitfall: registering returns list[Send] as state update → InvalidUpdateError)
     """
     round_num = state.get("round_num", 0)
-    max_rounds = state.get("max_rounds", 3)
     divergence_score = state.get("divergence_score", 0.0)
     topic = state.get("topic", "")
     round_history = state.get("round_history", [])
 
-    # Guard 1: hard stop — max rounds reached regardless of divergence
-    if round_num >= max_rounds:
+    # Guard 1: absolute safety cap — always check first
+    if round_num >= ABSOLUTE_MAX_ROUNDS:
         return "synthesize_stub"
 
-    # Guard 2: converged — agents have reached semantic agreement
+    # Guard 2: genuine convergence — score dropped below threshold
     if divergence_score < DIVERGE_THRESHOLD:
         return "synthesize_stub"
 
-    # Diverged and within round budget: fan out rebuttal agents
+    # Guard 3: score plateau — no meaningful progress in last two rounds
+    if len(round_history) >= PLATEAU_MIN_ROUNDS:
+        prev_score = round_history[-2].divergence_score
+        curr_score = round_history[-1].divergence_score
+        if abs(prev_score - curr_score) < PLATEAU_DELTA:
+            return "synthesize_stub"
+
+    # Guard 4: no concessions last round — agents are repeating themselves
+    # (only applies after ≥1 rebuttal round so Round 1 is never penalised)
+    if len(round_history) >= 2:
+        last_round = round_history[-1]
+        total_concessions = sum(len(arg.concessions) for arg in last_round.arguments)
+        if total_concessions == 0:
+            return "synthesize_stub"
+
+    # Still making progress → fan out rebuttal agents
     compact_summaries = _build_compact_summaries(round_history)
     return [
         Send(

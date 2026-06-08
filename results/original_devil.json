@@ -1,0 +1,160 @@
+{
+  "variant": "original_devil",
+  "run_at": "2026-06-07T06:50:58.307551+00:00",
+  "meta": {
+    "max_rounds": 3,
+    "total_questions": 10
+  },
+  "results": [
+    {
+      "question_id": 1,
+      "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+      "system": "original_devil",
+      "pds": 0.1632,
+      "sss": 1.0,
+      "hedge_ratio": 0.0028,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Early-stage startups should raise venture capital to accelerate growth and gain a competitive advantage.",
+        "pessimist": "Early-stage startups should not raise venture capital due to the high risk of losing control and autonomy.",
+        "devil": "Early-stage startups should not raise venture capital and instead stay bootstrapped to maintain control and avoid unnecessary debt."
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "Is it better to be first-to-market, or best-in-class?",
+      "system": "original_devil",
+      "pds": 0.1753,
+      "sss": 1.0,
+      "hedge_ratio": 0.0097,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Being first-to-market is the most effective strategy for achieving long-term success.",
+        "pessimist": "Being first-to-market is a high-risk strategy that often leads to significant financial losses due to inadequate product testing and market validation.",
+        "devil": "Being first-to-market is not a reliable strategy for long-term success, as it often prioritizes speed over sustainability and quality."
+      }
+    },
+    {
+      "question_id": 3,
+      "question": "Should tech companies prioritize growth over profitability in their early years?",
+      "system": "original_devil",
+      "pds": 0.2136,
+      "sss": 1.0,
+      "hedge_ratio": 0.0024,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Tech companies should prioritize growth over profitability in their early years to rapidly expand their user base and gain a competitive advantage.",
+        "pessimist": "Tech companies that prioritize growth over profitability in their early years risk accumulating unsustainable debt and ultimately facing financial collapse.",
+        "devil": "Tech companies should prioritize profitability over growth in their early years to ensure long-term sustainability."
+      }
+    },
+    {
+      "question_id": 4,
+      "question": "Is it better to hire specialists or generalists when building a small team?",
+      "system": "original_devil",
+      "pds": 0.1155,
+      "sss": 1.0,
+      "hedge_ratio": 0.0163,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Hiring generalists is better when building a small team because they can handle a wide range of tasks and adapt to changing circumstances.",
+        "pessimist": "Hiring generalists over specialists poses a significant risk to the team's overall performance due to the lack of deep expertise in critical areas.",
+        "devil": "Hiring generalists is a flawed approach for small teams as it leads to a lack of depth in critical areas."
+      }
+    },
+    {
+      "question_id": 5,
+      "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
+      "system": "original_devil",
+      "pds": 0.2301,
+      "sss": 1.0,
+      "hedge_ratio": 0.0114,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "A B2B SaaS company should target enterprise clients first to maximize revenue potential and establish market credibility.",
+        "pessimist": "A B2B SaaS company should not target enterprise clients first due to high sales cycle complexity and costs.",
+        "devil": "A B2B SaaS company should not target enterprise clients first because they have longer sales cycles and higher customer acquisition costs."
+      }
+    },
+    {
+      "question_id": 6,
+      "question": "Is 'move fast and break things' a sound product development philosophy?",
+      "system": "original_devil",
+      "pds": 0.2577,
+      "sss": 1.0,
+      "hedge_ratio": 0.0039,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "The 'move fast and break things' philosophy is a sound product development approach because it fosters innovation and rapid progress.",
+        "pessimist": "The 'move fast and break things' philosophy is likely to result in a high rate of product failures due to inadequate testing and oversight.",
+        "devil": "The 'move fast and break things' philosophy is fundamentally flawed as it prioritizes speed over sustainability and user experience."
+      }
+    },
+    {
+      "question_id": 7,
+      "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
+      "system": "original_devil",
+      "pds": 0.1402,
+      "sss": 1.0,
+      "hedge_ratio": 0.011,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Startups should build custom internal tools to gain a competitive advantage.",
+        "pessimist": "Startups should not build custom internal tools due to the high risk of project delays and cost overruns.",
+        "devil": "Startups should not build custom internal tools due to the high opportunity cost and potential for diverting resources away from core business activities."
+      }
+    },
+    {
+      "question_id": 8,
+      "question": "Is it better for a founder to be a domain expert or a generalist operator?",
+      "system": "original_devil",
+      "pds": 0.1505,
+      "sss": 1.0,
+      "hedge_ratio": 0.0134,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "It is better for a founder to be a domain expert because they can leverage their specialized knowledge to drive innovation and growth in their specific industry.",
+        "pessimist": "A founder lacking domain expertise is more likely to fail due to misunderstandings of the industry's nuances.",
+        "devil": "A founder should not be a domain expert because it leads to narrow-mindedness and inability to adapt to changing market conditions."
+      }
+    },
+    {
+      "question_id": 9,
+      "question": "Should a growing startup adopt microservices or stick with a monolithic architecture?",
+      "system": "original_devil",
+      "pds": 0.164,
+      "sss": 1.0,
+      "hedge_ratio": 0.0028,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "A growing startup should adopt microservices architecture to increase scalability and flexibility",
+        "pessimist": "A growing startup should not adopt microservices architecture due to the increased complexity and higher risk of system failures.",
+        "devil": "A growing startup should stick with a monolithic architecture because it allows for faster development and deployment in the early stages, and the added complexity of microservices is not justified by the potential benefits at this point."
+      }
+    },
+    {
+      "question_id": 10,
+      "question": "Should AI companies open-source their frontier models?",
+      "system": "original_devil",
+      "pds": 0.0973,
+      "sss": 1.0,
+      "hedge_ratio": 0.0031,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "AI companies should open-source their frontier models to accelerate innovation and progress in the field.",
+        "pessimist": "AI companies should not open-source their frontier models because it would compromise their competitive advantage and expose their intellectual property to theft and misuse.",
+        "devil": "AI companies should not open-source their frontier models as it would compromise their competitive advantage and potentially lead to misuse."
+      }
+    }
+  ]
+}

@@ -1,0 +1,160 @@
+{
+  "variant": "full_system",
+  "run_at": "2026-06-08T03:24:24.275381+00:00",
+  "meta": {
+    "max_rounds": 3,
+    "total_questions": 10
+  },
+  "results": [
+    {
+      "question_id": 1,
+      "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+      "system": "full_system",
+      "pds": 0.2754,
+      "sss": 1.0,
+      "hedge_ratio": 0.0132,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Early-stage startups should raise venture capital to accelerate growth and gain a competitive advantage.",
+        "pessimist": "Early-stage startups should not raise venture capital because it leads to loss of control and misaligned incentives.",
+        "devil": "The debate over whether early-stage startups should raise venture capital or stay bootstrapped obscures the more fundamental question of whether the current entrepreneurial ecosystem prioritizes sustainable growth over exponential scaling"
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "Is it better to be first-to-market, or best-in-class?",
+      "system": "full_system",
+      "pds": 0.2246,
+      "sss": 1.0,
+      "hedge_ratio": 0.0033,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Being first-to-market is the most effective strategy for achieving long-term success.",
+        "pessimist": "Being first-to-market is a high-risk strategy that often leads to significant financial losses due to inadequate product testing and insufficient market validation.",
+        "devil": "The pursuit of being first-to-market or best-in-class is misguided because it overlooks the dynamic nature of market needs and consumer preferences."
+      }
+    },
+    {
+      "question_id": 3,
+      "question": "Should tech companies prioritize growth over profitability in their early years?",
+      "system": "full_system",
+      "pds": 0.2917,
+      "sss": 1.0,
+      "hedge_ratio": 0.0032,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Tech companies should prioritize growth over profitability in their early years to rapidly expand their user base and capture market share.",
+        "pessimist": "Tech companies that prioritize growth over profitability in their early years risk accumulating unsustainable debt and ultimately facing financial collapse.",
+        "devil": "The dichotomy between growth and profitability is a false one, as it neglects the role of externalities and societal impact in the valuation of tech companies"
+      }
+    },
+    {
+      "question_id": 4,
+      "question": "Is it better to hire specialists or generalists when building a small team?",
+      "system": "full_system",
+      "pds": 0.1442,
+      "sss": 1.0,
+      "hedge_ratio": 0.0196,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Hiring generalists is better than hiring specialists when building a small team because they can handle a wider range of tasks and adapt to changing circumstances.",
+        "pessimist": "Hiring generalists over specialists poses a significant risk to the team's overall performance due to the lack of deep expertise in critical areas.",
+        "devil": "The debate between hiring specialists or generalists is misguided because it overlooks the importance of adaptability in a rapidly changing work environment."
+      }
+    },
+    {
+      "question_id": 5,
+      "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
+      "system": "full_system",
+      "pds": 0.2763,
+      "sss": 1.0,
+      "hedge_ratio": 0.013,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "A B2B SaaS company should target enterprise clients first to maximize revenue potential and establish market credibility.",
+        "pessimist": "A B2B SaaS company should not target enterprise clients first due to high sales cycle complexity and costs.",
+        "devil": "The B2B SaaS company's initial target market should be determined by a variable cost-benefit analysis rather than a simplistic enterprise vs SMB dichotomy"
+      }
+    },
+    {
+      "question_id": 6,
+      "question": "Is 'move fast and break things' a sound product development philosophy?",
+      "system": "full_system",
+      "pds": 0.3031,
+      "sss": 1.0,
+      "hedge_ratio": 0.0082,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Adopting a 'move fast and break things' philosophy is essential for rapid innovation and staying ahead in competitive markets.",
+        "pessimist": "The 'move fast and break things' philosophy is likely to result in a high proportion of defective products being released to the market.",
+        "devil": "The 'move fast and break things' philosophy is fundamentally flawed because it overlooks the long-term consequences of reckless innovation on societal trust and infrastructure."
+      }
+    },
+    {
+      "question_id": 7,
+      "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
+      "system": "full_system",
+      "pds": 0.2141,
+      "sss": 1.0,
+      "hedge_ratio": 0.0085,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Startups should build custom internal tools to gain a competitive advantage.",
+        "pessimist": "Startups should not build custom internal tools due to the high risk of resource diversion and project failure.",
+        "devil": "The debate over custom internal tools versus off-the-shelf software is misguided because it overlooks the dynamic nature of a startup's needs."
+      }
+    },
+    {
+      "question_id": 8,
+      "question": "Is it better for a founder to be a domain expert or a generalist operator?",
+      "system": "full_system",
+      "pds": 0.1858,
+      "sss": 1.0,
+      "hedge_ratio": 0.0155,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "It is better for a founder to be a domain expert because they can leverage their specialized knowledge to drive innovation and growth in their specific industry.",
+        "pessimist": "A founder lacking domain expertise is more likely to fail due to misunderstandings of the industry's nuances.",
+        "devil": "The debate over whether a founder should be a domain expert or a generalist operator is misguided because it overlooks the importance of adaptability in a rapidly changing business environment."
+      }
+    },
+    {
+      "question_id": 9,
+      "question": "Should a growing startup adopt microservices or stick with a monolithic architecture?",
+      "system": "full_system",
+      "pds": 0.1582,
+      "sss": 1.0,
+      "hedge_ratio": 0.0028,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "A growing startup should adopt microservices architecture to increase scalability and flexibility.",
+        "pessimist": "A growing startup should not adopt microservices due to the increased complexity and higher risk of system failures.",
+        "devil": "The choice between microservices and monolithic architecture is a false dichotomy that obscures the more critical issue of whether the startup's organizational structure and culture can support the complexity of either approach."
+      }
+    },
+    {
+      "question_id": 10,
+      "question": "Should AI companies open-source their frontier models?",
+      "system": "full_system",
+      "pds": 0.1682,
+      "sss": 1.0,
+      "hedge_ratio": 0.0056,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "AI companies should open-source their frontier models to accelerate innovation and progress in the field.",
+        "pessimist": "AI companies should not open-source their frontier models because it would compromise their competitive advantage and expose their intellectual property to potential misuse.",
+        "devil": "The question of whether AI companies should open-source their frontier models is misguided because it assumes that the primary goal of these companies is to benefit society, when in fact their primary goal is to maximize profits."
+      }
+    }
+  ]
+}

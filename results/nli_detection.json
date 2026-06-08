@@ -1,0 +1,40 @@
+{
+  "variant": "nli_detection",
+  "run_at": "2026-06-07T07:15:33.864900+00:00",
+  "meta": {
+    "max_rounds": 3,
+    "total_questions": 10
+  },
+  "results": [
+    {
+      "question_id": 1,
+      "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+      "system": "nli_detection",
+      "pds": 0.1439,
+      "sss": 0.8831,
+      "hedge_ratio": 0.005,
+      "rounds": 3,
+      "convergence_status": "max_rounds",
+      "agent_positions": {
+        "optimist": "Early-stage startups should raise venture capital to accelerate growth and increase their competitive advantage.",
+        "pessimist": "Early-stage startups should not raise venture capital due to the high risk of loss of control and founder dilution",
+        "devil": "Early-stage startups should prioritize bootstrapping to maintain control and ensure sustainable growth"
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "Is it better to be first-to-market, or best-in-class?",
+      "system": "nli_detection",
+      "pds": 0.1952,
+      "sss": 1.0,
+      "hedge_ratio": 0.0071,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Being first-to-market is the most effective strategy for achieving long-term success.",
+        "pessimist": "Being first-to-market is a high-risk strategy that often leads to significant financial losses due to inadequate product testing and insufficient market validation.",
+        "devil": "Being first-to-market is not a reliable strategy for long-term success, as it often prioritizes speed over sustainability and quality."
+      }
+    }
+  ]
+}

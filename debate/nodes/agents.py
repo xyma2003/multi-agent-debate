@@ -79,25 +79,50 @@ def _agent_node(state: dict, role: str) -> dict:
     # Base human message — same for all rounds
     human_content = f"Topic for analysis: {topic}\n\nRound: {round_num + 1}"
 
-    # Rebuttal rounds: inject opposing arguments and concession instructions
+    # Rebuttal rounds: inject full debate history and concession instructions
     if prior_arguments and round_num > 0:
-        human_content += "\n\n--- Opposing arguments from the previous round ---"
-        for arg_summary in prior_arguments:
-            if arg_summary.get("agent_role") == role:
-                continue  # Skip own prior argument — only show opponents
-            claims_text = "\n".join(
-                f"  - {c}" for c in arg_summary.get("key_claims", [])
-            )
-            human_content += (
-                f"\n\n[{arg_summary['agent_role'].upper()}]"
-                f"\nPosition: {arg_summary['position']}"
-                f"\nKey claims:\n{claims_text}"
-                f"\nConfidence: {arg_summary['confidence']:.0%}"
-            )
+        # Group all summaries by round_num
+        rounds: dict[int, dict[str, dict]] = {}
+        for s in prior_arguments:
+            rnd = s["round_num"]
+            if rnd not in rounds:
+                rounds[rnd] = {}
+            rounds[rnd][s["agent_role"]] = s
+
+        # Own position history — lets agent stay consistent across rounds
+        own_rounds = sorted(r for r in rounds if role in rounds[r])
+        if own_rounds:
+            human_content += "\n\n--- Your position history ---"
+            for rnd in own_rounds:
+                own = rounds[rnd][role]
+                human_content += f"\n\n[YOUR POSITION — Round {rnd + 1}]"
+                human_content += f"\nPosition: {own['position']}"
+
+        # Opponent arguments from all rounds, grouped by round
+        human_content += "\n\n--- Full debate history (opponents) ---"
+        for rnd in sorted(rounds.keys()):
+            opponent_args = [
+                rounds[rnd][r] for r in rounds[rnd] if r != role
+            ]
+            if not opponent_args:
+                continue
+            human_content += f"\n\n== Round {rnd + 1} =="
+            for arg_summary in opponent_args:
+                claims_text = "\n".join(
+                    f"  - {c}" for c in arg_summary.get("key_claims", [])
+                )
+                human_content += (
+                    f"\n\n[{arg_summary['agent_role'].upper()}]"
+                    f"\nPosition: {arg_summary['position']}"
+                    f"\nKey claims:\n{claims_text}"
+                    f"\nConfidence: {arg_summary['confidence']:.0%}"
+                )
 
         human_content += (
             "\n\n--- Rebuttal instructions ---"
             "\nRebut the opposing arguments above. Maintain your analytical stance."
+            "\nYou can see the full debate history — if an opponent dodged one of"
+            " your earlier arguments, call it out explicitly."
             "\nIf (and ONLY if) an opponent's specific claim is logically superior,"
             " record it in your concessions list with:"
             "\n  triggered_by_agent: the opponent's role (e.g., 'pessimist')"

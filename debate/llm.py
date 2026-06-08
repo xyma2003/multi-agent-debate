@@ -2,46 +2,50 @@
 """
 Centralized LLM factory for all debate agent nodes.
 
-Supports two auth modes (see README Option A / Option B):
+Select backend via LLM_BACKEND env var (default: gemini):
 
-  Option A — Direct Anthropic API key (standard):
+  gemini (default):
+    GOOGLE_API_KEY=...
+    GEMINI_MODEL=gemini-1.5-flash  (optional)
+
+  openai:
+    OPENAI_API_KEY=sk-...
+    OPENAI_MODEL=gpt-4o-mini  (optional)
+
+  anthropic:
     ANTHROPIC_API_KEY=sk-ant-...
-
-  Option B — Corporate/internal proxy:
-    ANTHROPIC_BASE_URL      — proxy endpoint (read automatically by anthropic SDK)
-    ANTHROPIC_AUTH_TOKEN    — auth token (read automatically by anthropic SDK as api_key)
-    ANTHROPIC_CUSTOM_HEADERS — newline-separated "Key: Value" pairs for any extra
-                               headers required by the proxy (e.g. routing or auth headers)
-
-  Example ANTHROPIC_CUSTOM_HEADERS value:
-    X-Custom-Header: my-value
-    X-Another-Header: another-value
-
-No ANTHROPIC_API_KEY is needed when using Option B.
+    ANTHROPIC_CUSTOM_HEADERS — newline-separated "Key: Value" for proxy auth
 """
 import os
 
-from langchain_anthropic import ChatAnthropic
-
-MODEL_ID = "claude-sonnet-4-6"  # Locked in CLAUDE.md. Do NOT change to claude-sonnet-4-5.
+_BACKEND = os.environ.get("LLM_BACKEND", "groq").lower()
 
 
-def _make_llm() -> ChatAnthropic:
-    """Return ChatAnthropic with optional custom headers for proxy environments.
+def _make_llm():
+    """Return a LangChain chat model. Backend selected by LLM_BACKEND env var."""
+    if _BACKEND == "groq":
+        from langchain_groq import ChatGroq
+        model = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+        return ChatGroq(model=model, temperature=0)
 
-    Reads ANTHROPIC_CUSTOM_HEADERS as newline-separated 'Key: Value' pairs and
-    passes them as default_headers to ChatAnthropic. If the env var is not set,
-    no extra headers are added (standard API key auth works as-is).
+    elif _BACKEND == "anthropic":
+        from langchain_anthropic import ChatAnthropic
+        custom_headers_str = os.environ.get("ANTHROPIC_CUSTOM_HEADERS", "")
+        headers: dict[str, str] = {}
+        if custom_headers_str:
+            for line in custom_headers_str.split("\n"):
+                line = line.strip()
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    headers[k.strip()] = v.strip()
+        return ChatAnthropic(model="claude-sonnet-4-6", default_headers=headers)
 
-    ANTHROPIC_BASE_URL and ANTHROPIC_AUTH_TOKEN are picked up automatically
-    by the underlying anthropic SDK from the environment (Option B proxy setup).
-    """
-    custom_headers_str = os.environ.get("ANTHROPIC_CUSTOM_HEADERS", "")
-    headers: dict[str, str] = {}
-    if custom_headers_str:
-        for line in custom_headers_str.split("\n"):
-            line = line.strip()
-            if ":" in line:
-                k, v = line.split(":", 1)
-                headers[k.strip()] = v.strip()
-    return ChatAnthropic(model=MODEL_ID, default_headers=headers)
+    elif _BACKEND == "openai":
+        from langchain_openai import ChatOpenAI
+        model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+        return ChatOpenAI(model=model, temperature=0)
+
+    else:  # gemini (default)
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
+        return ChatGoogleGenerativeAI(model=model, temperature=0)

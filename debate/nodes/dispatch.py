@@ -33,25 +33,27 @@ def dispatch_round1(state: DebateState) -> list[Send]:
 
 
 def _build_compact_summaries(round_history: list) -> list[dict]:
-    """Build compact (~100-word) per-agent summaries from the most recent round.
+    """Build compact per-agent summaries across ALL completed rounds.
 
-    Only the most recent round is summarized to prevent token growth across rounds.
-    Earlier rounds are implicit in each agent's own prior reasoning.
+    Each entry is ~80 tokens (position + 3 claims + confidence). For a 3-round
+    debate with 3 agents, the total context is ~9 entries × 80 tokens = ~720 tokens —
+    well within budget and necessary so agents can track how positions evolved and
+    rebut original claims that opponents may have dodged in intermediate rounds.
 
-    Returns a list of dicts, one per agent argument in the latest round.
+    Returns a flat list of dicts ordered by round, one per agent per round.
     """
     if not round_history:
         return []
-    latest_round = round_history[-1]
     summaries = []
-    for arg in latest_round.arguments:
-        summaries.append({
-            "agent_role": arg.agent_role,
-            "round_num": arg.round_num,
-            "position": arg.position,
-            "key_claims": arg.key_claims[:3],   # top 3 only — ~80 tokens per agent
-            "confidence": arg.confidence,
-        })
+    for record in round_history:
+        for arg in record.arguments:
+            summaries.append({
+                "agent_role": arg.agent_role,
+                "round_num": arg.round_num,
+                "position": arg.position,
+                "key_claims": arg.key_claims[:3],   # top 3 only — ~80 tokens per agent
+                "confidence": arg.confidence,
+            })
     return summaries
 
 

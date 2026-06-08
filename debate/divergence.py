@@ -2,26 +2,35 @@
 """
 Semantic divergence detector for the multi-agent debate system.
 
-Two-layer detection:
-  Layer 1 (fast): pairwise cosine similarity on key_claims embeddings.
-    - max_sim > CONVERGE_FAST_PATH (0.97): definitely converged, skip further checks.
-    - max_sim < DIVERGE_THRESHOLD (0.75): diverged pair recorded.
-    - 0.75–0.97 zone: treated as diverged for Phase 2. Claude judge can be added
-      in Phase 3 if false positive rate is high on real debate topics.
+Two detection strategies, selectable via DIVERGENCE_MODE env var:
 
-Key implementation constraints (from RESEARCH.md Pitfalls):
-  - normalize_embeddings=True is REQUIRED. Without it, dot product != cosine similarity
-    and scores outside [0, 1] are possible.
-  - Embed key_claims (NOT reasoning). Reasoning text collapses semantic distance
-    because all agents discuss the same topic — claims are more discriminative.
-  - _get_model() is a lazy singleton. First call downloads ~130MB to HF cache.
-    Subsequent calls in the same process are instant.
+  cosine (default):
+    Two-layer detection using bi-encoder embeddings:
+      Layer 1: max cosine similarity on key_claims.
+        > CONVERGE_FAST_PATH (0.97) → definitely converged.
+        Otherwise → treated as diverged.
+    Known limitation: cosine similarity measures topic overlap, not stance
+    opposition. "VC is good" and "VC is bad" score as similar because they
+    share the same vocabulary. This causes premature convergence detection.
+
+  nli (research variant):
+    Two-layer detection using NLI cross-encoder:
+      Layer 1: cosine fast-path (>0.97 → skip NLI, definitely converged).
+      Layer 2: CrossEncoder NLI on key_claims pairs.
+        High CONTRADICTION probability → genuine stance divergence.
+        ENTAILMENT / NEUTRAL → semantic agreement or unrelated.
+    Fixes the cosine limitation: "VC is good" vs "VC is bad" correctly
+    classified as CONTRADICTION regardless of vocabulary overlap.
+
+Select via: DIVERGENCE_MODE=nli python ...
 """
 from __future__ import annotations
 
+import os
 from itertools import combinations
 
-from sentence_transformers import SentenceTransformer
+import numpy as np
+from sentence_transformers import CrossEncoder, SentenceTransformer
 
 from debate.state import AgentArgument
 
@@ -29,27 +38,124 @@ from debate.state import AgentArgument
 # Constants
 # ---------------------------------------------------------------------------
 
-DIVERGE_THRESHOLD: float = 0.75   # max_sim below this → agents are diverged on key_claims
-CONVERGE_FAST_PATH: float = 0.97  # max_sim above this → definitely converged, skip judge
+DIVERGE_THRESHOLD: float = 0.75      # cosine: max_sim below this → diverged
+CONVERGE_FAST_PATH: float = 0.97     # both modes: cosine fast-path threshold
+
+# NLI: contradiction probability above this → pair is diverged
+NLI_CONTRADICTION_THRESHOLD: float = 0.5
+
+DIVERGENCE_MODE: str = os.environ.get("DIVERGENCE_MODE", "cosine").lower()
+
+# NLI label indices for cross-encoder/nli-deberta-v3-small
+_NLI_CONTRADICTION = 0
+_NLI_ENTAILMENT    = 1
+_NLI_NEUTRAL       = 2
 
 
 # ---------------------------------------------------------------------------
-# Model singleton
+# Model singletons
 # ---------------------------------------------------------------------------
 
-_MODEL: SentenceTransformer | None = None
+_BIENCODER: SentenceTransformer | None = None
+_CROSSENCODER: CrossEncoder | None = None
 
 
 def _get_model() -> SentenceTransformer:
-    """Lazy-load BAAI/bge-small-en-v1.5. Downloads ~130MB on first call, then cached."""
-    global _MODEL
-    if _MODEL is None:
-        _MODEL = SentenceTransformer("BAAI/bge-small-en-v1.5")
-    return _MODEL
+    """Lazy-load BAAI/bge-small-en-v1.5 bi-encoder."""
+    global _BIENCODER
+    if _BIENCODER is None:
+        _BIENCODER = SentenceTransformer("BAAI/bge-small-en-v1.5")
+    return _BIENCODER
+
+
+def _get_nli_model() -> CrossEncoder:
+    """Lazy-load cross-encoder/nli-deberta-v3-small NLI model (~180MB)."""
+    global _CROSSENCODER
+    if _CROSSENCODER is None:
+        _CROSSENCODER = CrossEncoder("cross-encoder/nli-deberta-v3-small")
+    return _CROSSENCODER
 
 
 # ---------------------------------------------------------------------------
 # Public API
+# ---------------------------------------------------------------------------
+
+def _softmax(x: np.ndarray) -> np.ndarray:
+    e = np.exp(x - x.max(axis=-1, keepdims=True))
+    return e / e.sum(axis=-1, keepdims=True)
+
+
+# ---------------------------------------------------------------------------
+# NLI-based divergence
+# ---------------------------------------------------------------------------
+
+def compute_divergence_nli(
+    arguments: list[AgentArgument],
+) -> tuple[float, list[tuple[str, str]]]:
+    """NLI-based divergence: detects genuine stance contradiction between agents.
+
+    For each agent pair, runs cross-encoder NLI on all cross-claim combinations
+    and takes the maximum CONTRADICTION probability as the divergence signal.
+
+    This fixes the core limitation of cosine similarity: "VC is good" and
+    "VC is bad" share vocabulary and score as similar under cosine, but NLI
+    correctly classifies them as CONTRADICTION.
+
+    Returns:
+        divergence_score: mean(max_contradiction_prob per agent pair). [0, 1].
+            0.0 = no contradictions detected (converged).
+            1.0 = all pairs show maximum contradiction.
+        diverged_pairs: (role_a, role_b) pairs where max contradiction > threshold.
+    """
+    if len(arguments) < 2:
+        return 0.0, []
+
+    biencoder = _get_model()
+    nli_model = _get_nli_model()
+    diverged_pairs: list[tuple[str, str]] = []
+    pairwise_max_contradictions: list[float] = []
+
+    for arg_a, arg_b in combinations(arguments, 2):
+        claims_a = arg_a.key_claims
+        claims_b = arg_b.key_claims
+
+        if not claims_a or not claims_b:
+            pairwise_max_contradictions.append(0.0)
+            continue
+
+        # --- Layer 1: cosine fast-path (skip NLI if clearly converged) ---
+        all_claims = claims_a + claims_b
+        embeddings = biencoder.encode(all_claims, normalize_embeddings=True)
+        emb_a = embeddings[: len(claims_a)]
+        emb_b = embeddings[len(claims_a):]
+        cosine_max_sim = float((emb_a @ emb_b.T).max())
+
+        if cosine_max_sim > CONVERGE_FAST_PATH:
+            # Definitely converged — NLI not needed
+            pairwise_max_contradictions.append(0.0)
+            continue
+
+        # --- Layer 2: NLI cross-encoder on all cross-claim pairs ---
+        cross_pairs = [(c_a, c_b) for c_a in claims_a for c_b in claims_b]
+        logits = nli_model.predict(cross_pairs)           # shape: (n_pairs, 3)
+        probs = _softmax(np.array(logits))                # convert logits → probs
+        contradiction_probs = probs[:, _NLI_CONTRADICTION] # shape: (n_pairs,)
+        max_contradiction = float(contradiction_probs.max())
+
+        pairwise_max_contradictions.append(max_contradiction)
+
+        if max_contradiction > NLI_CONTRADICTION_THRESHOLD:
+            diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
+
+    if not pairwise_max_contradictions:
+        return 0.0, []
+
+    divergence_score = sum(pairwise_max_contradictions) / len(pairwise_max_contradictions)
+    return round(divergence_score, 4), diverged_pairs
+
+
+# ---------------------------------------------------------------------------
+# Cosine-based divergence (original)
 # ---------------------------------------------------------------------------
 
 def compute_divergence(
@@ -117,3 +223,16 @@ def compute_divergence(
 
     divergence_score = 1.0 - (sum(pairwise_max_sims) / len(pairwise_max_sims))
     return divergence_score, diverged_pairs
+
+
+# ---------------------------------------------------------------------------
+# Dispatcher — routes to cosine or NLI based on DIVERGENCE_MODE
+# ---------------------------------------------------------------------------
+
+def compute_divergence_dispatch(
+    arguments: list[AgentArgument],
+) -> tuple[float, list[tuple[str, str]]]:
+    """Dispatch to NLI or cosine divergence based on DIVERGENCE_MODE env var."""
+    if DIVERGENCE_MODE == "nli":
+        return compute_divergence_nli(arguments)
+    return compute_divergence(arguments)

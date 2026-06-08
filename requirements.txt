@@ -1,5 +1,7 @@
 langgraph==1.1.9
 langchain-anthropic==1.4.1
+langchain-openai>=0.3.0
+langchain-google-genai>=2.0.0
 langgraph-checkpoint-sqlite==3.0.3
 sentence-transformers==5.4.1
 streamlit==1.56.0

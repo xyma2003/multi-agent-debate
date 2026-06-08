@@ -121,10 +121,11 @@ def _determine_convergence_status(
     (route_divergence only routes to synthesize_stub on max_rounds or convergence),
     but is kept for robustness.
     """
-    if divergence_score < DIVERGE_THRESHOLD:
-        return "converged"
-    elif round_num >= max_rounds:
+    # Mirror route_divergence guard order: max_rounds check comes first.
+    if round_num >= max_rounds:
         return "max_rounds"
+    elif divergence_score < DIVERGE_THRESHOLD:
+        return "converged"
     return "partial"  # defensive fallback; see module docstring
 
 

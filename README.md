@@ -183,12 +183,77 @@ debate-agent/
 │       ├── divergence_check.py
 │       ├── synthesize.py     # Synthesizer → DebateReport assembly
 │       └── save.py           # save_node (SQLite side-effect, returns {})
+├── benchmark/
+│   ├── questions.json        # 30 benchmark questions (business/tech/policy/prediction)
+│   ├── evaluator.py          # PDS / HR / SSS / RTC metric definitions
+│   ├── baseline.py           # Single-LLM runner
+│   ├── variants.py           # 6 ablation variants
+│   └── run_experiment.py     # CLI entry point
+├── results/
+│   ├── full_system.json      # Multi-agent fixed devil (n=10)
+│   ├── original_devil.json   # Multi-agent old devil (n=10)
+│   ├── single_llm.json       # Single-LLM baseline (n=10)
+│   └── nli_detection.json    # NLI divergence (n=2)
+├── analysis/
+│   ├── analysis.ipynb        # 7-section analysis notebook
+│   └── fig_*.png             # Experiment figures
 └── tests/
     ├── test_phase1.py        # Graph foundation + smoke test
     ├── test_phase2.py        # Debate loop + divergence detection
     ├── test_phase3.py        # Synthesis + confidence formula
     ├── test_phase4.py        # SQLite persistence + replay
     └── test_phase5.py        # UI tests
+```
+
+---
+
+## Experimental Findings
+
+Ablation study across 4 system variants, 10 questions each (business + technology topics).
+
+| Variant | n | PDS ↑ | HR ↓ | SSS | Rounds |
+|---------|---|-------|------|-----|--------|
+| **Multi-agent (fixed devil)** | 10 | **0.2242** | **0.0093** | 1.000 | 1.00 |
+| Single-LLM baseline | 10 | 0.2160 | 0.0129 | N/A | 1.00 |
+| Multi-agent (old devil prompt) | 10 | 0.1707 | 0.0077 | 1.000 | 1.00 |
+| Multi-agent + NLI detection | 2 | 0.1439 | 0.0050 | **0.883** | **3.00** |
+
+- **PDS** (Position Diversity Score): avg pairwise semantic distance between agents' final positions. Higher = more genuinely distinct viewpoints.
+- **HR** (Hedge Ratio): hedge words / total words. Lower = less "on-the-other-hand" hedging.
+- **SSS** (Stance Stability Score): similarity between Round-1 and final position embedding. Only meaningful in multi-round debates.
+
+### Key findings
+
+**Finding A — PROHIBITION reduces sycophantic hedging by 28%**
+Multi-agent HR (0.0093) vs single-LLM HR (0.0129). The PROHIBITION constraints successfully prevent agents from retreating to balanced, non-committal language.
+
+**Finding B — PDS Paradox: wrong devil prompt inverts diversity**
+Old devil prompt ("challenge the dominant view") caused 2-vs-1 alignment — devil auto-sided with pessimist against optimist, producing *lower* PDS than single-LLM (0.1707 < 0.2160). Fixed by redefining devil's role as "Assumption Challenger" who targets the shared premise both sides take for granted. Post-fix PDS (0.2242) exceeds single-LLM baseline.
+
+**Finding C — Cosine similarity is broken for stance detection**
+100% of cosine-based debates terminated after Round 1 (divergence scores 0.097–0.258, all below 0.75 threshold). Cosine measures *topic overlap*, not *stance opposition* — "VC accelerates growth" and "VC destroys growth" score as *similar* because they share vocabulary. NLI cross-encoder correctly detects CONTRADICTION regardless of vocabulary overlap, enabling genuine multi-round debate (SSS = 0.883 vs 1.000).
+
+See `analysis/analysis.ipynb` for full analysis with figures.
+
+### Running the benchmark
+
+```bash
+# Requires VPN if using Groq backend
+cd debate-agent
+
+# Run all variants (n=10 each, 2-min delay between questions for rate limits)
+python benchmark/run_experiment.py --variants full_system single_llm --limit 10 --delay 5
+python benchmark/run_experiment.py --variants nli_detection --limit 10 --delay 120
+
+# View results summary
+python -c "
+import json, statistics
+for v in ['full_system', 'single_llm', 'original_devil', 'nli_detection']:
+    with open(f'results/{v}.json') as f: d = json.load(f)
+    pds = [r['pds'] for r in d['results']]
+    hr  = [r['hedge_ratio'] for r in d['results']]
+    print(f'{v}: n={len(pds)}  PDS={statistics.mean(pds):.4f}  HR={statistics.mean(hr):.4f}')
+"
 ```
 
 ---
@@ -210,9 +275,11 @@ python -m pytest tests/ -v
 | Component | Library | Version |
 |-----------|---------|---------|
 | Agent orchestration | LangGraph | 1.1.9 |
-| LLM | Claude via langchain-anthropic | 1.4.1 |
+| LLM (default) | Groq `llama-3.3-70b-versatile` via `LLM_BACKEND=groq` | — |
+| LLM (alt) | Claude / OpenAI via `LLM_BACKEND=anthropic\|openai` | — |
 | Structured outputs | Pydantic | 2.x |
-| Divergence detection | sentence-transformers + bge-small-en-v1.5 | 5.4.1 |
+| Divergence (cosine) | sentence-transformers + bge-small-en-v1.5 | 5.4.1 |
+| Divergence (NLI) | sentence-transformers + cross-encoder/nli-deberta-v3-small | 5.4.1 |
 | Persistence | SQLite (stdlib) | — |
 | UI | Streamlit | 1.56.0 |
 

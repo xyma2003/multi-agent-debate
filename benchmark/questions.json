@@ -1,0 +1,182 @@
+[
+  {
+    "id": 1,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should early-stage startups raise venture capital, or stay bootstrapped?"
+  },
+  {
+    "id": 2,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Is it better to be first-to-market, or best-in-class?"
+  },
+  {
+    "id": 3,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should tech companies prioritize growth over profitability in their early years?"
+  },
+  {
+    "id": 4,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Is it better to hire specialists or generalists when building a small team?"
+  },
+  {
+    "id": 5,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a B2B SaaS company target enterprise clients or SMBs first?"
+  },
+  {
+    "id": 6,
+    "category": "business",
+    "difficulty": "easy",
+    "question": "Is 'move fast and break things' a sound product development philosophy?"
+  },
+  {
+    "id": 7,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a startup build custom internal tools, or use off-the-shelf software?"
+  },
+  {
+    "id": 8,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Is it better for a founder to be a domain expert or a generalist operator?"
+  },
+  {
+    "id": 9,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should a growing startup adopt microservices or stick with a monolithic architecture?"
+  },
+  {
+    "id": 10,
+    "category": "technology",
+    "difficulty": "hard",
+    "question": "Should AI companies open-source their frontier models?"
+  },
+  {
+    "id": 11,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should software engineers rely on AI coding assistants for production code?"
+  },
+  {
+    "id": 12,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Is NoSQL a better default choice than relational databases for modern web applications?"
+  },
+  {
+    "id": 13,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should companies adopt the latest LLMs immediately, or wait for stability?"
+  },
+  {
+    "id": 14,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Is low-code / no-code development a net positive for the software engineering field?"
+  },
+  {
+    "id": 15,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should companies build proprietary LLM pipelines, or depend on third-party APIs?"
+  },
+  {
+    "id": 16,
+    "category": "technology",
+    "difficulty": "hard",
+    "question": "Is blockchain technology genuinely useful outside of cryptocurrency?"
+  },
+  {
+    "id": 17,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Should governments impose strict regulations on AI development?"
+  },
+  {
+    "id": 18,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Is universal basic income a viable policy response to automation-driven unemployment?"
+  },
+  {
+    "id": 19,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Should social media platforms be legally liable for the content they host?"
+  },
+  {
+    "id": 20,
+    "category": "policy",
+    "difficulty": "medium",
+    "question": "Is a four-year college degree still worth the cost in 2025?"
+  },
+  {
+    "id": 21,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Should nuclear energy be a core component of the clean energy transition?"
+  },
+  {
+    "id": 22,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Is gig economy work (Uber, DoorDash) a net positive or net negative for workers?"
+  },
+  {
+    "id": 23,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Should algorithmic hiring and screening tools be banned from recruitment?"
+  },
+  {
+    "id": 24,
+    "category": "policy",
+    "difficulty": "hard",
+    "question": "Is it ethical for AI companies to train on publicly available internet data without explicit consent?"
+  },
+  {
+    "id": 25,
+    "category": "prediction",
+    "difficulty": "hard",
+    "question": "Will AGI be achieved within the next 10 years?"
+  },
+  {
+    "id": 26,
+    "category": "prediction",
+    "difficulty": "hard",
+    "question": "Will remote work become the dominant work arrangement for knowledge workers by 2035?"
+  },
+  {
+    "id": 27,
+    "category": "prediction",
+    "difficulty": "hard",
+    "question": "Will large language models replace the majority of knowledge workers within 20 years?"
+  },
+  {
+    "id": 28,
+    "category": "prediction",
+    "difficulty": "hard",
+    "question": "Will electric vehicles fully displace internal combustion engines by 2040?"
+  },
+  {
+    "id": 29,
+    "category": "prediction",
+    "difficulty": "hard",
+    "question": "Will China become the dominant AI superpower by 2030?"
+  },
+  {
+    "id": 30,
+    "category": "prediction",
+    "difficulty": "hard",
+    "question": "Will social media as we know it decline significantly within the next decade?"
+  }
+]

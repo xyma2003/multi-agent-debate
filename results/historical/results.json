@@ -1,0 +1,47 @@
+{
+  "debates": {
+    "51_single_llm": {},
+    "51_full_system": {
+      "optimist": "Facebook should acquire Instagram for $1 billion to secure dominance in mobile visual storytelling and accelerate user growth.",
+      "pessimist": "The acquisition faces high probability of integration failure due to cultural misalignment and talent retention risks",
+      "devil": "The critical blind spot is assuming the acquisition's value hinges on Instagram's user growth or revenue potential, when the real strategic variable is Facebook's need to secure dominance in mobile photo-sharing before competitors could replicate it"
+    },
+    "52_single_llm": {
+      "optimist": "Twitter should remain independent because its user growth and impending IPO position it to potentially surpass Facebook's market value within a few years, making the acquisition offer seem low in retrospect.",
+      "pessimist": "Twitter should not remain independent because rejecting the acquisition offer risks the company's long-term viability due to increasing competition and the high costs of maintaining its growth trajectory without the support of a larger entity like Facebook.",
+      "devil": "Both sides are overlooking the fact that Twitter's value lies not just in its current user base, but in its potential to become a primary source of real-time information and news, which could be severely compromised if it loses its independence and is forced to conform to Facebook's business model."
+    }
+  },
+  "scores": [
+    {
+      "question_id": 51,
+      "year": 2012,
+      "question_short": "It is April 2012. Facebook is considering acquiring Instagra",
+      "system": "single_llm",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis text to evaluate was not provided in the query, making it impossible to assess whether the key factor was identified.",
+      "key_factor": "Mobile photo sharing was the dominant social behavior shift, and Instagram's network effects on mobi"
+    },
+    {
+      "question_id": 51,
+      "year": 2012,
+      "question_short": "It is April 2012. Facebook is considering acquiring Instagra",
+      "system": "full_system",
+      "score": 1,
+      "evidence": "DEVIL: The critical blind spot is assuming the acquisition's value hinges on Instagram's user growth or revenue potential, when the real strategic variable is Facebook's need to secure dominance in mobile photo-sharing before competitors could replicate it",
+      "reasoning": "The analysis partially identified the strategic importance of mobile photo-sharing dominance but did not explicitly mention Instagram's network effects or the valuation rationale ('$1B price was cheap') as critical factors.",
+      "key_factor": "Mobile photo sharing was the dominant social behavior shift, and Instagram's network effects on mobi"
+    },
+    {
+      "question_id": 52,
+      "year": 2013,
+      "question_short": "It is late 2013. Twitter's board is considering rejecting Fa",
+      "system": "single_llm",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention Twitter's core challenge of converting engagement into advertising revenue, nor its UX and ad targeting issues, which were the key factors determining the outcome.",
+      "key_factor": "Twitter's core challenge — converting engagement into advertising revenue — would not be solved by i"
+    }
+  ]
+}

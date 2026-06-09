@@ -38,11 +38,24 @@ def _invoke_with_retry(
     """Call with_structured_output up to max_retries+1 times.
 
     Uses include_raw=True so parse failures surface as result["parsed"] is None
-    rather than raising ValidationError. Returns a sentinel on total failure.
+    rather than raising ValidationError. Handles rate limits with backoff.
+    Returns a sentinel on total failure.
     """
+    import time
+
     structured_llm = llm.with_structured_output(AgentArgument, include_raw=True)
     for attempt in range(max_retries + 1):
-        result = structured_llm.invoke(messages)
+        try:
+            result = structured_llm.invoke(messages)
+        except Exception as e:
+            err = str(e).lower()
+            if "rate" in err or "429" in err or "limit" in err:
+                wait = 60 * (attempt + 1)
+                print(f"[{role}] rate limit (attempt {attempt + 1}), waiting {wait}s...")
+                time.sleep(wait)
+                continue
+            raise  # re-raise non-rate-limit errors
+
         if result.get("parsed") is not None:
             parsed: AgentArgument = result["parsed"]
             # Ensure role is correct — LLM may hallucinate a different role string

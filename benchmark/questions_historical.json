@@ -1,0 +1,92 @@
+[
+  {
+    "id": 51,
+    "category": "historical",
+    "year": 2012,
+    "question": "It is April 2012. Facebook is considering acquiring Instagram for $1 billion. Instagram has 13 employees, zero revenue, and 30 million users growing rapidly on mobile. Should Facebook make this acquisition?",
+    "actual_outcome": "Facebook acquired Instagram. It became one of the most successful tech acquisitions in history, eventually valued at over $100 billion.",
+    "key_factor": "Mobile photo sharing was the dominant social behavior shift, and Instagram's network effects on mobile would be nearly impossible to replicate. The $1B price was cheap relative to what mobile social was worth.",
+    "question_type": "binary"
+  },
+  {
+    "id": 52,
+    "category": "historical",
+    "year": 2013,
+    "question": "It is late 2013. Twitter's board is considering rejecting Facebook's acquisition offer reportedly worth $3 billion. Twitter has 240 million monthly active users, is growing, and is about to IPO. Should Twitter remain independent?",
+    "actual_outcome": "Twitter remained independent, IPO'd at $14B valuation, but subsequently struggled with monetization and user growth, trading below IPO price for years.",
+    "key_factor": "Twitter's core challenge — converting engagement into advertising revenue — would not be solved by independence. The product's confusing UX and weak ad targeting were fundamental issues.",
+    "question_type": "binary"
+  },
+  {
+    "id": 53,
+    "category": "historical",
+    "year": 2013,
+    "question": "It is November 2013. Snapchat's founders are considering rejecting Facebook's $3 billion acquisition offer. Snapchat has ephemeral messaging and a growing teen user base but no revenue. Should they stay independent?",
+    "actual_outcome": "Snapchat rejected the offer, IPO'd at $24B in 2017, but struggled as Facebook copied its Stories feature across Instagram and WhatsApp. Snap stock fell well below IPO price.",
+    "key_factor": "Snapchat's core innovation (ephemeral content / Stories) was easily replicable by Facebook, which had vastly more resources. Without a defensible moat, independence was risky.",
+    "question_type": "binary"
+  },
+  {
+    "id": 54,
+    "category": "historical",
+    "year": 2007,
+    "question": "It is 2007. Netflix has a profitable DVD-by-mail business with 7 million subscribers. Reed Hastings is considering investing heavily in streaming video, which would cannibalize the core DVD business and require massive content licensing costs. Should Netflix pursue streaming?",
+    "actual_outcome": "Netflix invested aggressively in streaming. It became the dominant streaming platform, reaching 200M+ subscribers by 2021, while the DVD business became irrelevant.",
+    "key_factor": "Broadband penetration was crossing the threshold where streaming would become viable for most households within 3-5 years. Being first to scale streaming would create insurmountable content and UX advantages.",
+    "question_type": "binary"
+  },
+  {
+    "id": 55,
+    "category": "historical",
+    "year": 2010,
+    "question": "It is 2010. Groupon has pioneered the daily deals model and is growing explosively. Google has offered to acquire Groupon for approximately $6 billion. Should Groupon's founders accept the offer?",
+    "actual_outcome": "Groupon rejected Google's offer. It IPO'd in 2011 at a $12.7B valuation, but the stock collapsed as competitors flooded the market. Groupon traded at a fraction of its IPO price within two years.",
+    "key_factor": "The daily deals model had no defensible moat — it required no technology that competitors couldn't copy, merchant relationships were weak, and Google/Amazon/LivingSocial could easily replicate it at scale.",
+    "question_type": "binary"
+  },
+  {
+    "id": 56,
+    "category": "historical",
+    "year": 2016,
+    "question": "It is 2016. Microsoft is considering acquiring LinkedIn for $26.2 billion — a 50% premium to LinkedIn's trading price. LinkedIn has 430M members but slowing growth and no clear path to its next revenue stream. Should Microsoft proceed with the acquisition?",
+    "actual_outcome": "Microsoft acquired LinkedIn. It became a core part of Microsoft's commercial strategy, integrated into Office 365 and Dynamics CRM, contributing billions in revenue and serving as a major B2B data asset.",
+    "key_factor": "LinkedIn's professional identity graph was uniquely valuable for Microsoft's enterprise sales motion — no other acquisition could give Microsoft a direct relationship with 430M professionals that could be cross-sold to Office 365 and Azure.",
+    "question_type": "binary"
+  },
+  {
+    "id": 57,
+    "category": "historical",
+    "year": 2014,
+    "question": "It is 2014. Amazon is considering acquiring Twitch, the live game-streaming platform, for approximately $1 billion. Twitch has 55 million monthly viewers but is losing money. YouTube is also bidding. Should Amazon acquire Twitch?",
+    "actual_outcome": "Amazon acquired Twitch. It became a key part of Amazon's gaming and Prime Video strategy, with Twitch growing to 140M+ monthly active users by 2020.",
+    "key_factor": "Live streaming gaming was early in a massive growth curve. Buying Twitch was cheaper than building from scratch, and it would block Google from owning both YouTube and the live gaming category — a strategic defensive purchase as much as offensive.",
+    "question_type": "binary"
+  },
+  {
+    "id": 58,
+    "category": "historical",
+    "year": 2015,
+    "question": "It is 2015. Slack has grown rapidly to $1B valuation in record time. Microsoft has reportedly made an acquisition offer worth approximately $8 billion. Slack's founders are considering rejecting it to remain independent. Should Slack stay independent?",
+    "actual_outcome": "Slack rejected Microsoft's advances. Microsoft launched Teams in 2017, which heavily competed with Slack. Slack was ultimately acquired by Salesforce in 2021 for $27.7B — a good outcome, but Microsoft Teams became the dominant workplace chat tool.",
+    "key_factor": "Enterprise collaboration is winner-take-most — whoever owns the productivity suite (Microsoft's Office 365) has an enormous distribution advantage. Slack's independence left it vulnerable to being squeezed by a well-funded competitor with deep enterprise relationships.",
+    "question_type": "binary"
+  },
+  {
+    "id": 59,
+    "category": "historical",
+    "year": 2019,
+    "question": "It is 2019. WeWork is preparing for an IPO that would value the company at $47 billion. WeWork has massive losses ($1.9B in 2018), a complex corporate structure, and its CEO has taken out $700M in loans against his equity. Should WeWork proceed with the IPO?",
+    "actual_outcome": "WeWork withdrew the IPO after investor scrutiny. Its valuation collapsed to under $8B. SoftBank took control, the CEO resigned. WeWork eventually went public via SPAC at a fraction of its original valuation.",
+    "key_factor": "WeWork was fundamentally a real estate company with tech company losses — long-term leases with short-term revenue. The unit economics did not scale, and the governance issues (CEO self-dealing) were red flags that institutional investors would not accept.",
+    "question_type": "binary"
+  },
+  {
+    "id": 60,
+    "category": "historical",
+    "year": 2008,
+    "question": "It is January 2008. Steve Jobs has resisted allowing third-party apps on the iPhone for a year. Apple engineers have built an App Store infrastructure. Jobs is now reconsidering and could launch an App Store that allows third-party developers to build iPhone apps. Should Apple launch the App Store?",
+    "actual_outcome": "Apple launched the App Store in July 2008. It became one of the most transformative decisions in tech history, generating over $100 billion in annual revenue and creating an entirely new software ecosystem.",
+    "key_factor": "Platform network effects — by enabling third-party developers, Apple would get exponentially more value creation than it could generate internally. The App Store made iPhone exponentially more valuable with each new app, creating a compounding competitive moat that no competitor could easily replicate.",
+    "question_type": "binary"
+  }
+]

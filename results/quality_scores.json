@@ -1,0 +1,424 @@
+{
+  "scores": [
+    {
+      "question_id": 1,
+      "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+      "system": "single_llm",
+      "total": 2.6,
+      "dimensions": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 3,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three distinct viewpoints, but they may not be entirely independent as two of them represent opposing extremes and the third is a compromise between them.",
+        "analytical_depth": "The analysis lacks genuine insight and non-obvious risks or opportunities, as it mainly presents common pros and cons of raising venture capital and staying bootstrapped.",
+        "claim_specificity": "The claims made in the analysis are vague and lack concrete examples or data to support them, such as specific growth rates or risk levels associated with venture capital.",
+        "honest_uncertainty": "The analysis acknowledges that the decision depends on specific circumstances, but does not accurately flag what is genuinely unknown or context-dependent, and instead provides general statements.",
+        "practical_utility": "The analysis does not clearly identify what a decision-maker should do differently based on context, as it mainly presents general pros and cons without providing actionable advice."
+      }
+    },
+    {
+      "question_id": 1,
+      "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+      "system": "full_system",
+      "total": 3.6,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a third perspective that challenges the underlying assumptions of the debate, demonstrating a high level of diversity in thought.",
+        "analytical_depth": "The analysis identifies non-obvious risks and opportunities, such as the potential loss of control and misaligned incentives, but does not delve as deeply into the complexities of the entrepreneurial ecosystem as it could.",
+        "claim_specificity": "The claims made in the analysis are somewhat vague and lack concrete data or examples to support them, making it difficult to fully assess their validity.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the issue and the need to consider multiple factors, but could more explicitly flag areas of genuine uncertainty and context-dependence.",
+        "practical_utility": "The analysis does not provide clear, actionable advice for decision-makers, instead focusing on presenting different perspectives and challenging assumptions, which may not be directly useful for a startup deciding whether to raise venture capital."
+      }
+    },
+    {
+      "question_id": 1,
+      "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+      "system": "nli_detection",
+      "total": 3.4,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 4,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a third perspective that challenges the underlying assumptions of the debate, demonstrating a high level of perspective diversity.",
+        "analytical_depth": "The analysis identifies non-obvious risks and opportunities, such as the potential loss of control and misaligned incentives, but does not provide extremely novel or groundbreaking insights.",
+        "claim_specificity": "The claims made in the analysis are relatively vague and lack concrete data or specific examples, making it difficult to trace or verify the arguments.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the issue and the need to consider multiple factors, but does not explicitly flag what is genuinely unknown or context-dependent, demonstrating a good but not excellent level of honest uncertainty.",
+        "practical_utility": "The analysis does not provide clear or actionable advice for decision-makers, instead focusing on presenting different perspectives and challenging assumptions, which limits its practical utility."
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "Is it better to be first-to-market, or best-in-class?",
+      "system": "single_llm",
+      "total": 3.8,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 3,
+        "practical_utility": 4
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a third perspective that challenges the binary nature of the question, demonstrating a high level of diversity in thought.",
+        "analytical_depth": "The analysis identifies non-obvious insights, such as the potential for combining first-to-market and best-in-class approaches, but does not delve deeply into specific market or product examples.",
+        "claim_specificity": "The claims made are somewhat general and lack specific, concrete examples or data to support the arguments presented in the analysis.",
+        "honest_uncertainty": "The analysis does not explicitly acknowledge areas of uncertainty or context-dependence, instead presenting the perspectives as fairly straightforward, although it does introduce a nuanced third perspective.",
+        "practical_utility": "The analysis provides decision-makers with a framework for thinking about the trade-offs between being first-to-market and best-in-class, but does not offer specific, actionable recommendations for implementation."
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "Is it better to be first-to-market, or best-in-class?",
+      "system": "full_system",
+      "total": 3.8,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints that are not just restatements of each other, offering a diverse range of perspectives on the issue.",
+        "analytical_depth": "The analysis identifies non-obvious risks and opportunities associated with being first-to-market, but does not delve deeply into the underlying factors driving these outcomes.",
+        "claim_specificity": "The claims made in the analysis are somewhat vague and lack concrete evidence or data to support them, making it difficult to trace or verify the assertions.",
+        "honest_uncertainty": "The analysis acknowledges the complexity and dynamic nature of market needs and consumer preferences, but could further highlight the uncertainties and limitations of each perspective.",
+        "practical_utility": "The analysis provides some insights that could inform decision-making, but does not clearly identify specific actions or strategies that a decision-maker could take based on the context."
+      }
+    },
+    {
+      "question_id": 2,
+      "question": "Is it better to be first-to-market, or best-in-class?",
+      "system": "nli_detection",
+      "total": 3.8,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints that are not just restatements of each other, offering a diverse range of perspectives on the issue.",
+        "analytical_depth": "The analysis identifies non-obvious risks and opportunities associated with being first-to-market, but does not delve deeply into the underlying factors driving these outcomes.",
+        "claim_specificity": "The claims made in the analysis are somewhat vague and lack concrete evidence or data to support them, making it difficult to assess their validity.",
+        "honest_uncertainty": "The analysis acknowledges the complexity and dynamic nature of market needs and consumer preferences, but could further highlight the uncertainties and limitations of each perspective.",
+        "practical_utility": "The analysis provides some insights that could inform decision-making, but does not offer clear and actionable recommendations for how to proceed in a given context."
+      }
+    },
+    {
+      "question_id": 3,
+      "question": "Should tech companies prioritize growth over profitability in their early years?",
+      "system": "single_llm",
+      "total": 2.8,
+      "dimensions": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 4,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three distinct viewpoints, including one that challenges the simplicity of the question, demonstrating a good range of perspectives.",
+        "analytical_depth": "The analysis lacks non-obvious insights, relying on general statements about growth and profitability without exploring specific risks or opportunities.",
+        "claim_specificity": "The claims made are vague and lack concrete examples or data, making it difficult to assess their validity or applicability.",
+        "honest_uncertainty": "The third perspective acknowledges the complexity of the issue and the limitations of a simplistic approach, demonstrating a willingness to recognize uncertainty.",
+        "practical_utility": "The analysis does not provide clear guidance or actionable recommendations for tech companies, limiting its usefulness for decision-making."
+      }
+    },
+    {
+      "question_id": 3,
+      "question": "Should tech companies prioritize growth over profitability in their early years?",
+      "system": "full_system",
+      "total": 3.8,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct perspectives, including a nuanced view that challenges the binary nature of the question, demonstrating a high level of diversity in viewpoints.",
+        "analytical_depth": "The analysis identifies non-obvious risks, such as the potential for unsustainable debt, and offers a unique perspective on the role of externalities, but does not delve deeply into specific examples or data.",
+        "claim_specificity": "The claims made are somewhat general and lack specific, concrete examples or data to support them, making it difficult to trace or verify the assertions.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the issue and the potential for different outcomes, but could more explicitly flag areas of genuine uncertainty or context-dependence.",
+        "practical_utility": "While the analysis provides useful insights, it does not offer clear, actionable advice for decision-makers, instead presenting a range of perspectives without clear recommendations."
+      }
+    },
+    {
+      "question_id": 3,
+      "question": "Should tech companies prioritize growth over profitability in their early years?",
+      "system": "nli_detection",
+      "total": 3.8,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct perspectives, including a nuanced view that challenges the binary nature of the question, demonstrating a high level of diversity in viewpoints.",
+        "analytical_depth": "The analysis identifies non-obvious risks, such as the potential for unsustainable debt, and offers a unique perspective on the role of externalities, but does not delve deeply into specific examples or data.",
+        "claim_specificity": "The claims made are somewhat general and lack specific, concrete examples or data to support them, making it difficult to trace or verify the assertions.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the issue and presents multiple viewpoints, but could more explicitly flag areas of genuine uncertainty or context-dependence.",
+        "practical_utility": "While the analysis provides useful insights, it does not offer clear, actionable advice for decision-makers, leaving them to interpret the implications of the different perspectives."
+      }
+    },
+    {
+      "question_id": 4,
+      "question": "Is it better to hire specialists or generalists when building a small team?",
+      "system": "single_llm",
+      "total": 4.0,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 5,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a nuanced third perspective that acknowledges the complexity of the decision, thereby demonstrating excellent perspective diversity.",
+        "analytical_depth": "The analysis identifies non-obvious considerations, such as the importance of flexibility and deep expertise, but does not delve into highly innovative or unexpected insights, thus warranting a good score.",
+        "claim_specificity": "The claims made in the analysis are somewhat general and lack specific, concrete examples or data to support them, resulting in an adequate but not impressive level of claim specificity.",
+        "honest_uncertainty": "The third perspective accurately acknowledges the uncertainty and context-dependence of the decision, recognizing that the best approach depends on the specific needs and goals of the team, thereby demonstrating excellent honest uncertainty.",
+        "practical_utility": "While the analysis provides some useful considerations for decision-makers, it does not offer clear, actionable advice or concrete recommendations for building a small team, resulting in adequate but not impressive practical utility."
+      }
+    },
+    {
+      "question_id": 4,
+      "question": "Is it better to hire specialists or generalists when building a small team?",
+      "system": "full_system",
+      "total": 2.8,
+      "dimensions": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 3,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three distinct viewpoints, but they may not be entirely independent as they all revolve around the generalist vs specialist debate without introducing completely new angles.",
+        "analytical_depth": "The analysis identifies some non-obvious risks, such as the potential lack of deep expertise with generalists, but does not delve deeply into the nuances of team building or provide groundbreaking insights.",
+        "claim_specificity": "The claims made are somewhat vague and lack concrete examples or data to support them, making it difficult to assess their validity or applicability.",
+        "honest_uncertainty": "The analysis acknowledges some uncertainty by presenting different perspectives, but does not explicitly flag what is genuinely unknown or context-dependent in the decision to hire specialists or generalists.",
+        "practical_utility": "The analysis does not provide clear, actionable advice that a decision-maker could act on, as it primarily presents theoretical perspectives without concrete recommendations or strategies."
+      }
+    },
+    {
+      "question_id": 4,
+      "question": "Is it better to hire specialists or generalists when building a small team?",
+      "system": "nli_detection",
+      "total": 2.6,
+      "dimensions": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three distinct viewpoints, but they may not be entirely independent as they all revolve around the generalist vs specialist debate without introducing completely new angles.",
+        "analytical_depth": "The analysis identifies some non-obvious risks, such as the potential performance impact of hiring generalists, but does not delve deeply into the nuances of team building or provide groundbreaking insights.",
+        "claim_specificity": "The claims made are somewhat vague and lack concrete examples or data to support them, making it difficult to trace or verify the assertions.",
+        "honest_uncertainty": "The analysis does not explicitly acknowledge what is genuinely unknown or context-dependent, instead presenting perspectives as fairly certain without much hedging or recognition of uncertainty.",
+        "practical_utility": "The analysis does not provide clear, actionable advice that a decision-maker could act on, as it primarily presents debating points rather than concrete recommendations for building a small team."
+      }
+    },
+    {
+      "question_id": 5,
+      "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
+      "system": "single_llm",
+      "total": 4.0,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 4
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a non-obvious third option that challenges the initial dichotomy, demonstrating a high level of perspective diversity.",
+        "analytical_depth": "The analysis identifies non-obvious considerations, such as the resource intensity of enterprise clients and the potential benefits of a niche market focus, but does not delve extremely deep into each perspective.",
+        "claim_specificity": "The claims made are somewhat general and lack specific, concrete data or examples to support them, such as exact revenue figures or case studies.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the decision and presents multiple viewpoints, but could more explicitly flag what is unknown or context-dependent, such as the specific needs and challenges of the company in question.",
+        "practical_utility": "The analysis provides decision-makers with distinct options to consider, including a potentially disruptive third option, but does not offer a clear, actionable recommendation based on specific context or criteria."
+      }
+    },
+    {
+      "question_id": 5,
+      "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
+      "system": "full_system",
+      "total": 4.0,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 4
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a nuanced third perspective that challenges the binary choice between enterprise and SMB clients.",
+        "analytical_depth": "The analysis identifies non-obvious considerations, such as sales cycle complexity and the need for a variable cost-benefit analysis, but does not delve deeply into specific market trends or data.",
+        "claim_specificity": "The claims are somewhat vague and lack concrete data or metrics to support the arguments, such as specific revenue potential or sales cycle costs.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the decision and the need for a nuanced approach, but could further highlight the uncertainties and context dependencies involved in targeting different client segments.",
+        "practical_utility": "The analysis provides decision-makers with a framework for thinking about the trade-offs involved in targeting different client segments, but does not offer a clear, actionable recommendation."
+      }
+    },
+    {
+      "question_id": 5,
+      "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
+      "system": "nli_detection",
+      "total": 4.0,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 4
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a nuanced third perspective that challenges the binary choice between enterprise and SMB clients.",
+        "analytical_depth": "The analysis identifies non-obvious considerations, such as sales cycle complexity and the need for a variable cost-benefit analysis, but does not delve extremely deep into each factor.",
+        "claim_specificity": "The claims are somewhat vague and lack concrete data or specific examples to support the arguments, such as actual revenue potential or sales cycle costs.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the decision and the need for a nuanced approach, but could further highlight the uncertainties and context dependencies involved in targeting either enterprise or SMB clients.",
+        "practical_utility": "The analysis provides decision-makers with a framework for thinking about the issue, including the importance of cost-benefit analysis, but does not offer a clear, actionable recommendation for a specific course of action."
+      }
+    },
+    {
+      "question_id": 6,
+      "question": "Is 'move fast and break things' a sound product development philosophy?",
+      "system": "single_llm",
+      "total": 2.6,
+      "dimensions": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 3,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three distinct viewpoints on the 'move fast and break things' philosophy, but they may not be entirely independent as two of them are direct opposites and the third is a nuanced version of one of them.",
+        "analytical_depth": "The analysis does not identify non-obvious risks or opportunities, and the perspectives presented are relatively straightforward and lack depth.",
+        "claim_specificity": "The claims made in the analysis are vague and lack concrete examples or data to support them, making it difficult to evaluate their validity.",
+        "honest_uncertainty": "The analysis acknowledges some limitations of the 'move fast and break things' philosophy, but does not fully explore the uncertainties and context-dependent factors at play.",
+        "practical_utility": "The analysis does not provide clear guidance on how to apply the 'move fast and break things' philosophy in practice, or what specific actions a decision-maker should take based on the different perspectives presented."
+      }
+    },
+    {
+      "question_id": 6,
+      "question": "Is 'move fast and break things' a sound product development philosophy?",
+      "system": "full_system",
+      "total": 3.2,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints on the 'move fast and break things' philosophy, offering a range of perspectives from supportive to critical.",
+        "analytical_depth": "The analysis identifies non-obvious risks and opportunities, such as the potential for defective products and the impact on societal trust, but does not delve extremely deep into each perspective.",
+        "claim_specificity": "The claims made in the analysis are somewhat vague and lack concrete data or examples to support them, making it difficult to fully assess their validity.",
+        "honest_uncertainty": "The analysis does not explicitly acknowledge what is genuinely unknown or context-dependent, and instead presents each perspective as a clear statement of fact without hedging or uncertainty.",
+        "practical_utility": "The analysis does not provide clear, actionable advice for a decision-maker, instead presenting a range of perspectives without clear recommendations or next steps."
+      }
+    },
+    {
+      "question_id": 6,
+      "question": "Is 'move fast and break things' a sound product development philosophy?",
+      "system": "nli_detection",
+      "total": 3.2,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints on the 'move fast and break things' philosophy, offering a diverse range of perspectives.",
+        "analytical_depth": "The analysis identifies non-obvious risks and opportunities, such as the impact on societal trust and infrastructure, but does not delve extremely deep into each perspective.",
+        "claim_specificity": "The claims made in the analysis are somewhat vague and lack concrete examples or data to support the arguments presented in each perspective.",
+        "honest_uncertainty": "The analysis does not accurately acknowledge what is genuinely unknown or context-dependent, as it presents each perspective as a clear argument without highlighting the uncertainties or nuances involved.",
+        "practical_utility": "The analysis does not provide clear, actionable advice for a decision-maker, as it primarily presents arguments for and against the philosophy without offering concrete recommendations."
+      }
+    },
+    {
+      "question_id": 7,
+      "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
+      "system": "single_llm",
+      "total": 3.4,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 4,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a hybrid approach, demonstrating a robust consideration of different perspectives.",
+        "analytical_depth": "The analysis provides basic insights into the pros and cons of building custom internal tools versus using off-the-shelf software, but does not identify non-obvious risks or opportunities.",
+        "claim_specificity": "The claims made in the analysis are vague and lack concrete examples or data to support them, making it difficult to evaluate their validity.",
+        "honest_uncertainty": "The analysis acknowledges the complexity of the decision and the potential benefits of a hybrid approach, but could further explore the uncertainties and trade-offs involved.",
+        "practical_utility": "The analysis provides some general guidance on the decision to build custom internal tools or use off-the-shelf software, but does not offer specific, actionable recommendations for a decision-maker."
+      }
+    },
+    {
+      "question_id": 7,
+      "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
+      "system": "full_system",
+      "total": 3.8,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 3
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a third perspective that challenges the fundamental framing of the question, demonstrating a high level of diversity in perspectives.",
+        "analytical_depth": "The analysis identifies non-obvious risks, such as resource diversion and project failure, but does not delve deeply into specific examples or nuanced insights that a casual reader might miss.",
+        "claim_specificity": "The claims made are somewhat vague and lack concrete, traceable examples, such as specific data or case studies, to support the arguments presented in the perspectives.",
+        "honest_uncertainty": "The analysis acknowledges the complexity and dynamic nature of a startup's needs, but could more explicitly flag what is genuinely unknown or context-dependent, such as the specific conditions under which custom tools are preferable.",
+        "practical_utility": "While the analysis provides some useful insights, it does not clearly identify specific actions a decision-maker should take differently based on context, lacking concrete recommendations or guidelines for choosing between custom and off-the-shelf tools."
+      }
+    },
+    {
+      "question_id": 7,
+      "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
+      "system": "nli_detection",
+      "total": 3.6,
+      "dimensions": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 4,
+        "practical_utility": 2
+      },
+      "reasoning": {
+        "perspective_diversity": "The analysis presents three genuinely distinct viewpoints, including a third perspective that challenges the fundamental framing of the question, demonstrating a high level of diversity in perspectives.",
+        "analytical_depth": "The analysis identifies non-obvious risks such as project delays and cost overruns, but does not delve deeply into specific examples or nuanced insights that a casual reader might miss.",
+        "claim_specificity": "The claims made are somewhat vague and lack concrete, traceable examples, such as specific data on the costs and benefits of custom internal tools versus off-the-shelf software.",
+        "honest_uncertainty": "The analysis acknowledges the dynamic nature of a startup's needs, which implies uncertainty, but does not explicitly flag what is genuinely unknown or context-dependent in a calibrated manner.",
+        "practical_utility": "The analysis does not clearly identify what a decision-maker should do differently based on context, as it presents conflicting perspectives without synthesizing them into actionable advice."
+      }
+    }
+  ]
+}

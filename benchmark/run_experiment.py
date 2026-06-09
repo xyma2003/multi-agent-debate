@@ -53,8 +53,8 @@ ALL_VARIANTS = list(VARIANT_BUILDERS.keys()) + ["single_llm"]
 # Helpers
 # ---------------------------------------------------------------------------
 
-def load_questions(limit: int | None = None) -> list[dict]:
-    with open(QUESTIONS_PATH) as f:
+def load_questions(limit: int | None = None, path: Path | None = None) -> list[dict]:
+    with open(path or QUESTIONS_PATH) as f:
         questions = json.load(f)
     if limit:
         questions = questions[:limit]
@@ -256,9 +256,15 @@ def main() -> None:
         default=0,
         help="Seconds to sleep between questions (default: 0, use 30+ for NLI variant)",
     )
+    parser.add_argument(
+        "--questions",
+        type=Path,
+        default=None,
+        help="Path to custom questions JSON file (default: benchmark/questions.json)",
+    )
     args = parser.parse_args()
 
-    questions = load_questions(limit=args.limit)
+    questions = load_questions(limit=args.limit, path=args.questions)
     print(f"\nLoaded {len(questions)} questions.")
     print(f"Variants to run: {args.variants}")
 

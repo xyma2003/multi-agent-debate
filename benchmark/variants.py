@@ -636,6 +636,120 @@ def build_nli_detection_graph():
 
 
 # ---------------------------------------------------------------------------
+# Adaptive PROHIBITION variant
+# ---------------------------------------------------------------------------
+
+def _make_adaptive_agent_nodes(question_type: str):
+    """Return (optimist_fn, pessimist_fn, devil_fn) using type-appropriate prompts."""
+    from debate.prompts_adaptive import ADAPTIVE_PROMPTS
+    prompts = ADAPTIVE_PROMPTS.get(question_type, ADAPTIVE_PROMPTS["binary"])
+
+    def _agent(state: dict, role: str) -> dict:
+        topic = state.get("topic", "")
+        round_num = state.get("round_num", 0)
+        prior_arguments = state.get("prior_arguments", [])
+        system_prompt = prompts[role]
+
+        human_content = f"Topic for analysis: {topic}\n\nRound: {round_num + 1}"
+
+        if prior_arguments and round_num > 0:
+            rounds: dict = {}
+            for s in prior_arguments:
+                rnd = s["round_num"]
+                if rnd not in rounds:
+                    rounds[rnd] = {}
+                rounds[rnd][s["agent_role"]] = s
+
+            own_rounds = sorted(r for r in rounds if role in rounds[r])
+            if own_rounds:
+                human_content += "\n\n--- Your position history ---"
+                for rnd in own_rounds:
+                    human_content += f"\n\n[YOUR POSITION — Round {rnd + 1}]"
+                    human_content += f"\nPosition: {rounds[rnd][role]['position']}"
+
+            human_content += "\n\n--- Full debate history (opponents) ---"
+            for rnd in sorted(rounds.keys()):
+                opponent_args = [rounds[rnd][r] for r in rounds[rnd] if r != role]
+                if not opponent_args:
+                    continue
+                human_content += f"\n\n== Round {rnd + 1} =="
+                for arg_summary in opponent_args:
+                    claims_text = "\n".join(
+                        f"  - {c}" for c in arg_summary.get("key_claims", [])
+                    )
+                    human_content += (
+                        f"\n\n[{arg_summary['agent_role'].upper()}]"
+                        f"\nPosition: {arg_summary['position']}"
+                        f"\nKey claims:\n{claims_text}"
+                        f"\nConfidence: {arg_summary['confidence']:.0%}"
+                    )
+
+            human_content += (
+                "\n\n--- Rebuttal instructions ---"
+                "\nRebut the opposing arguments above. Maintain your analytical stance."
+                "\nIf (and ONLY if) an opponent's specific claim is logically superior,"
+                " record it in your concessions list."
+                "\nDo NOT concede to avoid conflict. Only concede on logical grounds."
+            )
+
+        llm = _make_llm()
+        messages = [
+            SystemMessage(content=system_prompt),
+            HumanMessage(content=human_content),
+        ]
+        argument = _invoke_with_retry(llm, messages, role, round_num)
+        return {"current_round_arguments": [argument]}
+
+    def opt(s): return _agent(s, "optimist")
+    def pes(s): return _agent(s, "pessimist")
+    def dev(s): return _agent(s, "devil")
+    return opt, pes, dev
+
+
+def _build_adaptive_graph_for_type(question_type: str):
+    """Build a compiled graph using prompts appropriate for question_type."""
+    from debate.nodes.dispatch import dispatch_round1, route_divergence
+    opt, pes, dev = _make_adaptive_agent_nodes(question_type)
+    builder = StateGraph(DebateState)
+    _base_graph_nodes(builder, {
+        "optimist_node": opt,
+        "pessimist_node": pes,
+        "devil_node": dev,
+    })
+    _standard_edges(builder, dispatch_round1, route_divergence)
+    return builder.compile(checkpointer=InMemorySaver())
+
+
+class AdaptiveProhibitionGraph:
+    """Wrapper that classifies the topic at invoke time, then delegates to
+    the appropriate graph (values_based / binary / context_dependent)."""
+
+    def __init__(self):
+        self._graphs = {
+            "values_based":      _build_adaptive_graph_for_type("values_based"),
+            "binary":            _build_adaptive_graph_for_type("binary"),
+            "context_dependent": _build_adaptive_graph_for_type("context_dependent"),
+        }
+
+    def invoke(self, inputs: dict, config: dict | None = None) -> dict:
+        from debate.classify import classify_question
+        topic = inputs.get("topic", "")
+        question_type = classify_question(topic)
+        print(f"  [adaptive] '{topic[:50]}...' → {question_type}")
+        return self._graphs[question_type].invoke(inputs, config or {})
+
+
+def build_adaptive_prohibition_graph():
+    """Adaptive PROHIBITION: classify question type first, then select prompt level.
+
+    values_based      → full PROHIBITION (advocates must commit to values)
+    binary            → moderate (must recommend, can acknowledge nuance)
+    context_dependent → off (agents map conditions, 'it depends' is correct)
+    """
+    return AdaptiveProhibitionGraph()
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -647,6 +761,7 @@ VARIANT_BUILDERS = {
     "fixed_rounds": build_fixed_rounds_graph,
     "fulltext_embedding": build_fulltext_graph,
     "nli_detection": build_nli_detection_graph,
+    "adaptive_prohibition": build_adaptive_prohibition_graph,
 }
 
 

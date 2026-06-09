@@ -34,7 +34,7 @@ RESULTS_DIR = Path(__file__).parent.parent / "results"
 HISTORICAL_RESULTS = RESULTS_DIR / "historical"
 HISTORICAL_RESULTS.mkdir(exist_ok=True)
 
-SYSTEMS = ["single_llm", "full_system"]
+SYSTEMS = ["single_llm", "full_system", "adaptive_prohibition"]
 
 
 # ---------------------------------------------------------------------------
@@ -74,13 +74,12 @@ def run_single_llm(question_text: str, llm) -> dict:
     return {}
 
 
-def run_multi_agent(question_text: str) -> dict:
-    """Run the full multi-agent debate graph and return agent final positions."""
-    from langgraph.checkpoint.memory import InMemorySaver
-    from debate.graph import build_graph
+def run_multi_agent(question_text: str, system: str = "full_system") -> dict:
+    """Run a multi-agent debate graph and return agent final positions."""
+    from benchmark.variants import build_variant_graph
     import uuid
 
-    graph = build_graph()
+    graph = build_variant_graph(system)
     thread_id = str(uuid.uuid4())
     config = {"configurable": {"thread_id": thread_id}}
     result = graph.invoke(
@@ -226,7 +225,7 @@ def main():
                     os.environ["LLM_BACKEND"] = "groq"
                     positions = run_single_llm(question_text, _make_llm())
                 else:
-                    positions = run_multi_agent(question_text)
+                    positions = run_multi_agent(question_text, system)
                 saved["debates"][debate_key] = positions
                 print("done")
                 with open(results_path, "w") as f:

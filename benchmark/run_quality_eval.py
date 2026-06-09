@@ -64,9 +64,11 @@ def save_scores(data: dict) -> None:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
-def already_evaluated(existing: dict, question_id: int, system: str) -> bool:
+def already_evaluated(existing: dict, question_id: int, system: str, judge: str) -> bool:
     for entry in existing.get("scores", []):
-        if entry["question_id"] == question_id and entry["system"] == system:
+        if (entry["question_id"] == question_id
+                and entry["system"] == system
+                and entry.get("judge") == judge):
             return True
     return False
 
@@ -79,6 +81,9 @@ def main() -> None:
                         help="Seconds between LLM calls (default: 5)")
     parser.add_argument("--systems", nargs="+", default=SYSTEMS,
                         choices=SYSTEMS, help="Which systems to evaluate (default: all)")
+    parser.add_argument("--judge", default="qwen",
+                        choices=["qwen", "openai", "anthropic", "groq"],
+                        help="Judge model backend (default: qwen/Qwen3-32b — different arch from debaters)")
     args = parser.parse_args()
 
     # Load questions
@@ -101,10 +106,13 @@ def main() -> None:
     existing = load_existing_scores()
     skipped = 0
 
-    # LLM for judging
+    # LLM for judging — use a DIFFERENT model than the debaters (Groq llama-3.3-70b)
+    import os
+    os.environ["LLM_BACKEND"] = args.judge
     from debate.llm import _make_llm
     from benchmark.quality_evaluator import evaluate_analysis, extract_analysis_text  # noqa: E402
     llm = _make_llm()
+    print(f"Judge: {args.judge}\n")
 
     for qid in qids:
         question_text = questions.get(qid, f"Question {qid}")
@@ -112,7 +120,7 @@ def main() -> None:
         print(f"Q{qid}: {question_text[:70]}...")
 
         for system in args.systems:
-            if already_evaluated(existing, qid, system):
+            if already_evaluated(existing, qid, system, args.judge):
                 print(f"  [{system}] already evaluated — skip")
                 skipped += 1
                 continue
@@ -134,6 +142,7 @@ def main() -> None:
                 "question_id": qid,
                 "question": question_text,
                 "system": system,
+                "judge": args.judge,
                 "total": round(score.total(), 3),
                 "dimensions": {
                     "perspective_diversity": score.perspective_diversity.score,

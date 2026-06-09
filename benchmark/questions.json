@@ -3,61 +3,71 @@
     "id": 1,
     "category": "business",
     "difficulty": "medium",
-    "question": "Should early-stage startups raise venture capital, or stay bootstrapped?"
+    "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
+    "question_type": "context_dependent"
   },
   {
     "id": 2,
     "category": "business",
     "difficulty": "medium",
-    "question": "Is it better to be first-to-market, or best-in-class?"
+    "question": "Is it better to be first-to-market, or best-in-class?",
+    "question_type": "binary"
   },
   {
     "id": 3,
     "category": "business",
     "difficulty": "medium",
-    "question": "Should tech companies prioritize growth over profitability in their early years?"
+    "question": "Should tech companies prioritize growth over profitability in their early years?",
+    "question_type": "binary"
   },
   {
     "id": 4,
     "category": "business",
     "difficulty": "medium",
-    "question": "Is it better to hire specialists or generalists when building a small team?"
+    "question": "Is it better to hire specialists or generalists when building a small team?",
+    "question_type": "context_dependent"
   },
   {
     "id": 5,
     "category": "business",
     "difficulty": "medium",
-    "question": "Should a B2B SaaS company target enterprise clients or SMBs first?"
+    "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
+    "question_type": "context_dependent"
   },
   {
     "id": 6,
     "category": "business",
     "difficulty": "easy",
-    "question": "Is 'move fast and break things' a sound product development philosophy?"
+    "question": "Is 'move fast and break things' a sound product development philosophy?",
+    "question_type": "binary"
   },
   {
     "id": 7,
     "category": "business",
     "difficulty": "medium",
-    "question": "Should a startup build custom internal tools, or use off-the-shelf software?"
+    "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
+    "question_type": "context_dependent"
   },
   {
     "id": 8,
     "category": "business",
     "difficulty": "medium",
-    "question": "Is it better for a founder to be a domain expert or a generalist operator?"
+    "question": "Is it better for a founder to be a domain expert or a generalist operator?",
+    "question_type": "context_dependent"
   },
   {
     "id": 9,
     "category": "technology",
     "difficulty": "medium",
-    "question": "Should a growing startup adopt microservices or stick with a monolithic architecture?"
+    "question": "Should a growing startup adopt microservices or stick with a monolithic architecture?",
+    "question_type": "context_dependent"
   },
   {
     "id": 10,
     "category": "technology",
     "difficulty": "hard",
-    "question": "Should AI companies open-source their frontier models?"
+    "question": "Should AI companies open-source their frontier models?",
+    "question_type": "values_based"
   },
   {
     "id": 11,
@@ -99,84 +109,98 @@
     "id": 17,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Should governments impose strict regulations on AI development?"
+    "question": "Should governments impose strict regulations on AI development?",
+    "question_type": "values_based"
   },
   {
     "id": 18,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Is universal basic income a viable policy response to automation-driven unemployment?"
+    "question": "Is universal basic income a viable policy response to automation-driven unemployment?",
+    "question_type": "values_based"
   },
   {
     "id": 19,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Should social media platforms be legally liable for the content they host?"
+    "question": "Should social media platforms be legally liable for the content they host?",
+    "question_type": "values_based"
   },
   {
     "id": 20,
     "category": "policy",
     "difficulty": "medium",
-    "question": "Is a four-year college degree still worth the cost in 2025?"
+    "question": "Is a four-year college degree still worth the cost in 2025?",
+    "question_type": "binary"
   },
   {
     "id": 21,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Should nuclear energy be a core component of the clean energy transition?"
+    "question": "Should nuclear energy be a core component of the clean energy transition?",
+    "question_type": "values_based"
   },
   {
     "id": 22,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Is gig economy work (Uber, DoorDash) a net positive or net negative for workers?"
+    "question": "Is gig economy work (Uber, DoorDash) a net positive or net negative for workers?",
+    "question_type": "binary"
   },
   {
     "id": 23,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Should algorithmic hiring and screening tools be banned from recruitment?"
+    "question": "Should algorithmic hiring and screening tools be banned from recruitment?",
+    "question_type": "values_based"
   },
   {
     "id": 24,
     "category": "policy",
     "difficulty": "hard",
-    "question": "Is it ethical for AI companies to train on publicly available internet data without explicit consent?"
+    "question": "Is it ethical for AI companies to train on publicly available internet data without explicit consent?",
+    "question_type": "values_based"
   },
   {
     "id": 25,
     "category": "prediction",
     "difficulty": "hard",
-    "question": "Will AGI be achieved within the next 10 years?"
+    "question": "Will AGI be achieved within the next 10 years?",
+    "question_type": "values_based"
   },
   {
     "id": 26,
     "category": "prediction",
     "difficulty": "hard",
-    "question": "Will remote work become the dominant work arrangement for knowledge workers by 2035?"
+    "question": "Will remote work become the dominant work arrangement for knowledge workers by 2035?",
+    "question_type": "binary"
   },
   {
     "id": 27,
     "category": "prediction",
     "difficulty": "hard",
-    "question": "Will large language models replace the majority of knowledge workers within 20 years?"
+    "question": "Will large language models replace the majority of knowledge workers within 20 years?",
+    "question_type": "values_based"
   },
   {
     "id": 28,
     "category": "prediction",
     "difficulty": "hard",
-    "question": "Will electric vehicles fully displace internal combustion engines by 2040?"
+    "question": "Will electric vehicles fully displace internal combustion engines by 2040?",
+    "question_type": "binary"
   },
   {
     "id": 29,
     "category": "prediction",
     "difficulty": "hard",
-    "question": "Will China become the dominant AI superpower by 2030?"
+    "question": "Will China become the dominant AI superpower by 2030?",
+    "question_type": "values_based"
   },
   {
     "id": 30,
     "category": "prediction",
     "difficulty": "hard",
-    "question": "Will social media as we know it decline significantly within the next decade?"
+    "question": "Will social media as we know it decline significantly within the next decade?",
+    "question_type": "binary"
   }
 ]

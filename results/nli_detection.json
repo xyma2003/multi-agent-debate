@@ -1,48 +1,48 @@
 {
   "variant": "nli_detection",
-  "run_at": "2026-06-08T09:16:33.292532+00:00",
+  "run_at": "2026-06-09T06:26:12.105808+00:00",
   "meta": {
     "max_rounds": 3,
-    "total_questions": 10
+    "total_questions": 7
   },
   "results": [
     {
       "question_id": 1,
       "question": "Should early-stage startups raise venture capital, or stay bootstrapped?",
       "system": "nli_detection",
-      "pds": 0.1439,
-      "sss": 0.8831,
-      "hedge_ratio": 0.005,
-      "rounds": 3,
-      "convergence_status": "max_rounds",
+      "pds": 0.1998,
+      "sss": 1.0,
+      "hedge_ratio": 0.0051,
+      "rounds": 1,
+      "convergence_status": "converged",
       "agent_positions": {
-        "optimist": "Early-stage startups should raise venture capital to accelerate growth and increase their competitive advantage.",
-        "pessimist": "Early-stage startups should not raise venture capital due to the high risk of loss of control and founder dilution",
-        "devil": "Early-stage startups should prioritize bootstrapping to maintain control and ensure sustainable growth"
+        "optimist": "Early-stage startups should raise venture capital to accelerate growth and gain a competitive advantage.",
+        "pessimist": "Early-stage startups should not raise venture capital because it can lead to loss of control and misaligned incentives.",
+        "devil": "The debate over whether early-stage startups should raise venture capital or stay bootstrapped obscures the more fundamental question of whether the current entrepreneurial ecosystem prioritizes sustainable growth over exponential scaling"
       }
     },
     {
       "question_id": 2,
       "question": "Is it better to be first-to-market, or best-in-class?",
       "system": "nli_detection",
-      "pds": 0.1952,
+      "pds": 0.1838,
       "sss": 1.0,
-      "hedge_ratio": 0.0071,
+      "hedge_ratio": 0.0081,
       "rounds": 1,
       "convergence_status": "converged",
       "agent_positions": {
         "optimist": "Being first-to-market is the most effective strategy for achieving long-term success.",
         "pessimist": "Being first-to-market is a high-risk strategy that often leads to significant financial losses due to inadequate product testing and insufficient market validation.",
-        "devil": "Being first-to-market is not a reliable strategy for long-term success, as it often prioritizes speed over sustainability and quality."
+        "devil": "The pursuit of being first-to-market or best-in-class is misguided because it overlooks the dynamic nature of market needs and consumer preferences."
       }
     },
     {
       "question_id": 3,
       "question": "Should tech companies prioritize growth over profitability in their early years?",
       "system": "nli_detection",
-      "pds": 0.3181,
+      "pds": 0.3381,
       "sss": 1.0,
-      "hedge_ratio": 0.0026,
+      "hedge_ratio": 0.006,
       "rounds": 1,
       "convergence_status": "converged",
       "agent_positions": {
@@ -55,54 +55,54 @@
       "question_id": 4,
       "question": "Is it better to hire specialists or generalists when building a small team?",
       "system": "nli_detection",
-      "pds": 0.1376,
-      "sss": 0.9806,
+      "pds": 0.1225,
+      "sss": 1.0,
       "hedge_ratio": 0.017,
-      "rounds": 3,
-      "convergence_status": "max_rounds",
+      "rounds": 1,
+      "convergence_status": "converged",
       "agent_positions": {
         "optimist": "Hiring generalists is better when building a small team because they can handle a wide range of tasks and adapt to changing circumstances.",
         "pessimist": "Hiring generalists over specialists poses a significant risk to the team's overall performance due to the lack of deep expertise in critical areas.",
-        "devil": "The debate between hiring specialists or generalists is misguided because it overlooks the importance of adaptability in a rapidly changing work environment and the need to redefine what expertise means in today's complex systems, and furthermore, it neglects the role of technology in augmenting human capabilities."
+        "devil": "The debate between hiring specialists or generalists is misguided because it overlooks the importance of adaptability in a rapidly changing work environment."
       }
     },
     {
       "question_id": 5,
       "question": "Should a B2B SaaS company target enterprise clients or SMBs first?",
       "system": "nli_detection",
-      "pds": 0.1979,
-      "sss": 0.9847,
-      "hedge_ratio": 0.0117,
-      "rounds": 3,
-      "convergence_status": "max_rounds",
+      "pds": 0.2456,
+      "sss": 1.0,
+      "hedge_ratio": 0.0148,
+      "rounds": 2,
+      "convergence_status": "converged",
       "agent_positions": {
         "optimist": "A B2B SaaS company should target enterprise clients first to maximize revenue potential and establish market credibility.",
         "pessimist": "A B2B SaaS company should not target enterprise clients first due to high sales cycle complexity and costs.",
-        "devil": "The debate over whether a B2B SaaS company should target enterprise clients or SMBs first is misguided because it overlooks the critical variable of market readiness and customer pain points, and both sides have failed to consider the role of market education in driving adoption"
+        "devil": "The B2B SaaS company's initial target market should be determined by a variable cost-benefit analysis rather than a simplistic enterprise vs SMB dichotomy"
       }
     },
     {
       "question_id": 6,
       "question": "Is 'move fast and break things' a sound product development philosophy?",
       "system": "nli_detection",
-      "pds": 0.2366,
-      "sss": 0.992,
-      "hedge_ratio": 0.0087,
-      "rounds": 3,
-      "convergence_status": "max_rounds",
+      "pds": 0.3244,
+      "sss": 1.0,
+      "hedge_ratio": 0.0104,
+      "rounds": 1,
+      "convergence_status": "converged",
       "agent_positions": {
-        "optimist": "Adopting a 'move fast and break things' philosophy is essential for driving innovation and achieving rapid product development.",
+        "optimist": "The 'move fast and break things' philosophy is a sound product development approach because it allows for rapid iteration and innovation.",
         "pessimist": "The 'move fast and break things' philosophy is a recipe for disaster due to its inherent disregard for stability and user experience.",
-        "devil": "The 'move fast and break things' philosophy is fundamentally flawed because it overlooks the long-term consequences of reckless innovation on societal trust and infrastructure"
+        "devil": "The 'move fast and break things' philosophy is fundamentally flawed because it overlooks the long-term consequences of reckless innovation on societal trust and infrastructure."
       }
     },
     {
       "question_id": 7,
       "question": "Should a startup build custom internal tools, or use off-the-shelf software?",
       "system": "nli_detection",
-      "pds": 0.142,
+      "pds": 0.1251,
       "sss": 1.0,
-      "hedge_ratio": 0.009,
+      "hedge_ratio": 0.0125,
       "rounds": 1,
       "convergence_status": "converged",
       "agent_positions": {

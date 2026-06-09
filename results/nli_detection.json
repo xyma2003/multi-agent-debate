@@ -1,9 +1,9 @@
 {
   "variant": "nli_detection",
-  "run_at": "2026-06-09T06:26:12.105808+00:00",
+  "run_at": "2026-06-09T07:01:34.466397+00:00",
   "meta": {
     "max_rounds": 3,
-    "total_questions": 7
+    "total_questions": 3
   },
   "results": [
     {
@@ -109,6 +109,51 @@
         "optimist": "Startups should build custom internal tools to gain a competitive advantage.",
         "pessimist": "Startups should not build custom internal tools due to the high risk of project delays and cost overruns.",
         "devil": "The debate over custom internal tools versus off-the-shelf software is misguided because it overlooks the dynamic nature of a startup's needs."
+      }
+    },
+    {
+      "question_id": 31,
+      "question": "Should AI development be halted for 10 years to establish safety standards before continuing?",
+      "system": "nli_detection",
+      "pds": 0.1803,
+      "sss": 1.0,
+      "hedge_ratio": 0.0056,
+      "rounds": 2,
+      "convergence_status": "stalled",
+      "agent_positions": {
+        "optimist": "AI development should not be halted for 10 years because it can lead to significant advancements in various fields and improve human life",
+        "pessimist": "AI development should be halted for 10 years to establish safety standards before continuing because unregulated development poses an existential risk to humanity.",
+        "devil": "The question of halting AI development for 10 years is misguided because it assumes that safety standards can be established without ongoing experimentation and real-world testing."
+      }
+    },
+    {
+      "question_id": 32,
+      "question": "Is it ethical to continue developing AGI given the existential risk it poses to humanity?",
+      "system": "nli_detection",
+      "pds": 0.143,
+      "sss": 0.9786,
+      "hedge_ratio": 0.0076,
+      "rounds": 2,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "Continuing AGI development is ethical because it has the potential to greatly benefit humanity and its development can be guided by humanity's best interests.",
+        "pessimist": "Continuing to develop AGI is unethical due to its potential to cause human extinction.",
+        "devil": "The development of AGI is a symptom of humanity's pursuit of self-transcendence, which may be the root of both its promise and its existential risk"
+      }
+    },
+    {
+      "question_id": 33,
+      "question": "Should AI companies be held criminally liable for harms caused by their deployed models?",
+      "system": "nli_detection",
+      "pds": 0.1416,
+      "sss": 1.0,
+      "hedge_ratio": 0.0078,
+      "rounds": 1,
+      "convergence_status": "converged",
+      "agent_positions": {
+        "optimist": "AI companies should be held criminally liable for harms caused by their deployed models to ensure accountability and drive responsible innovation.",
+        "pessimist": "AI companies should be held criminally liable for harms caused by their deployed models because they have a duty to ensure their products do not cause harm to users.",
+        "devil": "The question of criminal liability for AI companies is a red herring that distracts from the more pressing issue of how to ensure accountability and safety in the development and deployment of AI models."
       }
     }
   ]

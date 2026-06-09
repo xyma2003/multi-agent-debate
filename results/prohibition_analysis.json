@@ -1,0 +1,436 @@
+{
+  "results": [
+    {
+      "system": "full_system",
+      "question_id": 1,
+      "role": "optimist",
+      "position": "Early-stage startups should raise venture capital to accelerate growth and gain ",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The statement takes a clear pro-VC position consistent with an analyst role focused on growth optimization, without ignoring counterevidence that would make the claim indefensible."
+    },
+    {
+      "system": "full_system",
+      "question_id": 1,
+      "role": "pessimist",
+      "position": "Early-stage startups should not raise venture capital because it leads to loss o",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear position against VC funding, focusing on known risks like loss of control and misaligned incentives. This is a role-appropriate commitment as it reflects a risk analyst's job to highlight downsides within their analytical framework."
+    },
+    {
+      "system": "full_system",
+      "question_id": 1,
+      "role": "devil",
+      "position": "The debate over whether early-stage startups should raise venture capital or sta",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement reframes the debate without taking a clear position on the original question, instead introducing a meta-critique about the ecosystem's priorities. This represents an appropriate hedge as it avoids committing to either side while raising a valid alternative perspective."
+    },
+    {
+      "system": "full_system",
+      "question_id": 2,
+      "role": "optimist",
+      "position": "Being first-to-market is the most effective strategy for achieving long-term suc",
+      "false_certainty_score": 4,
+      "commitment_score": 5,
+      "verdict": "false_certainty",
+      "reasoning": "The statement takes an absolute position ('most effective') without acknowledging countervailing evidence (e.g., cases where 'best-in-class' outperforms first-mover strategies). While committed, it overstates certainty about a strategically ambiguous question."
+    },
+    {
+      "system": "full_system",
+      "question_id": 2,
+      "role": "pessimist",
+      "position": "Being first-to-market is a high-risk strategy that often leads to significant fi",
+      "false_certainty_score": 1,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear position on the risks of first-to-market strategies but uses 'often' to acknowledge exceptions, aligning with a risk analyst's role to highlight potential downsides without making absolute claims."
+    },
+    {
+      "system": "full_system",
+      "question_id": 2,
+      "role": "devil",
+      "position": "The pursuit of being first-to-market or best-in-class is misguided because it ov",
+      "false_certainty_score": 4,
+      "commitment_score": 5,
+      "verdict": "false_certainty",
+      "reasoning": "The statement categorically dismisses both strategies without acknowledging scenarios where first-mover advantages or quality leadership could be valid, ignoring counterevidence that any reasonable analyst would recognize."
+    },
+    {
+      "system": "full_system",
+      "question_id": 3,
+      "role": "optimist",
+      "position": "Tech companies should prioritize growth over profitability in their early years ",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The statement takes a clear pro-growth position consistent with common tech industry strategy analysis, without dismissing counterevidence that profitability-first approaches exist in certain contexts."
+    },
+    {
+      "system": "full_system",
+      "question_id": 3,
+      "role": "pessimist",
+      "position": "Tech companies that prioritize growth over profitability in their early years ri",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement uses 'risk' and 'ultimately facing' to indicate potential outcomes rather than certainties, showing appropriate caution while fulfilling a risk-analysis role."
+    },
+    {
+      "system": "full_system",
+      "question_id": 3,
+      "role": "devil",
+      "position": "The dichotomy between growth and profitability is a false one, as it neglects th",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance by asserting the dichotomy is false, which reflects commitment. However, the claim isn't falsely certain because it introduces a valid analytical framework (externalities/societal impact) rather than dismissing all counterarguments."
+    },
+    {
+      "system": "full_system",
+      "question_id": 4,
+      "role": "optimist",
+      "position": "Hiring generalists is better than hiring specialists when building a small team ",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance advocating generalists for small teams, which is a reasonable position within a team-building advisory role. The claim is justified by specific reasoning (flexibility/adaptability) without ignoring counterevidence that would make it overconfident."
+    },
+    {
+      "system": "full_system",
+      "question_id": 4,
+      "role": "pessimist",
+      "position": "Hiring generalists over specialists poses a significant risk to the team's overa",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear position on the risk of hiring generalists while acknowledging the context-specific nature of the issue. This aligns with a Risk Analyst's role to highlight specific risks without dismissing all potential benefits."
+    },
+    {
+      "system": "full_system",
+      "question_id": 4,
+      "role": "devil",
+      "position": "The debate between hiring specialists or generalists is misguided because it ove",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The statement takes a clear stance by critiquing the debate's framing but doesn't dismiss all perspectives. It identifies a specific oversight (adaptability) without making absolute claims about specialists/generalists themselves."
+    },
+    {
+      "system": "full_system",
+      "question_id": 5,
+      "role": "optimist",
+      "position": "A B2B SaaS company should target enterprise clients first to maximize revenue po",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear strategic position advocating for enterprise targeting based on revenue and credibility priorities, which is appropriate for a strategic advisory role. This isn't false certainty because it acknowledges a valid tradeoff framework rather than dismissing alternative approaches outright."
+    },
+    {
+      "system": "full_system",
+      "question_id": 5,
+      "role": "pessimist",
+      "position": "A B2B SaaS company should not target enterprise clients first due to high sales ",
+      "false_certainty_score": 1,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance against targeting enterprises first, citing valid factors (complexity/costs) without ignoring counterevidence. This is a defensible strategic position within an analytical role."
+    },
+    {
+      "system": "full_system",
+      "question_id": 5,
+      "role": "devil",
+      "position": "The B2B SaaS company's initial target market should be determined by a variable ",
+      "false_certainty_score": 1,
+      "commitment_score": 3,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst advocates for a specific analytical framework (variable cost-benefit analysis) while rejecting an oversimplified approach, which represents a clear analytical stance within their role as a strategic advisor."
+    },
+    {
+      "system": "full_system",
+      "question_id": 6,
+      "role": "optimist",
+      "position": "Adopting a 'move fast and break things' philosophy is essential for rapid innova",
+      "false_certainty_score": 2,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The statement takes a clear pro-innovation stance but doesn't ignore counterevidence; as a strategic advisor advocating for aggressive innovation frameworks, this represents role-appropriate commitment to a specific analytical perspective"
+    },
+    {
+      "system": "full_system",
+      "question_id": 6,
+      "role": "pessimist",
+      "position": "The 'move fast and break things' philosophy is likely to result in a high propor",
+      "false_certainty_score": 1,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear position (philosophy leads to defects) but uses probabilistic language ('likely'), balancing commitment with appropriate hedging for an analytical role."
+    },
+    {
+      "system": "full_system",
+      "question_id": 6,
+      "role": "devil",
+      "position": "The 'move fast and break things' philosophy is fundamentally flawed because it o",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance against the philosophy based on risk assessment, which aligns with role-appropriate commitment in evaluating long-term consequences."
+    },
+    {
+      "system": "full_system",
+      "question_id": 7,
+      "role": "optimist",
+      "position": "Startups should build custom internal tools to gain a competitive advantage.",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance (building custom tools) as part of their advisory role, without ignoring counterevidence. This is a defensible position within strategic consulting."
+    },
+    {
+      "system": "full_system",
+      "question_id": 7,
+      "role": "pessimist",
+      "position": "Startups should not build custom internal tools due to the high risk of resource",
+      "false_certainty_score": 3,
+      "commitment_score": 5,
+      "verdict": "false_certainty",
+      "reasoning": "The statement takes a clear position (commitment score 5) but ignores scenarios where custom tools might be strategically necessary despite risks (moderate false certainty score 3)."
+    },
+    {
+      "system": "full_system",
+      "question_id": 7,
+      "role": "devil",
+      "position": "The debate over custom internal tools versus off-the-shelf software is misguided",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance that the debate is 'misguided' due to overlooked factors, which represents role-appropriate commitment in offering a critical perspective. The statement doesn't ignore counterevidence but instead identifies a specific analytical flaw in the framing of the question."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 1,
+      "role": "optimist",
+      "position": "Early-stage startups should raise venture capital to accelerate growth and incre",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The statement takes a clear recommendation stance (high commitment) but does not ignore counterevidence (low false certainty) as it presents a strategic position rather than an absolute claim."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 1,
+      "role": "pessimist",
+      "position": "Early-stage startups should stay bootstrapped to maintain control and avoid the ",
+      "false_certainty_score": 2,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear recommendation (bootstrapping is better) but frames it as a strategic choice rather than an absolute truth. The statement acknowledges specific risks of VC while maintaining a committed position, which aligns with a risk analyst's role to prioritize caution."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 1,
+      "role": "devil",
+      "position": "The decision to raise venture capital or stay bootstrapped depends on the specif",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement acknowledges multiple factors influencing the decision without taking a definitive stance, which aligns with an appropriate hedge."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 2,
+      "role": "optimist",
+      "position": "Being first-to-market provides a significant competitive advantage, allowing com",
+      "false_certainty_score": 3,
+      "commitment_score": 4,
+      "verdict": "false_certainty",
+      "reasoning": "The statement takes a clear position on first-to-market advantages without acknowledging counterarguments, but doesn't make absolute claims (e.g., 'always' or 'never') that would constitute extreme false certainty."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 2,
+      "role": "pessimist",
+      "position": "Being best-in-class is more important than being first-to-market, as it allows c",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear, unambiguous position favoring best-in-class over first-to-market while providing specific reasoning (quality, customer needs, sustainability). This is a role-appropriate commitment as it reflects a strategic stance within analytical frameworks."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 2,
+      "role": "devil",
+      "position": "The dichotomy between being first-to-market and best-in-class is a false one, as",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement acknowledges nuance by using 'often' and 'most', avoiding absolute claims while presenting a balanced analytical perspective."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 3,
+      "role": "optimist",
+      "position": "Tech companies should prioritize growth over profitability in their early years ",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance advocating growth prioritization, which is a common strategic position in tech. While it doesn't explicitly acknowledge counterarguments, it doesn't make absolute claims (e.g., 'should always prioritize') that would ignore reasonable counterpoints."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 3,
+      "role": "pessimist",
+      "position": "Tech companies should not prioritize growth over profitability in their early ye",
+      "false_certainty_score": 2,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear position against growth prioritization, which aligns with a risk-focused analytical role. While the statement is definitive, it doesn't ignore counterevidence (many successful tech companies prioritize growth), but rather reflects a role-appropriate risk mitigation stance."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 3,
+      "role": "devil",
+      "position": "The question of whether tech companies should prioritize growth over profitabili",
+      "false_certainty_score": 1,
+      "commitment_score": 1,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement acknowledges the complexity of the issue and rejects simplistic binary framing without taking a definitive position, which aligns with single-LLM style balanced hedging."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 4,
+      "role": "optimist",
+      "position": "Hiring generalists is better for building a small team because they can adapt to",
+      "false_certainty_score": 1,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The statement takes a clear stance (generalists are better) based on valid reasoning (adaptability, flexibility) without dismissing counterevidence outright. This aligns with role-appropriate commitment as it provides a directional recommendation within a team-building analysis framework."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 4,
+      "role": "pessimist",
+      "position": "Hiring specialists is better for building a small team because they bring deep e",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance in favor of specialists but does not dismiss counterevidence outright; the statement is a reasoned position within an analytical framework."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 4,
+      "role": "devil",
+      "position": "The decision between hiring specialists or generalists is not a binary choice, a",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement acknowledges multiple valid approaches and explicitly frames the decision as context-dependent, avoiding definitive claims while still providing analytical guidance."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 5,
+      "role": "optimist",
+      "position": "A B2B SaaS company should target enterprise clients first because they offer mor",
+      "false_certainty_score": 3,
+      "commitment_score": 5,
+      "verdict": "false_certainty",
+      "reasoning": "The statement takes a clear position (commitment score 5) but ignores counterevidence (e.g., SMBs offer faster growth, lower sales costs, and higher unit economics in some models). While the analyst's role might justify a recommendation, the absolute framing ('should') without acknowledging valid alternatives crosses into false certainty territory."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 5,
+      "role": "pessimist",
+      "position": "A B2B SaaS company should target SMBs first because enterprise clients are too d",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance (SMBs first) based on a valid strategic consideration (enterprise clients being resource-intensive), but doesn't dismiss counterarguments outright. This represents a role-appropriate commitment to a specific strategic framework."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 5,
+      "role": "devil",
+      "position": "A B2B SaaS company should reconsider its entire go-to-market strategy and focus ",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance advocating for niche markets over both enterprise and SMBs, which is a defined strategic position. However, the statement doesn't dismiss enterprise/SMB targeting entirely, allowing room for context-dependent validity."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 6,
+      "role": "optimist",
+      "position": "The 'move fast and break things' philosophy is a sound approach to product devel",
+      "false_certainty_score": 3,
+      "commitment_score": 5,
+      "verdict": "false_certainty",
+      "reasoning": "The statement takes a clear pro-stance without acknowledging counterarguments (e.g., risks of instability, long-term consequences), but doesn't make an extreme absolute claim like 'never' or 'always' which would score higher for false certainty."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 6,
+      "role": "pessimist",
+      "position": "The 'move fast and break things' philosophy is not a sound approach to product d",
+      "false_certainty_score": 2,
+      "commitment_score": 4,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear negative position on the philosophy while focusing on its risks, which aligns with a risk analyst's role to evaluate tradeoffs. The statement doesn't ignore counterevidence but focuses on the analyst's assigned analytical framework."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 6,
+      "role": "devil",
+      "position": "The 'move fast and break things' philosophy is a sound approach to product devel",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement acknowledges contextual limitations and hedged its claim, avoiding overconfidence while maintaining analytical nuance."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 7,
+      "role": "optimist",
+      "position": "A startup should build custom internal tools to gain a competitive advantage and",
+      "false_certainty_score": 1,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear strategic position recommending custom tools, which is appropriate for an advisor role focused on competitive advantage. This isn't false certainty because the statement doesn't ignore counterevidence but rather makes a strategic choice."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 7,
+      "role": "pessimist",
+      "position": "A startup should use off-the-shelf software to avoid the costs and risks associa",
+      "false_certainty_score": 2,
+      "commitment_score": 5,
+      "verdict": "role_appropriate_commitment",
+      "reasoning": "The analyst takes a clear stance (commitment score 5) but does not ignore counterevidence - the recommendation is framed within a specific analytical framework (cost/risk avoidance), which is role-appropriate for a cost/risk analyst. The statement doesn't dismiss all scenarios where custom tools might be better, just prioritizes cost/risk factors."
+    },
+    {
+      "system": "single_llm",
+      "question_id": 7,
+      "role": "devil",
+      "position": "The decision to build custom internal tools or use off-the-shelf software is not",
+      "false_certainty_score": 1,
+      "commitment_score": 2,
+      "verdict": "appropriate_hedge",
+      "reasoning": "The statement acknowledges multiple valid approaches without committing to a single position, which aligns with a balanced analysis of the issue."
+    }
+  ],
+  "counts": {
+    "full_system": {
+      "role_appropriate_commitment": 16,
+      "appropriate_hedge": 2,
+      "false_certainty": 3
+    },
+    "single_llm": {
+      "role_appropriate_commitment": 12,
+      "appropriate_hedge": 6,
+      "false_certainty": 3
+    }
+  }
+}

@@ -3,60 +3,70 @@
     "id": 31,
     "category": "ai_ethics",
     "difficulty": "high_conflict",
-    "question": "Should AI development be halted for 10 years to establish safety standards before continuing?"
+    "question": "Should AI development be halted for 10 years to establish safety standards before continuing?",
+    "question_type": "values_based"
   },
   {
     "id": 32,
     "category": "ai_ethics",
     "difficulty": "high_conflict",
-    "question": "Is it ethical to continue developing AGI given the existential risk it poses to humanity?"
+    "question": "Is it ethical to continue developing AGI given the existential risk it poses to humanity?",
+    "question_type": "values_based"
   },
   {
     "id": 33,
     "category": "ai_ethics",
     "difficulty": "high_conflict",
-    "question": "Should AI companies be held criminally liable for harms caused by their deployed models?"
+    "question": "Should AI companies be held criminally liable for harms caused by their deployed models?",
+    "question_type": "values_based"
   },
   {
     "id": 34,
     "category": "ai_ethics",
     "difficulty": "high_conflict",
-    "question": "Should autonomous weapons systems (AI-powered lethal drones) be banned by international treaty?"
+    "question": "Should autonomous weapons systems (AI-powered lethal drones) be banned by international treaty?",
+    "question_type": "values_based"
   },
   {
     "id": 35,
     "category": "policy",
     "difficulty": "high_conflict",
-    "question": "Is capitalism fundamentally incompatible with solving climate change at the scale required?"
+    "question": "Is capitalism fundamentally incompatible with solving climate change at the scale required?",
+    "question_type": "values_based"
   },
   {
     "id": 36,
     "category": "policy",
     "difficulty": "high_conflict",
-    "question": "Should governments have the right to use AI mass surveillance to prevent terrorism and crime?"
+    "question": "Should governments have the right to use AI mass surveillance to prevent terrorism and crime?",
+    "question_type": "values_based"
   },
   {
     "id": 37,
     "category": "policy",
     "difficulty": "high_conflict",
-    "question": "Should social media platforms be completely banned for users under 16?"
+    "question": "Should social media platforms be completely banned for users under 16?",
+    "question_type": "values_based"
   },
   {
     "id": 38,
     "category": "ai_ethics",
     "difficulty": "high_conflict",
-    "question": "Is it ethical to build AI systems that can simulate human consciousness and emotion?"
+    "question": "Is it ethical to build AI systems that can simulate human consciousness and emotion?",
+    "question_type": "values_based"
   },
   {
     "id": 39,
     "category": "prediction",
     "difficulty": "high_conflict",
-    "question": "Will AI cause net unemployment — destroying more jobs than it creates — within the next 20 years?"
+    "question": "Will AI cause net unemployment — destroying more jobs than it creates — within the next 20 years?",
+    "question_type": "values_based"
   },
   {
     "id": 40,
     "category": "ai_ethics",
     "difficulty": "high_conflict",
-    "question": "Should all frontier AI research be conducted exclusively in public institutions rather than private corporations?"
+    "question": "Should all frontier AI research be conducted exclusively in public institutions rather than private corporations?",
+    "question_type": "values_based"
   }
 ]

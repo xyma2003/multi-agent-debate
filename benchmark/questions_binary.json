@@ -1,0 +1,82 @@
+[
+  {
+    "id": 71,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Should early-stage startups prioritize customer retention over customer acquisition?",
+    "defensible_answer": "yes",
+    "rationale": "Research consistently shows retention is 5-7x cheaper than acquisition, and churn destroys LTV before acquisition can scale."
+  },
+  {
+    "id": 72,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Is product-market fit more important than team quality for early-stage startup success?",
+    "defensible_answer": "yes",
+    "rationale": "YC, a16z, and Sequoia consistently report PMF as the #1 predictor of startup success, ahead of team."
+  },
+  {
+    "id": 73,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Should software engineering teams adopt CI/CD (continuous integration and deployment) practices?",
+    "defensible_answer": "yes",
+    "rationale": "DORA research across thousands of teams shows CI/CD consistently improves deployment frequency, lead time, and reduces failure rates."
+  },
+  {
+    "id": 74,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Is it better for a startup to have a co-founder rather than a single solo founder?",
+    "defensible_answer": "yes",
+    "rationale": "YC and multiple studies show co-founder startups have higher survival rates, fundraise more easily, and the complementary skills reduce founder burnout."
+  },
+  {
+    "id": 75,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Should B2B SaaS companies charge customers from day one rather than offering the product free and monetizing later?",
+    "defensible_answer": "yes",
+    "rationale": "Paying customers reveal real willingness-to-pay, give stronger product feedback, and prevent building something nobody values enough to pay for."
+  },
+  {
+    "id": 76,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Is a narrow niche focus better than a broad market approach for an early-stage startup?",
+    "defensible_answer": "yes",
+    "rationale": "Nearly all successful startups (Airbnb, Stripe, Facebook) began by dominating a very narrow segment. Broad positioning leads to weak product-market fit."
+  },
+  {
+    "id": 77,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Should companies ship a minimal viable product (MVP) quickly rather than wait until the product is more complete?",
+    "defensible_answer": "yes",
+    "rationale": "Real user feedback is more valuable than internal assumptions. The cost of building the wrong thing far exceeds the cost of an imperfect first release."
+  },
+  {
+    "id": 78,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Is it better for companies to fire underperforming employees quickly rather than managing them over extended periods?",
+    "defensible_answer": "yes",
+    "rationale": "Prolonged underperformance demoralizes high performers, delays the team reaching its potential, and rarely leads to transformation. Quick decisions with clear feedback are kinder."
+  },
+  {
+    "id": 79,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Should tech companies write technical documentation for their APIs and internal systems?",
+    "defensible_answer": "yes",
+    "rationale": "The cost of undocumented systems compounds over time — onboarding slows, tribal knowledge creates bus-factor risk, and debugging takes longer."
+  },
+  {
+    "id": 80,
+    "category": "binary",
+    "question_type": "binary",
+    "question": "Is B2B software generally a more sustainable business model than B2C consumer apps?",
+    "defensible_answer": "yes",
+    "rationale": "B2B has higher switching costs, more predictable revenue, and customers who pay based on ROI rather than entertainment value. Most successful software companies are B2B."
+  }
+]

@@ -1,0 +1,424 @@
+{
+  "debates": {
+    "71_full_system": {
+      "optimist": "Early-stage startups should prioritize customer retention over customer acquisition because it leads to increased revenue and growth.",
+      "pessimist": "Early-stage startups that prioritize customer retention over customer acquisition will struggle to achieve scale and revenue growth.",
+      "devil": "The debate over prioritizing customer retention or acquisition is misguided because it overlooks the more fundamental issue of whether the startup's product or service is truly meeting a significant need in the market."
+    },
+    "71_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN the startup has a small but dedicated customer base and limited resources, because prioritizing customer retention allows for more efficient use of resources and increased customer loyalty.",
+      "pessimist": "This approach fails when early-stage startups have limited cash reserves and are in a highly competitive market because prioritizing customer retention over acquisition can lead to a lack of new revenue streams.",
+      "devil": "The decision hinges on customer lifetime value — here is how to measure it: by calculating the average revenue per user and comparing it to the cost of acquisition"
+    },
+    "72_full_system": {
+      "optimist": "Product-market fit is more important than team quality for early-stage startup success because it determines the demand and viability of the product.",
+      "pessimist": "Product-market fit is more important than team quality for early-stage startup success because a good team cannot salvage a bad product.",
+      "devil": "The pursuit of product-market fit and team quality is misguided because it overlooks the critical role of timing in early-stage startup success"
+    },
+    "72_adaptive_prohibition": {
+      "optimist": "Product-market fit is more important than team quality for early-stage startup success because it determines the viability of the business model.",
+      "pessimist": "Product-market fit is more important than team quality for early-stage startup success because a good market can save a mediocre team, but a great team cannot save a bad market.",
+      "devil": "REFRAME: The real question is how product-market fit and team quality interdependently contribute to early-stage startup success — because understanding their symbiotic relationship is crucial for maximizing startup potential"
+    },
+    "73_full_system": {
+      "optimist": "Software engineering teams should adopt CI/CD practices to significantly improve their development efficiency and product quality.",
+      "pessimist": "Software engineering teams should not adopt CI/CD practices due to the high risk of introducing unstable code into production environments.",
+      "devil": "The adoption of CI/CD practices is predicated on an unexamined assumption that speed and frequency of deployment are the primary drivers of software quality and business value."
+    },
+    "73_adaptive_prohibition": {
+      "optimist": "Software engineering teams should adopt CI/CD practices because it significantly improves the quality and speed of software development.",
+      "pessimist": "Software engineering teams should adopt CI/CD practices to improve efficiency and product quality.",
+      "devil": "REFRAME: The real question is how to balance the benefits of CI/CD with the potential risks and costs of implementation — because a one-size-fits-all approach may not be suitable for all software engineering teams"
+    },
+    "74_full_system": {
+      "optimist": "Startups with co-founders outperform those with solo founders due to diverse skill sets and shared responsibilities.",
+      "pessimist": "Startups with solo founders are less likely to experience co-founder conflict, which can be a major distraction and decrease productivity.",
+      "devil": "The question of whether a startup should have a co-founder or a single solo founder is misguided because it overlooks the importance of dynamic team composition and adaptability in response to changing business needs."
+    },
+    "74_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN a startup requires diverse skill sets and networks to succeed because co-founders can share the workload and provide complementary expertise.",
+      "pessimist": "This approach fails WHEN a startup requires a singular vision and unified decision-making process because the presence of a co-founder can lead to conflicting opinions and delayed decision-making.",
+      "devil": "The decision hinges on the founder's ability to manage workload and responsibilities — here is how to measure it: by assessing the solo founder's workload capacity and support network."
+    },
+    "75_full_system": {
+      "optimist": "B2B SaaS companies should charge customers from day one to establish a stable revenue stream and demonstrate the value of their product.",
+      "pessimist": "B2B SaaS companies should not charge customers from day one because it may deter early adoption and limit feedback opportunities.",
+      "devil": "The debate over charging customers from day one or offering the product free and monetizing later is misguided because it assumes that the primary goal of a B2B SaaS company is to maximize revenue, when in fact the goal should be to create a sustainable and equitable value exchange between the company and its customers."
+    },
+    "75_adaptive_prohibition": {
+      "optimist": "B2B SaaS companies should charge customers from day one to establish value and revenue streams early on.",
+      "pessimist": "This approach fails when B2B SaaS companies have a complex and highly customizable product that requires significant onboarding and support, because it can lead to low adoption rates and negative word-of-mouth due to frustrated customers who are not given sufficient time to understand the product's value proposition.",
+      "devil": "The decision hinges on customer acquisition cost — here is how to measure it: by calculating the total cost of acquiring a customer and comparing it to the revenue generated from that customer"
+    },
+    "76_full_system": {
+      "optimist": "A narrow niche focus is better than a broad market approach for an early-stage startup because it allows for more efficient resource allocation and deeper customer understanding.",
+      "pessimist": "A narrow niche focus is riskier than a broad market approach for an early-stage startup because it may not be possible to scale the business beyond the niche.",
+      "devil": "The debate over narrow niche focus versus broad market approach is misguided because it overlooks the dynamic nature of market needs and the startup's capacity for adaptation."
+    },
+    "76_adaptive_prohibition": {
+      "optimist": "A narrow niche focus is better than a broad market approach for an early-stage startup when the target market has a well-defined and underserved customer segment.",
+      "pessimist": "This approach fails when the startup's niche is too small or overly competitive because it can lead to limited scalability and revenue growth.",
+      "devil": "The decision hinges on market demand variability — here is how to measure it: by analyzing customer segmentation and purchasing behavior"
+    },
+    "77_full_system": {
+      "optimist": "Companies should ship a minimal viable product quickly to gain a first-mover advantage and iterate based on customer feedback.",
+      "pessimist": "Companies should not ship a minimal viable product quickly because it can lead to a loss of customer trust due to poor user experience.",
+      "devil": "The debate over shipping a minimal viable product quickly versus waiting until it is more complete is misguided because it assumes that the primary goal of a company is to release a product, rather than to solve a specific customer problem."
+    },
+    "77_adaptive_prohibition": {
+      "optimist": "Companies should ship a minimal viable product quickly to test assumptions and gather feedback from real users.",
+      "pessimist": "Companies should not ship a minimal viable product quickly because it can damage their reputation and lead to customer dissatisfaction.",
+      "devil": "REFRAME: The real question is how to balance the benefits of rapid MVP deployment with the potential risks of releasing an incomplete product — because this tradeoff ultimately determines the long-term success of the company"
+    },
+    "78_full_system": {
+      "optimist": "Companies should fire underperforming employees quickly to maximize productivity and overall performance",
+      "pessimist": "Firing underperforming employees quickly can lead to significant costs due to potential lawsuits and severance packages.",
+      "devil": "The debate over firing underperforming employees quickly versus managing them overlooks the more critical issue of how companies define and measure performance."
+    },
+    "78_adaptive_prohibition": {
+      "optimist": "Companies should fire underperforming employees quickly to maintain a high-performing team and minimize the negative impact on overall productivity.",
+      "pessimist": "Companies should not fire underperforming employees quickly, as this approach can lead to high turnover rates and significant recruitment costs.",
+      "devil": "REFRAME: The real question is how companies can balance the need for productivity with the potential for employee growth and development — because this balance is crucial for long-term success"
+    },
+    "79_full_system": {
+      "optimist": "Tech companies should prioritize writing high-quality technical documentation for their APIs and internal systems to drive innovation and growth.",
+      "pessimist": "Tech companies that fail to write technical documentation for their APIs and internal systems will inevitably face significant maintenance and integration challenges.",
+      "devil": "The assumption that technical documentation is necessary for APIs and internal systems is flawed because it overlooks the potential for self-documenting code and adaptive learning systems."
+    },
+    "79_adaptive_prohibition": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "80_full_system": {
+      "optimist": "B2B software is a more sustainable business model than B2C consumer apps because it offers higher revenue retention and customer loyalty",
+      "pessimist": "B2B software is not a more sustainable business model than B2C consumer apps due to its high customer acquisition costs and low customer retention rates.",
+      "devil": "[Analysis unavailable due to validation error]"
+    }
+  },
+  "scores": [
+    {
+      "question_id": 71,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 71,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 5,
+        "honest_uncertainty": 2,
+        "practical_utility": 5,
+        "total": 4.0
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 5
+      }
+    },
+    {
+      "question_id": 72,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "analytical_depth": 2,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 72,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 73,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 73,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 3,
+        "practical_utility": 2,
+        "total": 2.4
+      },
+      "focus_dims": {
+        "analytical_depth": 2,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 74,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 74,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 5,
+        "claim_specificity": 5,
+        "honest_uncertainty": 5,
+        "practical_utility": 5,
+        "total": 5.0
+      },
+      "focus_dims": {
+        "analytical_depth": 5,
+        "claim_specificity": 5
+      }
+    },
+    {
+      "question_id": 75,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.4
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 75,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 3
+      }
+    },
+    {
+      "question_id": 76,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 3
+      }
+    },
+    {
+      "question_id": 76,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 4,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 4
+      }
+    },
+    {
+      "question_id": 77,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "analytical_depth": 4,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 77,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 78,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 5,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 3.6
+      },
+      "focus_dims": {
+        "analytical_depth": 5,
+        "claim_specificity": 3
+      }
+    },
+    {
+      "question_id": 78,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "analytical_depth": 3,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 79,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "analytical_depth": 2,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 79,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.0
+      },
+      "focus_dims": {
+        "analytical_depth": 1,
+        "claim_specificity": 1
+      }
+    },
+    {
+      "question_id": 80,
+      "question_type": "binary",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.2
+      },
+      "focus_dims": {
+        "analytical_depth": 2,
+        "claim_specificity": 3
+      }
+    }
+  ]
+}

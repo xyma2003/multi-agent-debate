@@ -222,7 +222,17 @@ def _invoke_synthesizer(context: str) -> SynthesizerOutput:
         HumanMessage(content=context),
     ]
     for attempt in range(3):
-        result = structured_llm.invoke(messages)
+        try:
+            result = structured_llm.invoke(messages)
+        except Exception as e:
+            err = str(e).lower()
+            if "rate" in err or "429" in err or "limit" in err:
+                import time
+                wait = 60 * (attempt + 1)
+                print(f"[synthesizer] rate limit (attempt {attempt + 1}), waiting {wait}s...")
+                time.sleep(wait)
+                continue
+            raise
         if result.get("parsed") is not None:
             return result["parsed"]
         print(

@@ -1,6 +1,5 @@
 {
   "debates": {
-    "51_single_llm": {},
     "51_full_system": {
       "optimist": "Facebook should acquire Instagram for $1 billion to secure dominance in mobile visual storytelling and accelerate user growth.",
       "pessimist": "The acquisition faces high probability of integration failure due to cultural misalignment and talent retention risks",
@@ -10,19 +9,149 @@
       "optimist": "Twitter should remain independent because its user growth and impending IPO position it to potentially surpass Facebook's market value within a few years, making the acquisition offer seem low in retrospect.",
       "pessimist": "Twitter should not remain independent because rejecting the acquisition offer risks the company's long-term viability due to increasing competition and the high costs of maintaining its growth trajectory without the support of a larger entity like Facebook.",
       "devil": "Both sides are overlooking the fact that Twitter's value lies not just in its current user base, but in its potential to become a primary source of real-time information and news, which could be severely compromised if it loses its independence and is forced to conform to Facebook's business model."
+    },
+    "51_adaptive_prohibition": {
+      "optimist": "This approach is optimal when Facebook needs rapid mobile user growth and Instagram's product-market fit aligns with their strategic gaps.",
+      "pessimist": "This approach fails when Instagram's cultural autonomy is lost to Facebook's corporate structure, and user growth stagnates due to brand dilution",
+      "devil": "Acquiring Instagram is justified by its mobile leadership and user growth potential"
+    },
+    "51_single_llm": {
+      "optimist": "Facebook should acquire Instagram because it will gain a strategic foothold in the rapidly growing mobile social media space and instantly gain 30 million highly engaged users",
+      "pessimist": "Facebook should not acquire Instagram because paying $1 billion for a company with zero revenue and only 13 employees is a reckless gamble that could destroy shareholder value",
+      "devil": "Facebook and Instagram are both missing the assumption that the rise of mobile-only social media platforms could render their existing web-based infrastructure obsolete"
+    },
+    "52_full_system": {
+      "optimist": "Twitter should reject Facebook's $3B offer and pursue independence via IPO to unlock significantly higher valuation potential",
+      "pessimist": "Twitter's independence carries a high-risk failure mode: post-IPO operational inefficiencies will cause a 50%+ stock price decline within 18 months",
+      "devil": "The framing assumes Twitter's value is purely financial when its strategic value as an independent platform could be greater"
+    },
+    "52_adaptive_prohibition": {
+      "optimist": "Twitter should remain independent when its IPO valuation potential exceeds $3B, it maintains a unique real-time communication value proposition, and its leadership can execute growth strategies without Facebook's interference.",
+      "pessimist": "Twitter's independence fails when its IPO execution falls short of $3B+ valuation or when Facebook's offer represents a more stable strategic path",
+      "devil": "Twitter should remain independent to capture higher valuation via IPO"
+    },
+    "53_single_llm": {
+      "optimist": "Rejecting the offer will allow Snapchat to maintain its independence and potentially become a leading social media platform with a unique value proposition that attracts a large and loyal user base.",
+      "pessimist": "Accepting the offer is the best choice because Snapchat has no revenue and its user base, although growing, may not be enough to sustain the company in the long term, making the $3 billion offer a lucrative exit for the founders.",
+      "devil": "The assumption that Snapchat can successfully monetize its user base without compromising its unique ephemeral messaging feature is being overlooked by both sides."
+    },
+    "53_full_system": {
+      "optimist": "Rejecting Facebook's $3B offer creates a 10x+ upside by capitalizing on the explosive growth of mobile-first, ephemeral content platforms",
+      "pessimist": "Snapchat's lack of revenue and unproven monetization strategy creates a high-probability, high-impact failure mode if they reject the acquisition",
+      "devil": "The founders are framing the decision incorrectly by assuming independence is the only path to maximizing Snapchat's strategic value"
+    },
+    "53_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN Snapchat has high growth potential in the teen market, can develop unique monetization strategies without user backlash, and maintains cultural agility to innovate faster than Facebook. The causal mechanism is preserving control to capture long-term value from ephemeral messaging's disruptive potential.",
+      "pessimist": "This approach fails when Snapchat cannot monetize its user base before cash reserves deplete, faces imminent market saturation, or lacks the infrastructure to scale independently",
+      "devil": "Snapchat should reject Facebook's offer to capture long-term value from its unique product-market fit"
+    },
+    "54_single_llm": {
+      "optimist": "Investing in streaming will allow Netflix to capture a growing market and establish itself as a leader in the digital entertainment industry before competitors can react.",
+      "pessimist": "Pursuing streaming will divert resources away from the profitable DVD-by-mail business and may not generate sufficient revenue to offset the significant content licensing costs and potential loss of DVD subscribers.",
+      "devil": "The assumption that internet bandwidth and infrastructure will continue to improve at a pace that supports high-quality streaming is overlooked by both sides."
+    },
+    "54_full_system": {
+      "optimist": "Netflix should prioritize streaming as the dominant long-term opportunity",
+      "pessimist": "Netflix's streaming investment will fail due to cannibalization of its profitable DVD business before achieving scale",
+      "devil": "Both optimist and pessimist assume the problem is a binary choice between DVD and streaming, ignoring hybrid models and customer transition dynamics"
+    },
+    "54_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN market trends show accelerating broadband adoption and content costs are licensable at scale because early mover advantage creates switching costs for consumers.",
+      "pessimist": "This approach fails when broadband penetration is below 25% of households, content licensing costs exceed 40% of projected streaming revenue, and customer churn from DVD cannibalization exceeds 30% in the first year.",
+      "devil": "Netflix must prioritize streaming to secure long-term dominance"
+    },
+    "55_single_llm": {
+      "optimist": "Groupon's founders should accept the offer because it provides a guaranteed, lucrative exit and allows them to reap the rewards of their innovative daily deals model before the market becomes increasingly competitive.",
+      "pessimist": "Groupon's founders should reject the offer because the company's explosive growth and pioneering position in the daily deals space suggest that its valuation could skyrocket even further, making the $6 billion offer seem paltry in retrospect.",
+      "devil": "Both sides are overlooking the assumption that Groupon's business model is sustainable in the long term, and that the company can continue to maintain its merchant partnerships and customer engagement without suffering from inevitable deal fatigue and increasing competition."
+    },
+    "55_full_system": {
+      "optimist": "Groupon should accept Google's $6 billion offer to leverage Google's global infrastructure and accelerate dominance in the explosive daily deals market",
+      "pessimist": "Accepting Google's $6B acquisition offer will trigger catastrophic cultural misalignment and talent exodus",
+      "devil": "The founders should reject the offer because both sides assume Groupon's value is tied to its existing daily-deal model, ignoring the looming threat of mobile disruption"
+    },
+    "55_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN Groupon's founders prioritize immediate financial security and strategic integration with Google's ecosystem because Google's resources can accelerate growth and market dominance.",
+      "pessimist": "This approach fails WHEN Groupon's growth trajectory is significantly underestimated and market conditions favor standalone hypergrowth, because accepting the offer locks in suboptimal long-term value",
+      "devil": "Reject the offer to capitalize on Groupon's unique network effects and growth potential"
+    },
+    "56_single_llm": {
+      "optimist": "Microsoft should proceed with the acquisition because it will gain access to LinkedIn's 430 million members, providing a massive user base that can be integrated with Microsoft's Office and Dynamics products to create a robust suite of enterprise software solutions.",
+      "pessimist": "Microsoft should not proceed with the acquisition because it is overpaying by 50% for a company with slowing growth and no clear path to its next revenue stream, which could lead to significant write-downs and destruction of shareholder value.",
+      "devil": "Microsoft and LinkedIn are both missing that the true value of the acquisition lies not in LinkedIn's current revenue streams, but in its vast user data, which can be leveraged to enhance Microsoft's existing products and services."
+    },
+    "56_full_system": {
+      "optimist": "Microsoft should acquire LinkedIn to unlock $50B+ in cross-sell potential by integrating professional data into Office 365 and Azure",
+      "pessimist": "Microsoft faces a high-probability failure mode in LinkedIn's cultural and operational integration, which will erode the $26.2B premium's value",
+      "devil": "Both optimists and pessimists assume LinkedIn's value is static, ignoring Microsoft's capacity to reconfigure its data infrastructure into a professional graph that could revolutionize enterprise AI"
+    },
+    "56_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN Microsoft can integrate LinkedIn's professional data into its ecosystem to create cross-selling opportunities and enhance AI-driven services, because Microsoft's scale and technical capabilities enable synergies that LinkedIn lacks alone.",
+      "pessimist": "This approach fails WHEN LinkedIn's user base lacks direct synergies with Microsoft's core products AND integration costs exceed projected value creation",
+      "devil": "Microsoft should acquire LinkedIn to unlock cross-platform monetization potential"
+    },
+    "57_single_llm": {
+      "optimist": "Acquiring Twitch will provide Amazon with a unique opportunity to expand its reach into the rapidly growing live game-streaming market and potentially generate significant revenue through advertising and subscription-based services",
+      "pessimist": "Purchasing Twitch for $1 billion would be a risky and potentially costly move for Amazon, given that the platform is currently losing money and may not be able to achieve profitability in the near future",
+      "devil": "The assumption that Twitch's user base will remain loyal and continue to grow if Amazon acquires it, rather than migrating to YouTube or other platforms, is a critical factor that both sides might be missing"
+    },
+    "57_full_system": {
+      "optimist": "Amazon should acquire Twitch to dominate the live-streaming ecosystem and unlock $5B+ in long-term value through cross-sell synergies",
+      "pessimist": "Amazon's acquisition of Twitch faces high risk due to unproven monetization models and integration challenges with core retail operations",
+      "devil": "Both optimists and pessimists assume Twitch's value is tied to short-term profitability or immediate synergies with Amazon's existing business, ignoring its potential as a strategic asset in the emerging live-streaming ecosystem."
+    },
+    "57_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN Amazon can leverage Twitch to expand its ecosystem and drive long-term customer engagement because Twitch's user base and growth potential align with Amazon's strategic goals in entertainment and cloud services.",
+      "pessimist": "This approach fails WHEN Amazon lacks a clear monetization strategy for Twitch's losing platform and faces YouTube's aggressive counterbids",
+      "devil": "Amazon should acquire Twitch to secure a dominant position in the gaming ecosystem and leverage synergies with AWS and Prime"
+    },
+    "58_single_llm": {
+      "optimist": "Slack should stay independent because it has the potential to become a dominant player in the team collaboration space and potentially reach a valuation of $100 billion or more in the next few years.",
+      "pessimist": "Slack should not stay independent because rejecting the $8 billion offer from Microsoft would be a huge risk, as the company may not be able to sustain its current growth rate and may eventually be worth much less than the offered amount.",
+      "devil": "The assumption that both sides are missing is that the team collaboration space may become a commodity market, where Slack's unique features and brand loyalty may not be enough to maintain a significant competitive advantage, and the company's valuation may be severely impacted by the entrance of larger, more established players."
+    },
+    "58_full_system": {
+      "optimist": "Slack's independence offers asymmetric upside through exponential growth in the $60B enterprise SaaS market, where $8B represents only 1.3x revenue multiples while public SaaS peers trade at 10-15x",
+      "pessimist": "Slack's independence creates a high-probability failure mode through talent attrition and ecosystem dependency loss",
+      "devil": "The foundational assumption that Slack's value is a fixed entity being traded in this acquisition is flawed"
+    },
+    "58_adaptive_prohibition": {
+      "optimist": "Slack should reject Microsoft's $8B offer to remain independent",
+      "pessimist": "This approach fails WHEN Slack lacks the infrastructure to scale independently and faces dominant competitors like Microsoft because rapid growth cannot offset structural market power imbalances.",
+      "devil": "Slack should reject Microsoft's offer to capture its full market potential"
+    },
+    "59_single_llm": {
+      "optimist": "WeWork should proceed with the IPO because the massive influx of capital will allow the company to further expand its global footprint, invest in technology, and eventually achieve economies of scale that will drive profitability.",
+      "pessimist": "WeWork should not proceed with the IPO because its staggering losses, complex corporate structure, and CEO's significant personal debt pose significant risks to investors and threaten the long-term sustainability of the company.",
+      "devil": "The company's ability to eventually turn a profit relies on its ability to maintain high occupancy rates and continue to expand globally, which may be threatened by increasing competition and economic downturns."
+    },
+    "59_full_system": {
+      "optimist": "WeWork's IPO should proceed because the flexible workspace market is growing rapidly, and the IPO would provide critical capital to scale operations and solidify market leadership.",
+      "pessimist": "WeWork's IPO should be rejected due to unsustainable financial losses, opaque corporate structure, and CEO self-dealing that will trigger investor exodus",
+      "devil": "The IPO debate assumes capital markets will tolerate irrational exuberance, but ignores the structural power imbalance between Adam Neumann's personal interests and shareholder value"
+    },
+    "59_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN investor appetite for tech unicorns is high and market conditions favor speculative growth over profitability, because high valuation multiples can offset short-term losses through capital gains.",
+      "pessimist": "This approach fails WHEN WeWork's valuation is based on speculative hype rather than sustainable business fundamentals because the IPO creates short-term gains for insiders while exposing investors to long-term risks.",
+      "devil": "WeWork should proceed with the IPO to secure capital for growth and market leadership"
+    },
+    "60_single_llm": {
+      "optimist": "Launching the App Store will exponentially increase the iPhone's appeal and functionality, leading to a significant surge in sales and market share",
+      "pessimist": "Allowing third-party apps will dilute the iPhone's user experience and undermine Apple's control over the platform, potentially leading to a decline in quality and customer satisfaction",
+      "devil": "The iPhone's closed system will be compromised by security risks from unvetted third-party apps"
+    },
+    "60_full_system": {
+      "optimist": "Apple should launch the App Store to unlock exponential iPhone value through developer innovation",
+      "pessimist": "The App Store launch will fail due to untested third-party app infrastructure causing system instability",
+      "devil": "The debate assumes Apple's control is the central axis, but the critical variable is whether the App Store can create a self-sustaining developer ecosystem without compromising iPhone's core user experience"
+    },
+    "60_adaptive_prohibition": {
+      "optimist": "Apple should launch the App Store to unlock exponential iPhone value",
+      "pessimist": "Apple should not launch the App Store in January 2008",
+      "devil": "The App Store's success hinges on Apple's ability to maintain control over developer access and app quality, not just its existence"
     }
   },
   "scores": [
-    {
-      "question_id": 51,
-      "year": 2012,
-      "question_short": "It is April 2012. Facebook is considering acquiring Instagra",
-      "system": "single_llm",
-      "score": 0,
-      "evidence": "Not found",
-      "reasoning": "The analysis text to evaluate was not provided in the query, making it impossible to assess whether the key factor was identified.",
-      "key_factor": "Mobile photo sharing was the dominant social behavior shift, and Instagram's network effects on mobi"
-    },
     {
       "question_id": 51,
       "year": 2012,
@@ -42,6 +171,286 @@
       "evidence": "Not found",
       "reasoning": "The analysis did not mention Twitter's core challenge of converting engagement into advertising revenue, nor its UX and ad targeting issues, which were the key factors determining the outcome.",
       "key_factor": "Twitter's core challenge — converting engagement into advertising revenue — would not be solved by i"
+    },
+    {
+      "question_id": 51,
+      "year": 2012,
+      "question_short": "It is April 2012. Facebook is considering acquiring Instagra",
+      "system": "adaptive_prohibition",
+      "score": 1,
+      "evidence": "DEVIL: Acquiring Instagram is justified by its mobile leadership and user growth potential",
+      "reasoning": "The analysis partially recognized Instagram's mobile leadership (a component of the key factor) but did not explicitly mention network effects or the strategic importance of mobile photo sharing as a dominant trend.",
+      "key_factor": "Mobile photo sharing was the dominant social behavior shift, and Instagram's network effects on mobi"
+    },
+    {
+      "question_id": 51,
+      "year": 2012,
+      "question_short": "It is April 2012. Facebook is considering acquiring Instagra",
+      "system": "single_llm",
+      "score": 1,
+      "evidence": "OPTIMIST: Facebook should acquire Instagram because it will gain a strategic foothold in the rapidly growing mobile social media space and instantly gain 30 million highly engaged users",
+      "reasoning": "The analysis partially recognized the importance of mobile social media growth and user engagement but did not explicitly mention Instagram's network effects or the difficulty of replicating its mobile photo-sharing dominance.",
+      "key_factor": "Mobile photo sharing was the dominant social behavior shift, and Instagram's network effects on mobi"
+    },
+    {
+      "question_id": 52,
+      "year": 2013,
+      "question_short": "It is late 2013. Twitter's board is considering rejecting Fa",
+      "system": "full_system",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention Twitter's core challenge of converting engagement into advertising revenue, UX issues, or weak ad targeting as factors in the decision.",
+      "key_factor": "Twitter's core challenge — converting engagement into advertising revenue — would not be solved by i"
+    },
+    {
+      "question_id": 52,
+      "year": 2013,
+      "question_short": "It is late 2013. Twitter's board is considering rejecting Fa",
+      "system": "adaptive_prohibition",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis focused on IPO valuation and strategic independence, but did not mention Twitter's core challenges with monetization, user experience, or ad targeting as the key factor.",
+      "key_factor": "Twitter's core challenge — converting engagement into advertising revenue — would not be solved by i"
+    },
+    {
+      "question_id": 53,
+      "year": 2013,
+      "question_short": "It is November 2013. Snapchat's founders are considering rej",
+      "system": "single_llm",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention that Snapchat's ephemeral messaging innovation was easily replicable by Facebook or that Facebook's resources posed a direct threat to Snapchat's independence.",
+      "key_factor": "Snapchat's core innovation (ephemeral content / Stories) was easily replicable by Facebook, which ha"
+    },
+    {
+      "question_id": 53,
+      "year": 2013,
+      "question_short": "It is November 2013. Snapchat's founders are considering rej",
+      "system": "full_system",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention the replicability of Snapchat's ephemeral content innovation by Facebook or the lack of a defensible moat as a critical factor.",
+      "key_factor": "Snapchat's core innovation (ephemeral content / Stories) was easily replicable by Facebook, which ha"
+    },
+    {
+      "question_id": 53,
+      "year": 2013,
+      "question_short": "It is November 2013. Snapchat's founders are considering rej",
+      "system": "adaptive_prohibition",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention that Facebook could replicate Snapchat's core innovation, which was the critical factor determining the outcome.",
+      "key_factor": "Snapchat's core innovation (ephemeral content / Stories) was easily replicable by Facebook, which ha"
+    },
+    {
+      "question_id": 54,
+      "year": 2007,
+      "question_short": "It is 2007. Netflix has a profitable DVD-by-mail business wi",
+      "system": "single_llm",
+      "score": 1,
+      "evidence": "DEVIL: The assumption that internet bandwidth and infrastructure will continue to improve at a pace that supports high-quality streaming is overlooked by both sides.",
+      "reasoning": "The analysis partially addressed infrastructure improvements but missed the specific broadband penetration threshold and timing (3-5 years) as the critical factor.",
+      "key_factor": "Broadband penetration was crossing the threshold where streaming would become viable for most househ"
+    },
+    {
+      "question_id": 54,
+      "year": 2007,
+      "question_short": "It is 2007. Netflix has a profitable DVD-by-mail business wi",
+      "system": "full_system",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention broadband penetration thresholds or the first-mover advantage in scaling streaming as critical factors.",
+      "key_factor": "Broadband penetration was crossing the threshold where streaming would become viable for most househ"
+    },
+    {
+      "question_id": 54,
+      "year": 2007,
+      "question_short": "It is 2007. Netflix has a profitable DVD-by-mail business wi",
+      "system": "adaptive_prohibition",
+      "score": 1,
+      "evidence": "OPTIMIST: 'accelerating broadband adoption' and 'early mover advantage'; PESSIMIST: 'broadband penetration is below 25%'",
+      "reasoning": "The analysis partially identified the broadband threshold (25% penetration) and early mover advantage, but missed the 3-5 year time frame for viability in the key factor.",
+      "key_factor": "Broadband penetration was crossing the threshold where streaming would become viable for most househ"
+    },
+    {
+      "question_id": 55,
+      "year": 2010,
+      "question_short": "It is 2010. Groupon has pioneered the daily deals model and ",
+      "system": "single_llm",
+      "score": 1,
+      "evidence": "DEVIL: Both sides are overlooking the assumption that Groupon's business model is sustainable in the long term, and that the company can continue to maintain its merchant partnerships and customer engagement without suffering from inevitable deal fatigue and increasing competition.",
+      "reasoning": "The analysis PARTIALLY mentions increasing competition but misses the specific factors about the lack of technological moat and weak merchant relationships that comprised the key factor.",
+      "key_factor": "The daily deals model had no defensible moat — it required no technology that competitors couldn't c"
+    },
+    {
+      "question_id": 55,
+      "year": 2010,
+      "question_short": "It is 2010. Groupon has pioneered the daily deals model and ",
+      "system": "full_system",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention the lack of a defensible moat, unique technology, or weak merchant relationships in the daily deals model. The 'Devil' argument focused on mobile disruption, which is distinct from the structural weaknesses of the business model itself.",
+      "key_factor": "The daily deals model had no defensible moat — it required no technology that competitors couldn't c"
+    },
+    {
+      "question_id": 55,
+      "year": 2010,
+      "question_short": "It is 2010. Groupon has pioneered the daily deals model and ",
+      "system": "adaptive_prohibition",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not explicitly identify the lack of a defensible moat (technology, merchant relationships, or replication risks) as a critical factor. It focused on growth trajectories, market conditions, and network effects without addressing the structural vulnerabilities of the daily deals model.",
+      "key_factor": "The daily deals model had no defensible moat — it required no technology that competitors couldn't c"
+    },
+    {
+      "question_id": 56,
+      "year": 2016,
+      "question_short": "It is 2016. Microsoft is considering acquiring LinkedIn for ",
+      "system": "single_llm",
+      "score": 1,
+      "evidence": "OPTIMIST: Microsoft should proceed with the acquisition because it will gain access to LinkedIn's 430 million members, providing a massive user base that can be integrated with Microsoft's Office and Dynamics products to create a robust suite of enterprise software solutions.",
+      "reasoning": "The analysis PARTIALLY mentioned integrating LinkedIn's user base with Microsoft's enterprise products, but did not explicitly identify the 'professional identity graph' or the direct cross-selling potential as the critical factor.",
+      "key_factor": "LinkedIn's professional identity graph was uniquely valuable for Microsoft's enterprise sales motion"
+    },
+    {
+      "question_id": 56,
+      "year": 2016,
+      "question_short": "It is 2016. Microsoft is considering acquiring LinkedIn for ",
+      "system": "full_system",
+      "score": 1,
+      "evidence": "OPTIMIST: Microsoft should acquire LinkedIn to unlock $50B+ in cross-sell potential by integrating professional data into Office 365 and Azure",
+      "reasoning": "The analysis partially recognized cross-sell potential but missed explicitly identifying LinkedIn's professional identity graph as the unique asset enabling direct relationships with 430M professionals.",
+      "key_factor": "LinkedIn's professional identity graph was uniquely valuable for Microsoft's enterprise sales motion"
+    },
+    {
+      "question_id": 56,
+      "year": 2016,
+      "question_short": "It is 2016. Microsoft is considering acquiring LinkedIn for ",
+      "system": "adaptive_prohibition",
+      "score": 1,
+      "evidence": "OPTIMIST: This approach is optimal WHEN Microsoft can integrate LinkedIn's professional data into its ecosystem to create cross-selling opportunities...",
+      "reasoning": "The analysis partially mentions cross-selling opportunities through LinkedIn's professional data, but does not explicitly identify the 'professional identity graph' as the unique value driver for enterprise sales.",
+      "key_factor": "LinkedIn's professional identity graph was uniquely valuable for Microsoft's enterprise sales motion"
+    },
+    {
+      "question_id": 57,
+      "year": 2014,
+      "question_short": "It is 2014. Amazon is considering acquiring Twitch, the live",
+      "system": "single_llm",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention the strategic defensive aspect of blocking Google from owning both YouTube and Twitch, nor the cost-saving argument of acquiring versus building.",
+      "key_factor": "Live streaming gaming was early in a massive growth curve. Buying Twitch was cheaper than building f"
+    },
+    {
+      "question_id": 57,
+      "year": 2014,
+      "question_short": "It is 2014. Amazon is considering acquiring Twitch, the live",
+      "system": "full_system",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention the strategic defensive aspect of blocking Google from owning both YouTube and the live gaming category, nor did it explicitly state that Twitch's value lay in its position on a massive growth curve rather than short-term profitability or synergies.",
+      "key_factor": "Live streaming gaming was early in a massive growth curve. Buying Twitch was cheaper than building f"
+    },
+    {
+      "question_id": 57,
+      "year": 2014,
+      "question_short": "It is 2014. Amazon is considering acquiring Twitch, the live",
+      "system": "adaptive_prohibition",
+      "score": 1,
+      "evidence": "DEVIL: Amazon should acquire Twitch to secure a dominant position in the gaming ecosystem and leverage synergies with AWS and Prime",
+      "reasoning": "The analysis partially mentioned securing a dominant position but did not explicitly identify the strategic defensive aspect of blocking Google or the cost-benefit of buying vs building.",
+      "key_factor": "Live streaming gaming was early in a massive growth curve. Buying Twitch was cheaper than building f"
+    },
+    {
+      "question_id": 58,
+      "year": 2015,
+      "question_short": "It is 2015. Slack has grown rapidly to $1B valuation in reco",
+      "system": "single_llm",
+      "score": 1,
+      "evidence": "DEVIL: The assumption that both sides are missing is that the team collaboration space may become a commodity market... by the entrance of larger, more established players.",
+      "reasoning": "The analysis partially recognized the risk of larger competitors but did not explicitly identify Microsoft's Office 365 distribution advantage as the critical factor.",
+      "key_factor": "Enterprise collaboration is winner-take-most — whoever owns the productivity suite (Microsoft's Offi"
+    },
+    {
+      "question_id": 58,
+      "year": 2015,
+      "question_short": "It is 2015. Slack has grown rapidly to $1B valuation in reco",
+      "system": "full_system",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention Microsoft's distribution advantage via Office 365 or the competitive threat of being squeezed by an incumbent with enterprise relationships, which was the key factor.",
+      "key_factor": "Enterprise collaboration is winner-take-most — whoever owns the productivity suite (Microsoft's Offi"
+    },
+    {
+      "question_id": 58,
+      "year": 2015,
+      "question_short": "It is 2015. Slack has grown rapidly to $1B valuation in reco",
+      "system": "adaptive_prohibition",
+      "score": 1,
+      "evidence": "PESSIMIST: ...structural market power imbalances",
+      "reasoning": "The analysis partially mentioned structural market power imbalances but did not explicitly identify Microsoft's Office 365 distribution advantage as the critical factor.",
+      "key_factor": "Enterprise collaboration is winner-take-most — whoever owns the productivity suite (Microsoft's Offi"
+    },
+    {
+      "question_id": 59,
+      "year": 2019,
+      "question_short": "It is 2019. WeWork is preparing for an IPO that would value ",
+      "system": "single_llm",
+      "score": 1,
+      "evidence": "PESSIMIST: ...CEO's significant personal debt pose significant risks...DEVIL: ...governance issues (CEO self-dealing) were red flags...",
+      "reasoning": "The analysis partially mentioned CEO governance issues but missed the critical unit economics problem (long-term leases vs short-term revenue) and the fundamental misalignment between real estate operations and tech company valuation models.",
+      "key_factor": "WeWork was fundamentally a real estate company with tech company losses — long-term leases with shor"
+    },
+    {
+      "question_id": 59,
+      "year": 2019,
+      "question_short": "It is 2019. WeWork is preparing for an IPO that would value ",
+      "system": "full_system",
+      "score": 1,
+      "evidence": "PESSIMIST: ...unsustainable financial losses...CEO self-dealing that will trigger investor exodus; DEVIL: ...structural power imbalance between Adam Neumann's personal interests and shareholder value",
+      "reasoning": "The analysis partially identified CEO self-dealing (governance issues) but missed the critical unit economics problem (long-term leases vs. short-term revenue) that made losses unsustainable.",
+      "key_factor": "WeWork was fundamentally a real estate company with tech company losses — long-term leases with shor"
+    },
+    {
+      "question_id": 59,
+      "year": 2019,
+      "question_short": "It is 2019. WeWork is preparing for an IPO that would value ",
+      "system": "adaptive_prohibition",
+      "score": 1,
+      "evidence": "PESSIMIST: This approach fails WHEN WeWork's valuation is based on speculative hype rather than sustainable business fundamentals because the IPO creates short-term gains for insiders while exposing investors to long-term risks.",
+      "reasoning": "The analysis partially addressed the issue of speculative valuation versus fundamentals but did not explicitly mention the real estate vs. tech losses mismatch or governance issues (CEO self-dealing).",
+      "key_factor": "WeWork was fundamentally a real estate company with tech company losses — long-term leases with shor"
+    },
+    {
+      "question_id": 60,
+      "year": 2008,
+      "question_short": "It is January 2008. Steve Jobs has resisted allowing third-p",
+      "system": "single_llm",
+      "score": 0,
+      "evidence": "Not found",
+      "reasoning": "The analysis did not mention platform network effects or exponential value creation from third-party developers. The Optimist focused on increased appeal/functionality and sales, but missed the compounding competitive moat aspect.",
+      "key_factor": "Platform network effects — by enabling third-party developers, Apple would get exponentially more va"
+    },
+    {
+      "question_id": 60,
+      "year": 2008,
+      "question_short": "It is January 2008. Steve Jobs has resisted allowing third-p",
+      "system": "full_system",
+      "score": 1,
+      "evidence": "OPTIMIST: Apple should launch the App Store to unlock exponential iPhone value through developer innovation",
+      "reasoning": "The analysis partially recognized the value of third-party apps but didn't explicitly identify network effects as the critical mechanism. The 'exponential value' phrase hints at the concept without specifying compounding network effects.",
+      "key_factor": "Platform network effects — by enabling third-party developers, Apple would get exponentially more va"
+    },
+    {
+      "question_id": 60,
+      "year": 2008,
+      "question_short": "It is January 2008. Steve Jobs has resisted allowing third-p",
+      "system": "adaptive_prohibition",
+      "score": 0,
+      "evidence": "OPTIMIST: Apple should launch the App Store to unlock exponential iPhone value",
+      "reasoning": "The analysis mentions 'exponential value' but misses the specific mechanism of platform network effects creating compounding competitive advantages through third-party developer ecosystems.",
+      "key_factor": "Platform network effects — by enabling third-party developers, Apple would get exponentially more va"
     }
   ]
 }

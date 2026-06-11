@@ -59,23 +59,82 @@ TYPE_FOCUS_DIMS = {
 # Debate runner (reuses existing variants)
 # ---------------------------------------------------------------------------
 
-def run_debate(question: str, system: str) -> dict:
-    """Run a debate and return agent_positions dict."""
+def run_debate(question: str, system: str, sequential: bool = False, agent_delay: int = 15) -> dict:
+    """Run a debate and return agent_positions dict.
+
+    Args:
+        sequential: If True, calls each agent one at a time with agent_delay between
+                    calls, rather than in parallel. This is a WORKAROUND for Groq's
+                    free-tier TPM (tokens-per-minute) limit, which gets exceeded when
+                    3 agents fire simultaneously (~4500 tokens/burst > 6000 TPM limit).
+
+                    NOTE: Round-1 independence is preserved — agents still receive no
+                    prior_arguments in Round 1, only the timing changes. Rebuttal rounds
+                    are skipped (single round only), which is sufficient for position
+                    extraction in this quality comparison experiment.
+
+                    REVERT TO PARALLEL when:
+                    - Switching to a paid API tier (higher TPM)
+                    - Using a local model (no rate limits)
+                    - Testing with OpenAI / Anthropic (different TPM policies)
+                    To revert: set sequential=False (the default), which uses the full
+                    graph.invoke() path with parallel agents and multi-round rebuttal.
+
+        agent_delay: Seconds between agent calls in sequential mode (default 15).
+                     15s × 3 agents = 45s total, safely within the 1-min TPM window.
+    """
     if system == "single_llm":
         return {}  # not testing single_llm here
 
-    from benchmark.variants import build_variant_graph
-    graph = build_variant_graph(system)
-    config = {"configurable": {"thread_id": str(uuid.uuid4())}}
-    try:
-        result = graph.invoke({"topic": question, "max_rounds": 3}, config=config)
-        report = result.get("final_report")
-        if report and report.reasoning_trace:
-            last_round = report.reasoning_trace[-1]
-            return {arg.agent_role: arg.position for arg in last_round.arguments}
-    except Exception as e:
-        print(f"\n  [error] {str(e)[:80]}")
-    return {}
+    if not sequential:
+        # ── Parallel mode (default) ──────────────────────────────────────────
+        # Full debate graph: 3 agents run in parallel, supports multi-round rebuttal.
+        # Use this when TPM limits are not a concern.
+        from benchmark.variants import build_variant_graph
+        graph = build_variant_graph(system)
+        config = {"configurable": {"thread_id": str(uuid.uuid4())}}
+        try:
+            result = graph.invoke({"topic": question, "max_rounds": 3}, config=config)
+            report = result.get("final_report")
+            if report and report.reasoning_trace:
+                last_round = report.reasoning_trace[-1]
+                return {arg.agent_role: arg.position for arg in last_round.arguments}
+        except Exception as e:
+            print(f"\n  [error] {str(e)[:80]}")
+        return {}
+
+    # ── Sequential mode (Groq free-tier TPM workaround) ──────────────────────
+    # Calls agents one at a time with agent_delay seconds between each call.
+    # Single Round 1 only — no rebuttal loop. Sufficient for position extraction.
+    # Remove/bypass this branch and set sequential=False when not rate-limited.
+    from debate.prompts_adaptive import ADAPTIVE_PROMPTS
+    from debate.prompts import AGENT_PROMPTS
+    from debate.llm import _make_llm
+    from debate.nodes.agents import _invoke_with_retry
+    from langchain_core.messages import SystemMessage, HumanMessage
+
+    if system == "adaptive_prohibition":
+        from debate.classify import classify_question
+        qtype = classify_question(question)
+        prompts = ADAPTIVE_PROMPTS.get(qtype, ADAPTIVE_PROMPTS["binary"])
+        print(f"\n  [adaptive→{qtype}]", end=" ", flush=True)
+    else:
+        prompts = AGENT_PROMPTS
+
+    llm = _make_llm()
+    positions = {}
+    for role in ["optimist", "pessimist", "devil"]:
+        msgs = [
+            SystemMessage(content=prompts[role]),
+            HumanMessage(content=f"Topic for analysis: {question}\n\nRound: 1"),
+        ]
+        arg = _invoke_with_retry(llm, msgs, role, round_num=0)
+        positions[role] = arg.position
+        print(f"{role}✓", end=" ", flush=True)
+        if agent_delay > 0 and role != "devil":
+            time.sleep(agent_delay)  # pause between agents to stay within TPM
+
+    return positions
 
 
 # ---------------------------------------------------------------------------
@@ -124,7 +183,13 @@ def save_state(state: dict) -> None:
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--delay", type=int, default=10)
+    parser.add_argument("--delay", type=int, default=10,
+                        help="Seconds between questions (post-debate delay)")
+    parser.add_argument("--sequential", action="store_true",
+                        help="Run agents one-at-a-time (Groq TPM workaround). "
+                             "Revert to default (parallel) on paid/local models.")
+    parser.add_argument("--agent-delay", type=int, default=15,
+                        help="Seconds between agent calls in sequential mode (default 15)")
     parser.add_argument("--skip-debates", action="store_true",
                         help="Skip running debates, only re-evaluate existing positions")
     args = parser.parse_args()
@@ -175,7 +240,9 @@ def main():
                 else:
                     print(f"    [{system}] running...", end=" ", flush=True)
                     os.environ["LLM_BACKEND"] = "groq"
-                    positions = run_debate(qtext, system)
+                    positions = run_debate(qtext, system,
+                                          sequential=args.sequential,
+                                          agent_delay=args.agent_delay)
                     state["debates"][debate_key] = positions
                     save_state(state)
                     print("done")

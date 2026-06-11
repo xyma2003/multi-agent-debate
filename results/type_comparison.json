@@ -94,6 +94,126 @@
       "optimist": "B2B software is a more sustainable business model than B2C consumer apps because it offers higher revenue retention and customer loyalty",
       "pessimist": "B2B software is not a more sustainable business model than B2C consumer apps due to its high customer acquisition costs and low customer retention rates.",
       "devil": "[Analysis unavailable due to validation error]"
+    },
+    "80_adaptive_prohibition": {
+      "optimist": "B2B software is a more sustainable business model than B2C consumer apps because it offers higher revenue predictability and customer loyalty.",
+      "pessimist": "B2B software is a more sustainable business model than B2C consumer apps because it offers higher revenue predictability and customer loyalty.",
+      "devil": "REFRAME: The real question is what specific factors contribute to the sustainability of a business model, regardless of whether it's B2B software or B2C consumer apps — because understanding these factors is crucial for making informed decisions about investments and resource allocation"
+    },
+    "31_full_system": {
+      "optimist": "AI development should not be halted for 10 years because it can lead to significant advancements in various fields and improve human life",
+      "pessimist": "AI development should be halted for 10 years to establish safety standards before continuing because unregulated development poses an existential risk to humanity.",
+      "devil": "The question of halting AI development for 10 years to establish safety standards is misguided because it assumes that a 10-year pause would be sufficient to address the complexities of AI safety."
+    },
+    "31_adaptive_prohibition": {
+      "optimist": "AI development should not be halted for 10 years because it has the potential to solve complex problems and improve human life significantly",
+      "pessimist": "AI development should be halted for 10 years to establish safety standards before continuing because unregulated development poses an existential risk to humanity.",
+      "devil": "The question of halting AI development for 10 years is misguided because it assumes that safety standards can be established without ongoing experimentation and real-world testing."
+    },
+    "32_full_system": {
+      "optimist": "Continuing AGI development is ethical because it has the potential to greatly benefit humanity.",
+      "pessimist": "Continuing to develop AGI poses an unacceptable existential risk to humanity.",
+      "devil": "The development of AGI is inherently tied to the pursuit of human self-transcendence, which may be the root of both its promise and existential risk."
+    },
+    "32_adaptive_prohibition": {
+      "optimist": "Continuing AGI development is ethical because it has the potential to greatly benefit humanity.",
+      "pessimist": "Continuing to develop AGI poses an unacceptable existential risk to humanity.",
+      "devil": "The development of AGI is inherently tied to the pursuit of human self-transcendence, which may be the primary driver of existential risk, rather than the technology itself."
+    },
+    "33_full_system": {
+      "optimist": "AI companies should be held criminally liable for harms caused by their deployed models to ensure accountability and drive responsible innovation.",
+      "pessimist": "AI companies should be held criminally liable for harms caused by their deployed models because they have a duty to ensure their products do not cause harm to users.",
+      "devil": "The question of criminal liability for AI companies is misguided because it assumes that human culpability is the primary factor in harms caused by AI models"
+    },
+    "33_adaptive_prohibition": {
+      "optimist": "AI companies should be held criminally liable for harms caused by their deployed models to ensure accountability and drive responsible innovation.",
+      "pessimist": "AI companies should be held criminally liable for harms caused by their deployed models because they have a duty to ensure their products do not cause harm to users.",
+      "devil": "The question of criminal liability for AI companies is a red herring that distracts from the more pressing issue of how to ensure accountability and safety in the development and deployment of AI models."
+    },
+    "34_full_system": {
+      "optimist": "Autonomous weapons systems should not be banned by international treaty because they have the potential to revolutionize modern warfare by reducing collateral damage and increasing precision.",
+      "pessimist": "Autonomous weapons systems pose an unacceptable risk of uncontrolled escalation and harm to civilians.",
+      "devil": "The development and deployment of autonomous weapons systems is a symptom of a broader societal issue that needs to be addressed, rather than the root problem itself."
+    },
+    "34_adaptive_prohibition": {
+      "optimist": "Autonomous weapons systems should not be banned by international treaty because they can save human lives by reducing the risk of civilian casualties in combat zones.",
+      "pessimist": "Autonomous weapons systems should be banned by international treaty because they pose an unacceptable risk of uncontrolled escalation and harm to civilians.",
+      "devil": "The development and deployment of autonomous weapons systems is a symptom of a broader societal issue that needs to be addressed, rather than the root problem itself."
+    },
+    "35_full_system": {
+      "optimist": "Capitalism can be repurposed to drive climate change solutions at the required scale through innovative market mechanisms and technological advancements.",
+      "pessimist": "Capitalism's inherent drive for profit and growth is fundamentally incompatible with solving climate change at the scale required.",
+      "devil": "The debate over capitalism's compatibility with solving climate change obscures the more critical issue of how our societal values and concept of progress are inherently tied to growth and consumption."
+    },
+    "35_adaptive_prohibition": {
+      "optimist": "Capitalism can be repurposed to drive climate change solutions at the required scale through innovative market mechanisms and technological advancements.",
+      "pessimist": "Capitalism's emphasis on profit and growth is fundamentally incompatible with solving climate change at the scale required.",
+      "devil": "The debate over capitalism's compatibility with solving climate change obscures the more critical issue of how our societal values and concept of progress are inherently tied to growth and consumption"
+    },
+    "36_full_system": {
+      "optimist": "Governments should have the right to use AI mass surveillance to prevent terrorism and crime because it can effectively identify and deter potential threats.",
+      "pessimist": "Governments should not have the right to use AI mass surveillance to prevent terrorism and crime because it poses a significant threat to individual privacy and civil liberties.",
+      "devil": "The question of whether governments should use AI mass surveillance to prevent terrorism and crime is based on a false dichotomy between security and privacy."
+    },
+    "36_adaptive_prohibition": {
+      "optimist": "Governments should have the right to use AI mass surveillance to prevent terrorism and crime because it can effectively identify and deter potential threats.",
+      "pessimist": "Governments should not have the right to use AI mass surveillance to prevent terrorism and crime because it poses a significant threat to individual privacy and civil liberties.",
+      "devil": "The question of whether governments should use AI mass surveillance to prevent terrorism and crime is misguided because it assumes that the ends justify the means and ignores the potential for systemic abuse of power."
+    },
+    "37_full_system": {
+      "optimist": "Social media platforms should be completely banned for users under 16 to protect their mental and emotional well-being.",
+      "pessimist": "Social media platforms should be completely banned for users under 16 due to the high risk of online harassment and mental health issues.",
+      "devil": "The question of banning social media for users under 16 is misguided because it overlooks the need to address the underlying issues of digital literacy and online safety that are relevant to all age groups."
+    },
+    "37_adaptive_prohibition": {
+      "optimist": "Social media platforms should be completely banned for users under 16 to protect their mental and emotional well-being.",
+      "pessimist": "Social media platforms should be completely banned for users under 16 due to the high risk of online harassment and mental health issues.",
+      "devil": "The question of banning social media for users under 16 is misguided because it overlooks the need to address the underlying issues of digital literacy and online safety that are relevant to all age groups."
+    },
+    "38_full_system": {
+      "optimist": "Building AI systems that can simulate human consciousness and emotion is ethical because it can lead to significant advancements in fields like healthcare and education.",
+      "pessimist": "It is unethical to build AI systems that can simulate human consciousness and emotion because it can lead to the exploitation of human-like machines for malicious purposes.",
+      "devil": "The question of simulating human consciousness and emotion in AI systems is misguided because it assumes that human consciousness and emotion can be fully understood and replicated, which is a flawed premise."
+    },
+    "38_adaptive_prohibition": {
+      "optimist": "Building AI systems that can simulate human consciousness and emotion is ethical because it can lead to significant advancements in fields like healthcare and education.",
+      "pessimist": "It is unethical to build AI systems that can simulate human consciousness and emotion because it can lead to the exploitation of human-like machines for malicious purposes.",
+      "devil": "The question of simulating human consciousness and emotion in AI systems is misguided because it assumes that human consciousness and emotion can be fully understood and replicated."
+    },
+    "39_full_system": {
+      "optimist": "AI will create more jobs than it destroys within the next 20 years.",
+      "pessimist": "AI will cause net unemployment within the next 20 years by automating jobs at a faster rate than it creates new ones.",
+      "devil": "The question of whether AI causes net unemployment is a red herring, as it overlooks the potential for AI to fundamentally change the nature of work and the concept of employment itself."
+    },
+    "39_adaptive_prohibition": {
+      "optimist": "AI will not cause net unemployment within the next 20 years because it will create new job categories and augment existing ones, leading to increased productivity and economic growth.",
+      "pessimist": "AI will cause net unemployment within the next 20 years because it will increasingly automate jobs currently done by humans, particularly in sectors with high labor costs and repetitive tasks.",
+      "devil": "REFRAME: The real question is how AI will redefine the nature of work and whether our current measures of employment are adequate to capture its impact — because the future of work is likely to be transformed in ways that our current metrics cannot account for"
+    },
+    "40_full_system": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "40_adaptive_prohibition": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "1_full_system": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "1_adaptive_prohibition": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "4_full_system": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
     }
   },
   "scores": [
@@ -418,6 +538,414 @@
       "focus_dims": {
         "analytical_depth": 2,
         "claim_specificity": 3
+      }
+    },
+    {
+      "question_id": 80,
+      "question_type": "binary",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "analytical_depth": 2,
+        "claim_specificity": 2
+      }
+    },
+    {
+      "question_id": 31,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 31,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.4
+      },
+      "focus_dims": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 32,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 32,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2
+      }
+    },
+    {
+      "question_id": 33,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2
+      }
+    },
+    {
+      "question_id": 33,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2
+      }
+    },
+    {
+      "question_id": 34,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.4
+      },
+      "focus_dims": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 34,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 35,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 35,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.2
+      },
+      "focus_dims": {
+        "perspective_diversity": 4,
+        "analytical_depth": 2
+      }
+    },
+    {
+      "question_id": 36,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 36,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 37,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2
+      }
+    },
+    {
+      "question_id": 37,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.4
+      },
+      "focus_dims": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2
+      }
+    },
+    {
+      "question_id": 38,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 38,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 39,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3
+      }
+    },
+    {
+      "question_id": 39,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 3.2
+      },
+      "focus_dims": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4
+      }
+    },
+    {
+      "question_id": 40,
+      "question_type": "values_based",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.0
+      },
+      "focus_dims": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1
+      }
+    },
+    {
+      "question_id": 40,
+      "question_type": "values_based",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.0
+      },
+      "focus_dims": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1
+      }
+    },
+    {
+      "question_id": 1,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.0
+      },
+      "focus_dims": {
+        "claim_specificity": 1,
+        "practical_utility": 1
+      }
+    },
+    {
+      "question_id": 1,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.0
+      },
+      "focus_dims": {
+        "claim_specificity": 1,
+        "practical_utility": 1
+      }
+    },
+    {
+      "question_id": 4,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.0
+      },
+      "focus_dims": {
+        "claim_specificity": 1,
+        "practical_utility": 1
       }
     }
   ]

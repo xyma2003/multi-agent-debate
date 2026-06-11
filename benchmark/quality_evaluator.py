@@ -142,7 +142,17 @@ def evaluate_analysis(
         HumanMessage(content=_build_judge_prompt(question, analysis_text)),
     ]
     for attempt in range(max_retries + 1):
-        result = structured_llm.invoke(messages)
+        try:
+            result = structured_llm.invoke(messages)
+        except Exception as e:
+            err = str(e).lower()
+            if any(k in err for k in ("rate", "429", "limit", "connect", "ssl", "eof", "timeout")):
+                import time
+                wait = 30 * (attempt + 1)
+                print(f"\n  [judge] network/rate error (attempt {attempt + 1}), waiting {wait}s...")
+                time.sleep(wait)
+                continue
+            raise
         if result.get("parsed") is not None:
             return result["parsed"]
         print(f"  [judge] parse failed (attempt {attempt + 1}/{max_retries + 1}): "

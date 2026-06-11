@@ -206,24 +206,29 @@
       "devil": "The debate over whether early-stage startups should raise venture capital or stay bootstrapped obscures the more fundamental question of whether the startup's goals and values align with the pressures and expectations that come with external funding"
     },
     "1_adaptive_prohibition": {
-      "optimist": "This approach is optimal WHEN the startup has a scalable business model and needs significant funding to accelerate growth because it allows for rapid expansion and access to valuable resources and networks.",
+      "optimist": "This approach is optimal WHEN a startup has a scalable business model and needs significant funding to accelerate growth because it allows for rapid expansion and increased competitiveness.",
       "pessimist": "This approach fails when early-stage startups prioritize venture capital over bootstrapping because it can lead to loss of control and misaligned incentives.",
       "devil": "The decision hinges on cash flow stability — here is how to measure it: by tracking monthly burn rate and revenue growth"
     },
     "4_full_system": {
-      "optimist": "[Analysis unavailable due to validation error]",
-      "pessimist": "[Analysis unavailable due to validation error]",
+      "optimist": "Hiring generalists is better than hiring specialists when building a small team because they can handle a wider range of tasks and adapt to changing circumstances.",
+      "pessimist": "Hiring generalists over specialists poses a significant risk to the overall quality of work in a small team.",
       "devil": "[Analysis unavailable due to validation error]"
     },
     "4_adaptive_prohibition": {
       "optimist": "[Analysis unavailable due to validation error]",
-      "pessimist": "This approach fails WHEN the team lacks clear roles and responsibilities because it can lead to confusion and inefficiency.",
+      "pessimist": "[Analysis unavailable due to validation error]",
       "devil": "The decision hinges on team size and project complexity — here is how to measure it: by evaluating the number of distinct tasks and the required expertise level"
     },
     "5_full_system": {
       "optimist": "[Analysis unavailable due to validation error]",
-      "pessimist": "A B2B SaaS company should not target enterprise clients first due to high sales cycle complexity and costs.",
-      "devil": "[Analysis unavailable due to validation error]"
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "The B2B SaaS company's initial target market should be determined by a variable cost-benefit analysis rather than a simplistic enterprise vs SMB dichotomy"
+    },
+    "5_adaptive_prohibition": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "REFRAME: The real question is what specific customer segment within the broader B2B SaaS market aligns best with our unique value proposition and current capabilities — because misaligned targeting can lead to wasted resources and missed opportunities"
     }
   },
   "scores": [
@@ -912,8 +917,8 @@
       "question_type": "context_dependent",
       "system": "full_system",
       "scores": {
-        "perspective_diversity": 4,
-        "analytical_depth": 4,
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
         "claim_specificity": 2,
         "honest_uncertainty": 2,
         "practical_utility": 2,
@@ -929,16 +934,16 @@
       "question_type": "context_dependent",
       "system": "adaptive_prohibition",
       "scores": {
-        "perspective_diversity": 3,
+        "perspective_diversity": 5,
         "analytical_depth": 3,
         "claim_specificity": 3,
         "honest_uncertainty": 2,
-        "practical_utility": 3,
-        "total": 2.8
+        "practical_utility": 4,
+        "total": 3.4
       },
       "focus_dims": {
         "claim_specificity": 3,
-        "practical_utility": 3
+        "practical_utility": 4
       }
     },
     {
@@ -946,16 +951,16 @@
       "question_type": "context_dependent",
       "system": "full_system",
       "scores": {
-        "perspective_diversity": 1,
-        "analytical_depth": 1,
-        "claim_specificity": 1,
-        "honest_uncertainty": 1,
-        "practical_utility": 1,
-        "total": 1.0
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.0
       },
       "focus_dims": {
-        "claim_specificity": 1,
-        "practical_utility": 1
+        "claim_specificity": 2,
+        "practical_utility": 2
       }
     },
     {
@@ -963,16 +968,16 @@
       "question_type": "context_dependent",
       "system": "adaptive_prohibition",
       "scores": {
-        "perspective_diversity": 2,
-        "analytical_depth": 3,
-        "claim_specificity": 3,
-        "honest_uncertainty": 2,
-        "practical_utility": 3,
-        "total": 2.6
+        "perspective_diversity": 1,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.6
       },
       "focus_dims": {
-        "claim_specificity": 3,
-        "practical_utility": 3
+        "claim_specificity": 2,
+        "practical_utility": 2
       }
     },
     {
@@ -981,11 +986,28 @@
       "system": "full_system",
       "scores": {
         "perspective_diversity": 1,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.0
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 5,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
         "analytical_depth": 2,
         "claim_specificity": 2,
         "honest_uncertainty": 2,
         "practical_utility": 2,
-        "total": 1.8
+        "total": 2.0
       },
       "focus_dims": {
         "claim_specificity": 2,

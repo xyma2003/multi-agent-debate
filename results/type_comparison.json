@@ -201,18 +201,28 @@
       "devil": "[Analysis unavailable due to validation error]"
     },
     "1_full_system": {
-      "optimist": "[Analysis unavailable due to validation error]",
-      "pessimist": "[Analysis unavailable due to validation error]",
-      "devil": "[Analysis unavailable due to validation error]"
+      "optimist": "Early-stage startups should raise venture capital to accelerate growth and gain a competitive advantage.",
+      "pessimist": "Early-stage startups should not raise venture capital because it leads to loss of control and misaligned incentives.",
+      "devil": "The debate over whether early-stage startups should raise venture capital or stay bootstrapped obscures the more fundamental question of whether the startup's goals and values align with the pressures and expectations that come with external funding"
     },
     "1_adaptive_prohibition": {
-      "optimist": "[Analysis unavailable due to validation error]",
-      "pessimist": "[Analysis unavailable due to validation error]",
-      "devil": "[Analysis unavailable due to validation error]"
+      "optimist": "This approach is optimal WHEN the startup has a scalable business model and needs significant funding to accelerate growth because it allows for rapid expansion and access to valuable resources and networks.",
+      "pessimist": "This approach fails when early-stage startups prioritize venture capital over bootstrapping because it can lead to loss of control and misaligned incentives.",
+      "devil": "The decision hinges on cash flow stability — here is how to measure it: by tracking monthly burn rate and revenue growth"
     },
     "4_full_system": {
       "optimist": "[Analysis unavailable due to validation error]",
       "pessimist": "[Analysis unavailable due to validation error]",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "4_adaptive_prohibition": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "This approach fails WHEN the team lacks clear roles and responsibilities because it can lead to confusion and inefficiency.",
+      "devil": "The decision hinges on team size and project complexity — here is how to measure it: by evaluating the number of distinct tasks and the required expertise level"
+    },
+    "5_full_system": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "A B2B SaaS company should not target enterprise clients first due to high sales cycle complexity and costs.",
       "devil": "[Analysis unavailable due to validation error]"
     }
   },
@@ -902,16 +912,16 @@
       "question_type": "context_dependent",
       "system": "full_system",
       "scores": {
-        "perspective_diversity": 1,
-        "analytical_depth": 1,
-        "claim_specificity": 1,
-        "honest_uncertainty": 1,
-        "practical_utility": 1,
-        "total": 1.0
+        "perspective_diversity": 4,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
       },
       "focus_dims": {
-        "claim_specificity": 1,
-        "practical_utility": 1
+        "claim_specificity": 2,
+        "practical_utility": 2
       }
     },
     {
@@ -919,16 +929,16 @@
       "question_type": "context_dependent",
       "system": "adaptive_prohibition",
       "scores": {
-        "perspective_diversity": 1,
-        "analytical_depth": 1,
-        "claim_specificity": 1,
-        "honest_uncertainty": 1,
-        "practical_utility": 1,
-        "total": 1.0
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.8
       },
       "focus_dims": {
-        "claim_specificity": 1,
-        "practical_utility": 1
+        "claim_specificity": 3,
+        "practical_utility": 3
       }
     },
     {
@@ -946,6 +956,40 @@
       "focus_dims": {
         "claim_specificity": 1,
         "practical_utility": 1
+      }
+    },
+    {
+      "question_id": 4,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 5,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
       }
     }
   ]

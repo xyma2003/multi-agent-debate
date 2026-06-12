@@ -229,6 +229,36 @@
       "optimist": "[Analysis unavailable due to validation error]",
       "pessimist": "[Analysis unavailable due to validation error]",
       "devil": "REFRAME: The real question is what specific customer segment within the broader B2B SaaS market aligns best with our unique value proposition and current capabilities — because misaligned targeting can lead to wasted resources and missed opportunities"
+    },
+    "7_full_system": {
+      "optimist": "Startups should build custom internal tools to gain a competitive advantage.",
+      "pessimist": "Startups should not build custom internal tools due to the high risk of resource diversion and project failure.",
+      "devil": "The debate over custom internal tools versus off-the-shelf software is misguided because it overlooks the dynamic nature of startup needs."
+    },
+    "7_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN a startup has unique business needs and sufficient resources because it allows for tailored solutions that drive efficiency and innovation.",
+      "pessimist": "This approach fails when a startup lacks the resources and expertise to develop and maintain custom internal tools because it can lead to inefficient use of time and money.",
+      "devil": "The decision hinges on the level of process customization required — here is how to measure it: by assessing the percentage of unique business requirements"
+    },
+    "8_full_system": {
+      "optimist": "A founder should be a domain expert to create a successful startup.",
+      "pessimist": "A founder lacking domain expertise is more likely to fail due to misunderstandings of the industry's nuances.",
+      "devil": "The debate over whether a founder should be a domain expert or a generalist operator is misguided because it overlooks the importance of adaptability in a rapidly changing business environment."
+    },
+    "8_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN the founder has a deep understanding of the industry and market because it allows for more effective decision-making and innovation.",
+      "pessimist": "This approach fails WHEN a founder lacks a balanced combination of domain expertise and generalist operational skills because it leads to a lack of understanding of the industry and ineffective management of the organization.",
+      "devil": "The decision hinges on the founder's ability to adapt to changing market conditions — here is how to measure it: by assessing their experience in multiple industries and their track record of pivoting in response to new information"
+    },
+    "9_full_system": {
+      "optimist": "A growing startup should adopt microservices architecture to increase scalability and flexibility",
+      "pessimist": "A growing startup should not adopt microservices architecture due to the increased complexity and higher risk of system failures.",
+      "devil": "The choice between microservices and monolithic architecture is a false dichotomy that obscures the more critical issue of whether the startup's organizational structure and culture can support the complexity of either approach"
+    },
+    "9_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN the startup has a small, well-defined scope and a tight-knit development team because it allows for faster development and easier maintenance.",
+      "pessimist": "This approach fails WHEN a growing startup has limited resources and a small development team because it increases operational complexity and overhead.",
+      "devil": "The decision hinges on scalability requirements — here is how to measure it: by assessing the projected growth rate of the startup's user base and traffic"
     }
   },
   "scores": [
@@ -1012,6 +1042,108 @@
       "focus_dims": {
         "claim_specificity": 2,
         "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 7,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 7,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 8,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 1,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.6
+      },
+      "focus_dims": {
+        "claim_specificity": 1,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 8,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 2,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 9,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 9,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 4,
+        "honest_uncertainty": 2,
+        "practical_utility": 4,
+        "total": 3.2
+      },
+      "focus_dims": {
+        "claim_specificity": 4,
+        "practical_utility": 4
       }
     }
   ]

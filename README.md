@@ -43,8 +43,8 @@ Final Report:
 ### 1. Clone the repo
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/debate-agent.git
-cd debate-agent
+git clone https://github.com/xyma2003/multi-agent-debate.git
+cd multi-agent-debate
 ```
 
 ### 2. Create a virtual environment
@@ -233,7 +233,7 @@ Old devil prompt ("challenge the dominant view") caused 2-vs-1 alignment — dev
 **Finding C — Cosine similarity is broken for stance detection**
 100% of cosine-based debates terminated after Round 1 (divergence scores 0.097–0.258, all below 0.75 threshold). Cosine measures *topic overlap*, not *stance opposition* — "VC accelerates growth" and "VC destroys growth" score as *similar* because they share vocabulary. NLI cross-encoder correctly detects CONTRADICTION regardless of vocabulary overlap, enabling genuine multi-round debate (SSS = 0.883 vs 1.000).
 
-See `analysis/analysis.ipynb` for full analysis with figures.
+See [`PAPER.md`](PAPER.md) for the full research writeup (*Adaptive PROHIBITION in Multi-Agent Debate*, Xinyue Ma, 2026) and `analysis/analysis_executed.ipynb` for figures.
 
 ### Running the benchmark
 
@@ -291,7 +291,7 @@ python -m pytest tests/ -v
 # 1. Create a new repo on github.com (do NOT initialize with README)
 
 # 2. Add remote and push
-git remote add origin https://github.com/YOUR_USERNAME/debate-agent.git
+git remote add origin https://github.com/xyma2003/multi-agent-debate.git
 git branch -M main
 git push -u origin main
 ```

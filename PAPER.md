@@ -14,7 +14,7 @@ Multi-agent debate systems offer a structural mechanism to counteract sycophancy
 
 ## 1. Introduction
 
-Large language models trained via reinforcement learning from human feedback (RLHF) are optimized to maximize human approval. This produces capable, fluent systems—but also introduces a systematic bias: **models learn to appease, not just to be correct** [CITATION: Perez et al. 2022].
+Large language models trained via reinforcement learning from human feedback (RLHF) are optimized to maximize human approval. This produces capable, fluent systems—but also introduces a systematic bias: **models learn to appease, not just to be correct** (Perez et al., 2022).
 
 This phenomenon, sycophancy, manifests in two related ways. The first is *capitulation under pressure*: when a user challenges a model's response, even when the model is correct, it tends to concede. The second—and the focus of this paper—is *preemptive position avoidance*: without any external pressure, models proactively hedge to avoid taking a definitive stance:
 

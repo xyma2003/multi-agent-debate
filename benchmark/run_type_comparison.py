@@ -43,7 +43,7 @@ QUESTION_FILES = {
 QUESTION_LIMITS = {
     "binary": 10,
     "values_based": 10,
-    "context_dependent": 6,   # q1,q4,q5,q7,q8,q9 have context_dependent label
+    "context_dependent": 20,  # q1,q4,q5,q7,q8,q9 + q91-q104 (20 total)
 }
 
 SYSTEMS = ["full_system", "adaptive_prohibition"]

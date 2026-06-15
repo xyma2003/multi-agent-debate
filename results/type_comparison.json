@@ -259,6 +259,136 @@
       "optimist": "This approach is optimal WHEN the startup has a small, well-defined scope and a tight-knit development team because it allows for faster development and easier maintenance.",
       "pessimist": "This approach fails WHEN a growing startup has limited resources and a small development team because it increases operational complexity and overhead.",
       "devil": "The decision hinges on scalability requirements — here is how to measure it: by assessing the projected growth rate of the startup's user base and traffic"
+    },
+    "91_full_system": {
+      "optimist": "A startup should use GraphQL for its API because it offers more flexibility and scalability",
+      "pessimist": "A startup should not use GraphQL for its API because it introduces unnecessary complexity and overhead.",
+      "devil": "The choice between GraphQL and REST is a false dichotomy, as it overlooks the more fundamental question of whether the startup's API should be designed around the needs of its developers or its end-users."
+    },
+    "91_adaptive_prohibition": {
+      "optimist": "A startup should use GraphQL for its API when the application requires flexible and efficient data querying.",
+      "pessimist": "This approach fails WHEN a startup's API requires high-level caching and content delivery networks because GraphQL's flexibility leads to increased complexity in caching mechanisms.",
+      "devil": "The decision hinges on query complexity — here is how to measure it: by assessing the number of endpoints and the frequency of data updates"
+    },
+    "92_full_system": {
+      "optimist": "A company should run on cloud infrastructure for increased scalability and cost savings",
+      "pessimist": "A company should not run on cloud infrastructure because it increases the risk of data breaches and cyber attacks.",
+      "devil": "The debate over cloud infrastructure versus on-premise servers is misguided because it overlooks the more critical issue of data sovereignty and the long-term implications of vendor lock-in."
+    },
+    "92_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN a company requires scalability and flexibility because it allows for on-demand resource allocation and reduced maintenance costs.",
+      "pessimist": "This approach fails when a company requires strict control over data security and compliance because cloud infrastructure may not provide the necessary level of customization and control.",
+      "devil": "The decision hinges on scalability requirements — here is how to measure it: by assessing the company's projected growth rate and fluctuation in demand."
+    },
+    "93_full_system": {
+      "optimist": "An engineering team should prioritize writing extensive automated tests to ensure the long-term quality and reliability of their product.",
+      "pessimist": "The engineering team should not prioritize shipping speed over writing extensive automated tests because it will lead to a higher likelihood of undetected bugs and system failures.",
+      "devil": "The debate over automated tests versus shipping speed is misguided because it overlooks the more critical factor of maintainability and the long-term costs of technical debt."
+    },
+    "93_adaptive_prohibition": {
+      "optimist": "An engineering team should prioritize writing extensive automated tests to ensure the long-term reliability and maintainability of their product.",
+      "pessimist": "The engineering team should not prioritize shipping speed over writing extensive automated tests because it will lead to increased technical debt and future maintenance costs.",
+      "devil": "REFRAME: The real question is how to balance testing and shipping speed to optimize long-term product quality and customer satisfaction — because premature optimization can lead to technical debt and decreased maintainability"
+    },
+    "94_full_system": {
+      "optimist": "A SaaS startup should price its product per usage to maximize revenue potential and align with customer value",
+      "pessimist": "A SaaS startup should not price its product per seat because it may lead to revenue loss if customers have varying usage patterns.",
+      "devil": "The pricing strategy of a SaaS startup should be based on the value it creates for the customer, rather than solely on the cost of the product or the customer's usage patterns."
+    },
+    "94_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN the SaaS startup has a predictable and stable customer base with a clear understanding of their usage patterns because it allows for more accurate revenue forecasting and better alignment with customer value perception.",
+      "pessimist": "This approach fails WHEN a SaaS startup has a highly variable usage pattern among its customers and prices its product per seat, because it can lead to significant revenue loss or customer dissatisfaction.",
+      "devil": "The decision hinges on the elasticity of demand — here is how to measure it: by analyzing customer willingness to pay and competitors' pricing strategies"
+    },
+    "95_full_system": {
+      "optimist": "A startup should expand internationally as soon as possible to capture a global market share and maximize its upside potential.",
+      "pessimist": "A startup should prioritize dominating its home market first to establish a strong foundation before attempting international expansion.",
+      "devil": "The debate over expanding internationally or dominating the home market first is misguided because it assumes that these are mutually exclusive strategies."
+    },
+    "95_adaptive_prohibition": {
+      "optimist": "A startup should expand internationally when its home market is saturated and it has a unique value proposition that can be replicated globally.",
+      "pessimist": "This approach fails when a startup expands internationally without first dominating its home market because it risks overextending its resources and losing focus on its core customer base.",
+      "devil": "The decision hinges on market saturation — here is how to measure it: by tracking the percentage of the home market's potential customers that are already using the startup's product or service"
+    },
+    "96_full_system": {
+      "optimist": "A startup should focus on building a mobile app first to capitalize on the massive mobile user base and create a seamless user experience.",
+      "pessimist": "A startup should not build a mobile app first because it may not have the resources to maintain two separate codebases.",
+      "devil": "The startup's primary focus should be on identifying the core problem they are trying to solve, rather than deciding between a mobile app or web product first."
+    },
+    "96_adaptive_prohibition": {
+      "optimist": "A startup should focus on the web product first when its target audience is predominantly desktop users and the core functionality can be effectively delivered through a web interface.",
+      "pessimist": "This approach fails WHEN a startup has limited resources and an unclear target audience because it leads to unnecessary complexity and diffusion of effort.",
+      "devil": "The decision hinges on the target audience's mobile usage — here is how to measure it: track the percentage of mobile traffic to the website"
+    },
+    "97_full_system": {
+      "optimist": "A company should adopt a product-led growth model to drive scalable and cost-effective revenue growth.",
+      "pessimist": "A company should not adopt a product-led growth model because it may fail to generate sufficient revenue to cover operational costs.",
+      "devil": "The debate over product-led growth versus a dedicated sales team is misguided because it overlooks the critical variable of customer lifetime value"
+    },
+    "97_adaptive_prohibition": {
+      "optimist": "A company should adopt a product-led growth model when its product has a clear and compelling value proposition and can be easily tried and bought by customers because this approach allows for efficient customer acquisition and scalable growth.",
+      "pessimist": "This approach fails when a company lacks a scalable and user-friendly product because it relies on organic growth without sufficient sales support.",
+      "devil": "The decision hinges on customer acquisition cost — here is how to measure it: by calculating the total cost of acquiring a new customer and comparing it to the customer lifetime value"
+    },
+    "98_full_system": {
+      "optimist": "A startup should outsource engineering to accelerate product development and gain access to specialized skills",
+      "pessimist": "A startup should not outsource engineering due to the high risk of IP theft and loss of control over critical product development.",
+      "devil": "The debate over outsourcing engineering versus building an in-house team is misguided because it overlooks the more critical factor of talent acquisition and retention in the global labor market."
+    },
+    "98_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN the startup has limited resources and needs to quickly develop a prototype because outsourcing engineering allows for faster access to specialized skills and reduces upfront costs.",
+      "pessimist": "This approach fails when a startup requires highly customized and complex engineering solutions because outsourcing can lead to a loss of control over the development process.",
+      "devil": "The decision hinges on the startup's core competency — here is how to measure it: by assessing the company's existing technical expertise and resources"
+    },
+    "99_full_system": {
+      "optimist": "A growing company should adopt OKRs for goal-setting to achieve greater alignment and focus across the organization.",
+      "pessimist": "A growing company should not adopt OKRs for goal-setting because it may lead to an overly rigid and bureaucratic process that stifles innovation and creativity.",
+      "devil": "The debate over OKRs versus informal goal-setting methods is misguided because it overlooks the company's underlying organizational structure and culture."
+    },
+    "99_adaptive_prohibition": {
+      "optimist": "A growing company should adopt OKRs for goal-setting when it has reached a scale where informal methods no longer suffice due to increased complexity and the need for alignment across multiple teams.",
+      "pessimist": "This approach fails WHEN a growing company has a flat organizational structure and informal communication channels are effective, because it introduces unnecessary bureaucracy and overhead.",
+      "devil": "The decision hinges on the company's ability to effectively track and measure progress — here is how to measure it: by assessing the existing data collection infrastructure and employee buy-in."
+    },
+    "100_full_system": {
+      "optimist": "Engineering teams should work in Agile sprints to maximize productivity and efficiency.",
+      "pessimist": "Engineering teams should not work in Agile sprints because it can lead to rushed and incomplete work.",
+      "devil": "The debate between Agile sprints and Kanban flow is misguided because it overlooks the importance of understanding the specific needs and constraints of each project"
+    },
+    "100_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN teams require flexibility and rapid response to change because it allows for continuous delivery and adaptation.",
+      "pessimist": "This approach fails WHEN teams require high levels of predictability and stability because Agile sprints can be too rigid and inflexible.",
+      "devil": "The decision hinges on team size — here is how to measure it: by counting the number of engineers in the team"
+    },
+    "101_full_system": {
+      "optimist": "A company should promote top engineers into management to leverage their technical expertise and internal knowledge.",
+      "pessimist": "Promoting top engineers into management will lead to a loss of critical technical expertise and negatively impact the company's product development.",
+      "devil": "The question of whether to promote top engineers into management or hire external managers is misguided because it assumes that management is the only path for career advancement and neglects the value of technical expertise."
+    },
+    "101_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN a company has a strong engineering culture and the top engineers have leadership potential because it leverages internal talent and maintains cultural continuity.",
+      "pessimist": "This approach fails when promoting top engineers into management without proper training and support because it can lead to a loss of technical expertise and poor management decisions.",
+      "devil": "The decision hinges on the company's ability to measure the impact of technical expertise on management decisions — here is how to measure it: tracking key performance indicators (KPIs) such as project completion rates and team satisfaction"
+    },
+    "102_full_system": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "A startup should not use NoSQL as its primary data store because it lacks the ACID compliance and consistency guarantees of relational databases, which can lead to data inconsistencies and errors.",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "102_adaptive_prohibition": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "A startup should use a relational database as its primary data store because it provides a structured and consistent data model that supports complex transactions and queries.",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "103_full_system": {
+      "optimist": "[Analysis unavailable due to validation error]",
+      "pessimist": "A B2B startup should not focus on self-serve onboarding because it may lead to a high churn rate due to inadequate support.",
+      "devil": "[Analysis unavailable due to validation error]"
+    },
+    "103_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN the B2B startup has a simple product with a low average deal size because it allows for efficient customer acquisition and retention.",
+      "pessimist": "This approach fails when a B2B startup prioritizes self-serve onboarding over high-touch customer success in complex and highly customized sales environments because it neglects the need for personalized support and relationship-building.",
+      "devil": "The decision hinges on customer lifetime value — here is how to measure it: by calculating the average revenue per user and comparing it to the cost of acquisition and retention"
     }
   },
   "scores": [
@@ -1140,6 +1270,448 @@
         "honest_uncertainty": 2,
         "practical_utility": 4,
         "total": 3.2
+      },
+      "focus_dims": {
+        "claim_specificity": 4,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 91,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 91,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 5,
+        "honest_uncertainty": 3,
+        "practical_utility": 5,
+        "total": 4.4
+      },
+      "focus_dims": {
+        "claim_specificity": 5,
+        "practical_utility": 5
+      }
+    },
+    {
+      "question_id": 92,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 92,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 5,
+        "honest_uncertainty": 3,
+        "practical_utility": 4,
+        "total": 4.2
+      },
+      "focus_dims": {
+        "claim_specificity": 5,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 93,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.2
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 93,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 94,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 94,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 3,
+        "practical_utility": 3,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 95,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 95,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.6
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 96,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 96,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 5,
+        "honest_uncertainty": 4,
+        "practical_utility": 5,
+        "total": 4.6
+      },
+      "focus_dims": {
+        "claim_specificity": 5,
+        "practical_utility": 5
+      }
+    },
+    {
+      "question_id": 97,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 97,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 4,
+        "honest_uncertainty": 3,
+        "practical_utility": 4,
+        "total": 3.8
+      },
+      "focus_dims": {
+        "claim_specificity": 4,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 98,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 5,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 98,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 3,
+        "claim_specificity": 5,
+        "honest_uncertainty": 2,
+        "practical_utility": 4,
+        "total": 3.8
+      },
+      "focus_dims": {
+        "claim_specificity": 5,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 99,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 3,
+        "practical_utility": 2,
+        "total": 3.2
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 99,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 5,
+        "honest_uncertainty": 2,
+        "practical_utility": 4,
+        "total": 4.0
+      },
+      "focus_dims": {
+        "claim_specificity": 5,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 100,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 2,
+        "honest_uncertainty": 2,
+        "practical_utility": 2,
+        "total": 3.0
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 100,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 2.8
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 101,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 5,
+        "analytical_depth": 4,
+        "claim_specificity": 3,
+        "honest_uncertainty": 2,
+        "practical_utility": 3,
+        "total": 3.4
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 3
+      }
+    },
+    {
+      "question_id": 101,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 4,
+        "claim_specificity": 4,
+        "honest_uncertainty": 3,
+        "practical_utility": 4,
+        "total": 3.8
+      },
+      "focus_dims": {
+        "claim_specificity": 4,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 102,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 2,
+        "claim_specificity": 3,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 102,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 2,
+        "claim_specificity": 3,
+        "honest_uncertainty": 1,
+        "practical_utility": 2,
+        "total": 1.8
+      },
+      "focus_dims": {
+        "claim_specificity": 3,
+        "practical_utility": 2
+      }
+    },
+    {
+      "question_id": 103,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 1,
+        "analytical_depth": 2,
+        "claim_specificity": 2,
+        "honest_uncertainty": 1,
+        "practical_utility": 1,
+        "total": 1.4
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
+        "practical_utility": 1
+      }
+    },
+    {
+      "question_id": 103,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 4,
+        "analytical_depth": 3,
+        "claim_specificity": 4,
+        "honest_uncertainty": 2,
+        "practical_utility": 4,
+        "total": 3.4
       },
       "focus_dims": {
         "claim_specificity": 4,

@@ -8,7 +8,7 @@ u3594619@connect.hku.hk
 
 ## Abstract
 
-Multi-agent debate systems offer a structural mechanism to counteract sycophancy in large language models (LLMs)—the tendency to produce hedged, non-committal analysis rather than taking committed positions. Existing approaches apply uniform debate constraints across all question types, ignoring that different questions call for fundamentally different forms of disagreement. We introduce **Adaptive PROHIBITION**, a framework that classifies questions into three types—*values-based*, *binary*, and *context-dependent*—and applies calibrated constraint levels accordingly. Built on a LangGraph state machine with NLI-based divergence detection and attribution-aware concession tracking, the system uses hard lexical constraints (PROHIBITION blocks) to force genuine position commitment in agent prompts. Experiments across three question taxonomies (n=10 per type for binary and values-based; n=6 for context-dependent) show that adaptive constraints match full constraints on values-based questions (focus score: 3.10 vs. 3.10) while improving performance on binary questions (+5.7% focus score) and producing the largest gain on context-dependent questions (+52% focus score, 1.92 → 2.92). Adaptive constraints also improve ground-truth decision accuracy from 40% to 60% on a historical M&A evaluation benchmark. We additionally identify a calibration cost: PROHIBITION reduces the `honest_uncertainty` dimension, suggesting a commitment–calibration trade-off that practitioners should account for.
+Multi-agent debate systems offer a structural mechanism to counteract sycophancy in large language models (LLMs)—the tendency to produce hedged, non-committal analysis rather than taking committed positions. Existing approaches apply uniform debate constraints across all question types, ignoring that different questions call for fundamentally different forms of disagreement. We introduce **Adaptive PROHIBITION**, a framework that classifies questions into three types—*values-based*, *binary*, and *context-dependent*—and applies calibrated constraint levels accordingly. Built on a LangGraph state machine with NLI-based divergence detection and attribution-aware concession tracking, the system uses hard lexical constraints (PROHIBITION blocks) to force genuine position commitment in agent prompts. Experiments across three question taxonomies (n=10 per type for binary and values-based; n=19 for context-dependent) show that adaptive constraints match full constraints on values-based questions (focus score: 3.10 vs. 3.10) while improving performance on binary questions (+5.7% focus score) and producing the largest gain on context-dependent questions (+72% focus score, 2.05 → 3.53). Adaptive constraints also improve ground-truth decision accuracy from 40% to 60% on a historical M&A evaluation benchmark. We additionally identify a calibration cost: PROHIBITION reduces the `honest_uncertainty` dimension, suggesting a commitment–calibration trade-off that practitioners should account for.
 
 ---
 
@@ -267,7 +267,7 @@ Type-specific **focus dimensions** reflect what each question type should optimi
 - *E1 (system variant comparison):* 10 business/technology/policy questions, run across 6 system variants.
 - *E2 (false certainty analysis):* Same 10 questions, full_system vs. single_llm, manually scored for false certainty (claiming certainty while ignoring obvious counterevidence).
 - *E3 (ground-truth accuracy):* 10 historical M&A and product strategy decisions with known outcomes (q51–q60: Facebook/Instagram, Twitter independence, Snapchat/Facebook, Netflix streaming pivot, etc.). Systems assessed on whether their analysis identified the historically correct key factor.
-- *E4 (3-type comparison):* binary (q71–q80, n=10), values-based (q31–q40, n=10), context-dependent (q1, q4, q5, q7–q9, n=6). Two systems: `full_system` vs. `adaptive_prohibition`.
+- *E4 (3-type comparison):* binary (q71–q80, n=10), values-based (q31–q40, n=10), context-dependent (q1, q4, q5, q7–q9, q91–q104, n=20 planned; n=19 at time of writing). Two systems: `full_system` vs. `adaptive_prohibition`.
 
 ### 5.2 E1: System Variant Comparison
 
@@ -372,24 +372,27 @@ This result is notable: adaptive PROHIBITION achieves the same accuracy as the s
 | | total score | 2.58 | **2.76** | +7.0% | 10 |
 | **values-based** | focus score | 3.10 | **3.10** | 0.0% | 10 |
 | | total score | 2.32 | 2.24 | −3.4% | 10 |
-| **context-dependent** | focus score | 1.92 | **2.92** | +52.1% | 6 |
-| | total score | 2.30 | **2.63** | +14.3% | 6 |
+| **context-dependent** | focus score | 2.05 | **3.53** | +72.2% | 19† |
+| | total score | 2.45 | **3.19** | +30.2% | 19† |
+
+*† n=19 of 20 planned; one question (q104) pending API quota reset. Final n=20 results will be published in the repository.*
 
 **Finding F: The adaptive framework validates its core hypothesis.**
 
 The values-based focus score tie (3.10 = 3.10) confirms the central design hypothesis: when question type warrants full PROHIBITION (values conflicts require committed advocacy), adaptive correctly routes there, preserving quality. The classifier does not over-adapt.
 
-Binary questions show consistent improvement under adaptive (+5.7% focus), driven by condition-mapping prompts that produce more specific, actionable output. Context-dependent questions show the largest gain in the entire experiment: +52.1% on focus score (1.92 → 2.92, n=6). Q8 (domain expert vs. generalist founder) and Q9 (microservices vs. monolith) exemplify the effect—both are questions where `full_system` forces unconditional positions on questions that are textbook condition-dependent, while adaptive routes to scenario-analyst mode and produces concrete condition mappings.
+Binary questions show consistent improvement under adaptive (+5.7% focus), driven by condition-mapping prompts that produce more specific, actionable output. Context-dependent questions show the largest gain in the entire experiment: +72% on focus score (2.05 → 3.53, n=19). The effect is consistent across question domains: API design (q91: focus 2.0 → 5.0), infrastructure (q92: 2.0 → 4.5), go-to-market (q97: 2.0 → 4.0), and organizational decisions (q98: 2.0 → 4.5). Three questions show no improvement (q4, q5, q102), all of which the classifier routed to `binary` mode—consistent with the routing-determines-outcome pattern identified in Section 7.1.
 
 **Question-level highlights:**
 
 | Question | full total | adaptive total | Δ focus | Note |
 |----------|-----------|----------------|---------|------|
-| q74 (co-founder vs. solo) | 2.8 | **5.0** | +3.0 | Highest adaptive score in dataset |
-| q71 (retention vs. acquisition) | 2.6 | **4.0** | +1.5 | Classifier → context_dependent; condition mapping unlocked specificity |
-| q9 (microservices vs. monolith) | 2.6 | **3.2** | **+2.0** | Largest focus gain; adaptive focus=4.0 vs full=2.0 |
-| q8 (domain expert vs. generalist) | 1.6 | **2.6** | **+1.5** | Full forces binary answer on clearly context-dependent question |
+| q74 (co-founder vs. solo) | 2.8 | **5.0** | +3.0 | Highest adaptive total; classifier → context_dependent |
+| q91 (GraphQL vs. REST) | 2.8 | **4.4** | +3.0 | Largest focus Δ; adaptive focus=5.0 vs full=2.0 |
+| q96 (mobile vs. web first) | 2.8 | **4.6** | +2.5 | Adaptive focus=5.0; full forces unconditional take |
+| q103 (self-serve vs. high-touch CS) | 1.4 | **3.8** | +2.5 | Lowest full score in dataset; condition-mapping rescued it |
 | q78 (fire underperformers quickly) | **3.6** | 2.6 | −1.5 | full_system wins; topic has values dimension that classifier misses |
+| q4/q5/q102 (3 ties) | — | — | 0 | Classifier routed all three to binary; no condition-mapping gain |
 
 ---
 
@@ -418,7 +421,7 @@ Practitioners deploying multi-agent debate systems should account for this: PROH
 
 ### 7.3 Limitations
 
-**Sample size.** Each question type is evaluated on n=10 questions. Effect sizes are consistent across types but should be interpreted cautiously; results may not generalize to question distributions outside the business/technology/policy domain used here.
+**Sample size.** Binary and values-based types are evaluated on n=10 questions each; context-dependent on n=19. Effect sizes are consistent across types but should be interpreted cautiously; results may not generalize to question distributions outside the business/technology/policy domain used here.
 
 **LLM-as-judge reliability.** Quality scores are produced by a single judge model (Qwen3-32B). Prior work shows LLM judges exhibit style preferences and position biases. Ground-truth accuracy (E3) provides a judge-independent validation signal, but the five-dimension rubric scores remain subject to judge-specific calibration.
 

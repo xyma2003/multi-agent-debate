@@ -202,5 +202,103 @@
     "difficulty": "hard",
     "question": "Will social media as we know it decline significantly within the next decade?",
     "question_type": "binary"
+  },
+  {
+    "id": 91,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should a startup use GraphQL or REST for its API?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 92,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should a company run on cloud infrastructure or manage its own on-premise servers?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 93,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should an engineering team write extensive automated tests or prioritize shipping speed?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 94,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a SaaS startup price its product per seat or per usage?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 95,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a startup expand internationally or dominate its home market first?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 96,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a startup build a mobile app or focus on the web product first?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 97,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a company adopt a product-led growth model or invest in a dedicated sales team?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 98,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a startup outsource engineering or build an entirely in-house team?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 99,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a growing company adopt OKRs for goal-setting or stick with informal methods?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 100,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should engineering teams work in Agile sprints or use a Kanban flow?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 101,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a company promote top engineers into management or hire external managers?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 102,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should a startup use a relational database or NoSQL as its primary data store?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 103,
+    "category": "business",
+    "difficulty": "medium",
+    "question": "Should a B2B startup focus on self-serve onboarding or high-touch customer success?",
+    "question_type": "context_dependent"
+  },
+  {
+    "id": 104,
+    "category": "technology",
+    "difficulty": "medium",
+    "question": "Should a company build AI features in-house or integrate third-party AI APIs?",
+    "question_type": "context_dependent"
   }
 ]

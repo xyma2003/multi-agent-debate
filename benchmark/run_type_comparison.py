@@ -192,14 +192,15 @@ def main():
                         help="Seconds between agent calls in sequential mode (default 15)")
     parser.add_argument("--skip-debates", action="store_true",
                         help="Skip running debates, only re-evaluate existing positions")
+    parser.add_argument("--backend", type=str, default="cerebras",
+                        help="LLM backend for debate agents (default: cerebras). "
+                             "Options: cerebras, sambanova, groq, together, openai, anthropic. "
+                             "Judge always uses the same backend.")
     args = parser.parse_args()
 
-    os.environ["LLM_BACKEND"] = "groq"
-    from debate.llm import _make_llm as _groq_llm
-
-    os.environ["LLM_BACKEND"] = "qwen"
-    from debate.llm import _make_llm as _qwen_llm
-    judge_llm = _qwen_llm()
+    os.environ["LLM_BACKEND"] = args.backend
+    from debate.llm import _make_llm
+    judge_llm = _make_llm()
 
     state = load_state()
     done_debates = set(state["debates"].keys())
@@ -239,7 +240,7 @@ def main():
                     print(f"    [{system}] skip-debates mode")
                 else:
                     print(f"    [{system}] running...", end=" ", flush=True)
-                    os.environ["LLM_BACKEND"] = "groq"
+                    os.environ["LLM_BACKEND"] = args.backend
                     positions = run_debate(qtext, system,
                                           sequential=args.sequential,
                                           agent_delay=args.agent_delay)
@@ -261,7 +262,7 @@ def main():
                     continue
 
                 print(f"    [{system}] evaluating...", end=" ", flush=True)
-                os.environ["LLM_BACKEND"] = "qwen"
+                os.environ["LLM_BACKEND"] = args.backend
                 scores = evaluate_quality(qtext, positions, judge_llm)
                 if scores is None:
                     print("FAILED")

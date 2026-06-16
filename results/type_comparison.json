@@ -389,6 +389,16 @@
       "optimist": "This approach is optimal WHEN the B2B startup has a simple product with a low average deal size because it allows for efficient customer acquisition and retention.",
       "pessimist": "This approach fails when a B2B startup prioritizes self-serve onboarding over high-touch customer success in complex and highly customized sales environments because it neglects the need for personalized support and relationship-building.",
       "devil": "The decision hinges on customer lifetime value — here is how to measure it: by calculating the average revenue per user and comparing it to the cost of acquisition and retention"
+    },
+    "104_full_system": {
+      "optimist": "A company should build AI features in-house to maintain control and customization.",
+      "pessimist": "A company should not build AI features in-house or integrate third-party AI APIs without thoroughly assessing the associated risks and challenges",
+      "devil": "The decision to build AI features in-house or integrate third-party AI APIs is not a binary choice, but rather a spectrum that depends on the company's specific needs and capabilities."
+    },
+    "104_adaptive_prohibition": {
+      "optimist": "This approach is optimal WHEN AI features are strategically central to the company's core product or competitive advantage, requiring deep customization, proprietary data leverage, and long-term control, because it enables unique differentiation, enhanced security, and the development of a sustainable internal core competency.",
+      "pessimist": "This approach fails WHEN an organization lacks sufficient specialized AI talent, operates under tight budget constraints, requires rapid deployment, and where AI features are not central to its core competitive differentiation because it leads to prohibitively high development costs, prolonged time-to-market, suboptimal performance, and a diversion of resources from core business activities, making it unsustainable and inefficient compared to leveraging existing third-party solutions.",
+      "devil": "The decision hinges on the strategic criticality and proprietary nature of the AI feature to the company's core competitive advantage."
     }
   },
   "scores": [
@@ -1715,6 +1725,40 @@
       },
       "focus_dims": {
         "claim_specificity": 4,
+        "practical_utility": 4
+      }
+    },
+    {
+      "question_id": 104,
+      "question_type": "context_dependent",
+      "system": "full_system",
+      "scores": {
+        "perspective_diversity": 2,
+        "analytical_depth": 1,
+        "claim_specificity": 1,
+        "honest_uncertainty": 3,
+        "practical_utility": 1,
+        "total": 1.6
+      },
+      "focus_dims": {
+        "claim_specificity": 1,
+        "practical_utility": 1
+      }
+    },
+    {
+      "question_id": 104,
+      "question_type": "context_dependent",
+      "system": "adaptive_prohibition",
+      "scores": {
+        "perspective_diversity": 3,
+        "analytical_depth": 3,
+        "claim_specificity": 2,
+        "honest_uncertainty": 4,
+        "practical_utility": 4,
+        "total": 3.2
+      },
+      "focus_dims": {
+        "claim_specificity": 2,
         "practical_utility": 4
       }
     }

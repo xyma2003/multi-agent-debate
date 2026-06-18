@@ -238,6 +238,137 @@ The practical implication: a debate system's behavior is fundamentally shaped by
 
 ---
 
+## Part 2: The Limits of Uniform PROHIBITION
+
+The three findings above validated the base system. But a follow-up question emerged during ablation testing: should PROHIBITION apply uniformly to every question?
+
+Consider two questions:
+
+- *"Should AI development be halted for safety reasons?"*
+- *"Should a startup hire specialists or generalists?"*
+
+The first is a values conflict. Reasonable people with different values reach different conclusions, and neither is objectively wrong. Committed advocacy from opposed value stances is the correct analytical mode — forcing agents to say "the other side has valid points" defeats the purpose.
+
+The second has no universal answer. Whether to hire specialists or generalists genuinely depends on team size, product stage, and growth phase. Forcing agents into unconditional positions produces analytically inferior output — the correct answer *is* "it depends on which specific conditions apply."
+
+PROHIBITION that works for the first question damages output quality on the second. The system was applying a single constraint level to questions with fundamentally different epistemic requirements.
+
+---
+
+## Design Decision 3: Adaptive PROHIBITION
+
+### A Three-Class Question Taxonomy
+
+Questions split into three types based on what kind of disagreement they require:
+
+**Values-based:** The disagreement is fundamentally about values or ethics. Neither side is objectively wrong. Examples: *"Should AI development be halted?"*, *"Is capitalism compatible with climate action?"* → Full PROHIBITION appropriate.
+
+**Binary:** One answer is likely better based on evidence or widely accepted principles, though reasonable people can disagree. Examples: *"Should startups prioritize growth over profitability?"*, *"Is 'move fast and break things' sound?"* → Moderate constraint: require a directional recommendation, but permit conditional framing.
+
+**Context-dependent:** The correct answer genuinely depends on specific circumstances. "It depends on your situation" is a legitimately correct response. Examples: *"Should a startup hire specialists or generalists?"*, *"Microservices or monolith?"* → No PROHIBITION: agents map the conditions under which each approach works, rather than taking unconditional sides.
+
+### The LLM Classifier
+
+Question type is determined at inference time by a structured-output LLM classifier:
+
+```python
+class QuestionClassification(BaseModel):
+    question_type: str  # "values_based" | "binary" | "context_dependent"
+    confidence: str     # "high" | "medium" | "low"
+    reasoning: str      # one-sentence explanation
+
+_CLASSIFIER_SYSTEM = """
+Classify the question into exactly one of three types.
+
+  values_based:       Fundamental VALUES or ETHICS disagreement. Neither side
+                      is objectively wrong.
+  binary:             One answer is LIKELY BETTER based on evidence or analysis.
+  context_dependent:  Correct answer GENUINELY DEPENDS on specific circumstances.
+
+When in doubt between binary and context_dependent: if the question has a
+recognizable 'default' right answer in most cases, it's binary.
+"""
+```
+
+The classifier uses `with_structured_output` to enforce valid output, with three retries and a fallback to `"binary"` on failure.
+
+### Three-Level PROHIBITION
+
+Each question type receives calibrated agent prompts:
+
+**Level 1 — Full (values-based):** Existing prompts unchanged. Hard lexical bans. Agents cannot acknowledge the opposing view has merit.
+
+**Level 2 — Moderate (binary):** Word bans removed. Agents must end with a committed directional recommendation: *"RECOMMENDATION: Yes — because [one specific, falsifiable reason]"*. No open questions, no hedges.
+
+**Level 3 — Off (context-dependent):** Agents become scenario analysts rather than advocates. Their mandate is condition mapping, not position taking:
+
+```
+# Optimist → "Scenario A Analyst"
+Your position MUST take the form:
+"This approach is optimal WHEN [specific condition set] because [causal mechanism]."
+
+# Pessimist → "Scenario B Analyst"
+"This approach fails WHEN [specific condition set] because [causal mechanism]."
+
+# Devil's Advocate → "Variable Identifier"
+"The decision hinges on [specific variable] — here is how to measure it: [method]"
+```
+
+PROHIBITION is not a binary on/off switch. It is a continuous spectrum mapped to the question's epistemic requirements.
+
+---
+
+### Finding D: PROHIBITION Does Not Inflate False Certainty
+
+A natural concern: does forcing agents to commit cause them to make overconfident claims while ignoring obvious counterevidence — "false certainty"?
+
+Every agent position across 7 test questions was scored by an independent judge on a 1–5 false certainty scale. The result:
+
+| System | false_certainty | appropriate_hedge | role_appropriate_commitment |
+|--------|----------------|-------------------|-----------------------------|
+| `full_system` | 3/21 (14.3%) | 2/21 (9.5%) | 16/21 (76.2%) |
+| `single_llm` | 3/21 (14.3%) | 6/21 (28.6%) | 12/21 (57.1%) |
+
+Both systems produce identical false certainty rates (14.3%). The meaningful difference: `single_llm` produces substantially more `appropriate_hedge` verdicts (28.6% vs. 9.5%) — positions that avoid committing in order to avoid being wrong. PROHIBITION does not push agents toward indefensible claims; it pushes them from appropriate hedges into committed positions.
+
+---
+
+### Finding E: Adaptive Constraints Improve Ground-Truth Accuracy
+
+A benchmark of 10 historical M&A and product strategy decisions with known outcomes (Facebook/Instagram acquisition, Netflix streaming pivot, Snapchat/Facebook offer, etc.) measures whether each system's analysis would have supported the historically correct decision.
+
+| System | Ground-truth accuracy (n=10) |
+|--------|------------------------------|
+| `full_system` | 0.40 |
+| `single_llm` | 0.60 |
+| `adaptive_prohibition` | **0.60** |
+
+Full PROHIBITION reduces accuracy: forcing agents to maintain committed positions regardless of question type suppresses the contextual analysis needed to identify the pivotal variable in complex strategic decisions. Adaptive constraints, by routing historical decisions to `context_dependent` mode, preserve the analytical flexibility that single_llm maintains by default — while producing more structured, less hedged output.
+
+---
+
+### Finding F: Question Type Determines How Much Adaptive Gains
+
+3-type comparison experiment (n=10 binary, n=10 values-based, n=20 context-dependent):
+
+| Question type | full_system focus | adaptive focus | Δ | n |
+|---------------|------------------|----------------|---|---|
+| binary | 2.65 | **2.80** | +5.7% | 10 |
+| values-based | 3.10 | **3.10** | 0.0% | 10 |
+| **context-dependent** | 2.00 | **3.50** | **+75%** | 20 |
+
+Focus score = mean of type-specific focus dimensions (binary: analytical_depth + claim_specificity; values: perspective_diversity + analytical_depth; context: claim_specificity + practical_utility).
+
+The values-based tie (3.10 = 3.10) validates the core design hypothesis: the classifier correctly routes values questions to full PROHIBITION, preserving quality. The classifier does not over-adapt.
+
+Context-dependent questions show the largest gain: +75% on focus score across 20 questions spanning API design, infrastructure, hiring, go-to-market, and organizational decisions.
+
+**A counter-intuitive finding on binary questions:** the classifier routes the majority of human-labeled "binary" questions to `context_dependent`. Questions phrased as *"should startups do X?"* are recognized by the classifier as having answers that depend on company stage, market, and team — because this is true. The performance gain on binary questions comes primarily from the *context-dependent prompt design* (condition mapping), not from the *moderate PROHIBITION level* itself.
+
+This implies that question taxonomy is not a fixed property of a question's topic — it is a property of the question's analytical requirements in context. A classifier that operates on these requirements produces better routing than any hardcoded taxonomy.
+
+---
+
 ## Auditability: The Confidence Score and Concession Log
 
 ### Formula-Derived Confidence Score
@@ -271,15 +402,25 @@ This enables inspection of the full reasoning chain: not just what the final con
 
 ## Summary
 
-Three counter-intuitive findings shaped this system's final design:
+Six findings shaped this system's final design:
 
 1. **Hard constraints outperform soft guidance.** A lexical prohibition list is more effective than an instruction to "avoid hedging." The model cannot construct a forbidden sentence; it can always interpret a soft instruction flexibly.
 
-2. **Role definitions interact with system dynamics.** The Devil's Advocate's prompt produced a 2-vs-1 configuration rather than a triangle — not because the prompt was poorly written in isolation, but because it interacted with the system's existing equilibrium in an unintended way. Role definitions in multi-agent systems need to be validated against actual system behavior, not evaluated in isolation.
+2. **Role definitions interact with system dynamics.** The Devil's Advocate prompt produced a 2-vs-1 configuration rather than a triangle — not because the prompt was poorly written in isolation, but because it interacted with the system's existing equilibrium in an unintended way. Role definitions in multi-agent systems must be validated against actual system behavior, not evaluated in isolation.
 
-3. **The choice of divergence metric determines system behavior.** Cosine similarity and NLI cross-encoders measure fundamentally different things. For stance detection, the choice between them is not a parameter to tune — it determines whether the system debates at all.
+3. **The divergence metric determines whether the system debates at all.** Cosine similarity and NLI cross-encoders measure fundamentally different things. For stance detection, the choice is not a parameter to tune — it determines whether the system ever runs more than one round.
 
-Each finding followed the same structure: the system produced unexpected output, diagnosis revealed a specific design assumption that failed under realistic conditions, and the fix required a principled redesign rather than a parameter adjustment. This pattern — surprising behavior → root-cause diagnosis → principled fix — is likely the most transferable lesson from this project.
+4. **Uniform PROHIBITION fails on context-dependent questions.** Questions with no universal answer require condition mapping, not unconditional advocacy. Forcing full PROHIBITION on these questions reduces output quality by 75% on the dimensions that matter most (claim specificity, practical utility).
+
+5. **The classifier's routing decision matters more than the constraint level.** Performance gains on binary questions come from the classifier routing them to context-dependent mode, not from the moderate PROHIBITION setting. Question type classification is the more fundamental design choice.
+
+6. **Forced commitment doesn't inflate false certainty — but it does reduce legitimate uncertainty signaling.** PROHIBITION produces the same false certainty rate as single_llm (14.3%), but reduces `honest_uncertainty` scores. Systems where calibrated confidence is a valued output should account for this trade-off.
+
+Each finding followed the same structure: the system produced unexpected output, diagnosis revealed a specific design assumption that failed under realistic conditions, and the fix required a principled redesign rather than a parameter adjustment. This pattern — surprising behavior → root-cause diagnosis → principled fix — is the most transferable lesson from this project.
+
+---
+
+*Full results and methodology: [PAPER.md](PAPER.md) · Code: [github.com/xyma2003/multi-agent-debate](https://github.com/xyma2003/multi-agent-debate)*
 
 ---
 

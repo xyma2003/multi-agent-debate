@@ -239,7 +239,7 @@ See [`PAPER.md`](PAPER.md) for the full research writeup (*Adaptive PROHIBITION 
 
 ```bash
 # Requires VPN if using Groq backend
-cd debate-agent
+cd multi-agent-debate
 
 # Run all variants (n=10 each, 2-min delay between questions for rate limits)
 python benchmark/run_experiment.py --variants full_system single_llm --limit 10 --delay 5
@@ -282,22 +282,6 @@ python -m pytest tests/ -v
 | Divergence (NLI) | sentence-transformers + cross-encoder/nli-deberta-v3-small | 5.4.1 |
 | Persistence | SQLite (stdlib) | — |
 | UI | Streamlit | 1.56.0 |
-
----
-
-## Publishing to GitHub
-
-```bash
-# 1. Create a new repo on github.com (do NOT initialize with README)
-
-# 2. Add remote and push
-git remote add origin https://github.com/xyma2003/multi-agent-debate.git
-git branch -M main
-git push -u origin main
-```
-
-> Make sure `.env` is in `.gitignore` (it is by default) — never commit API keys.
-
 ---
 
 ## Resume

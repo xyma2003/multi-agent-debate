@@ -43,6 +43,13 @@ debates.db
 .coverage
 htmlcov/
 
+# Internal GSD workflow / personal docs (not portfolio content)
+.planning/
+CLAUDE.md
+INTERVIEW_PREP.md
+INTERVIEW_QA.md
+PROJECT_DEEP_DIVE.md
+
 # Model cache (sentence-transformers downloads here)
 # Uncomment to exclude if you don't want to commit cached models
 # ~/.cache/huggingface/

@@ -11,10 +11,13 @@ Requires env vars:
 """
 import uuid
 
+import pytest
+
 from debate.graph import graph
 from debate.state import AgentArgument
 
 
+@pytest.mark.integration
 def test_phase1_returns_three_agent_arguments():
     """Invoke the graph with a topic and assert 3 AgentArguments are returned."""
     topic = "Is remote work more productive than office work?"
@@ -51,6 +54,7 @@ def test_phase1_returns_three_agent_arguments():
         )
 
 
+@pytest.mark.integration
 def test_persona_compliance():
     """Soft check: warn if agents are producing hedged, balanced responses (persona drift).
 

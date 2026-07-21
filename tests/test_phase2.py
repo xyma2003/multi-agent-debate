@@ -95,7 +95,8 @@ def test_roundrecord_has_divergence_score():
 # DEBATE-05 / DEBATE-06: Rebuttal loop (Plan 02)
 # ---------------------------------------------------------------------------
 
-def test_rebuttal_loop_fires_on_divergence():
+@pytest.mark.integration
+):
     """Graph invokes agent nodes a 2nd time when divergence > threshold.
 
     Uses max_rounds=3 and a genuinely controversial topic. Asserts that
@@ -121,7 +122,8 @@ def test_rebuttal_loop_fires_on_divergence():
     assert result.get("status") in ("converged", "max_rounds"), f"Unexpected status: {result.get('status')}"
 
 
-def test_loop_terminates_at_max_rounds():
+@pytest.mark.integration
+):
     """Graph routes to synthesize_stub after max_rounds=1 regardless of divergence.
 
     This is the fast termination guard test. With max_rounds=1, after the first
@@ -201,13 +203,8 @@ import os
 import uuid as _uuid
 
 
-def _live_skip():
-    """Skip helper for tests that require a live LLM."""
-    if not os.environ.get("ANTHROPIC_AUTH_TOKEN") and not os.environ.get("ANTHROPIC_API_KEY"):
-        pytest.skip("No ANTHROPIC credentials — skipping live LLM integration test")
-
-
-def test_full_graph_terminates_cleanly():
+@pytest.mark.integration
+):
     """Full graph.invoke with max_rounds=1 terminates without error.
 
     max_rounds=1 means route_divergence will see round_num=1 >= max_rounds=1
@@ -216,7 +213,6 @@ def test_full_graph_terminates_cleanly():
     This is the smoke test for the assembled Phase 2 system.
     Does NOT require high divergence — any topic works.
     """
-    _live_skip()
     from debate.graph import graph
 
     config = {
@@ -233,13 +229,13 @@ def test_full_graph_terminates_cleanly():
         "round_history is empty — no rounds completed"
 
 
-def test_round_history_length_matches_round_num():
+@pytest.mark.integration
+):
     """After graph completes, len(round_history) == round_num.
 
     collect_round1 increments round_num AND appends to round_history.
     They must stay in sync.
     """
-    _live_skip()
     from debate.graph import graph
 
     config = {
@@ -257,9 +253,9 @@ def test_round_history_length_matches_round_num():
     )
 
 
-def test_each_round_has_three_arguments():
+@pytest.mark.integration
+):
     """Every RoundRecord in round_history contains exactly 3 AgentArguments."""
-    _live_skip()
     from debate.graph import graph
 
     config = {
@@ -277,14 +273,14 @@ def test_each_round_has_three_arguments():
         )
 
 
-def test_concession_fields_are_valid_if_present():
+@pytest.mark.integration
+):
     """Any concession in any argument has non-empty triggered_by_claim and triggered_by_agent.
 
     This validates DEBATE-07 schema integrity. Concessions may be empty
     in round 1 (agents haven't seen each other yet) — that is correct behavior.
     In rebuttal rounds they may or may not appear depending on LLM judgment.
     """
-    _live_skip()
     from debate.graph import graph
 
     config = {
@@ -313,7 +309,8 @@ def test_concession_fields_are_valid_if_present():
                 )
 
 
-def test_recursion_limit_is_sufficient():
+@pytest.mark.integration
+):
     """Graph with max_rounds=3 completes within recursion_limit=30.
 
     LangGraph counts each node execution as one step. For 3 rounds:
@@ -322,7 +319,6 @@ def test_recursion_limit_is_sufficient():
 
     If this test fails with GraphRecursionError, the recursion_limit must be raised.
     """
-    _live_skip()
     from debate.graph import graph
 
     config = {

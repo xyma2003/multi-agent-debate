@@ -163,7 +163,7 @@ initialize ──► [Optimist | Pessimist | Devil's Advocate]  (Round 1, parall
 ## Project Structure
 
 ```
-debate-agent/
+multi-agent-debate/
 ├── app.py                    # Streamlit UI — single-file app
 ├── requirements.txt          # Pinned dependencies
 ├── .env.example              # API credential template

@@ -68,9 +68,8 @@ def route_divergence(state: DebateState):
     Returns list[Send] to fan out rebuttal agents OR 'synthesize_stub' to terminate.
 
     Four-guard adaptive convergence (evaluated in order):
-      Guard 1 — absolute safety cap (ABSOLUTE_MAX_ROUNDS). Prevents infinite loops
-                regardless of all other signals. max_rounds from invoke() is ignored
-                here; use it as a per-invocation override via graph.invoke.
+      Guard 1 — rounds cap: honor max_rounds from invoke() first, then absolute
+                safety cap (ABSOLUTE_MAX_ROUNDS). Prevents infinite loops.
       Guard 2 — genuine convergence: score dropped below DIVERGE_THRESHOLD.
       Guard 3 — score plateau: score changed less than PLATEAU_DELTA for the last
                 two rounds. Agents are stuck — more rounds won't help.
@@ -81,12 +80,13 @@ def route_divergence(state: DebateState):
     (Pitfall: registering returns list[Send] as state update → InvalidUpdateError)
     """
     round_num = state.get("round_num", 0)
+    max_rounds = state.get("max_rounds", ABSOLUTE_MAX_ROUNDS)
     divergence_score = state.get("divergence_score", 0.0)
     topic = state.get("topic", "")
     round_history = state.get("round_history", [])
 
-    # Guard 1: absolute safety cap — always check first
-    if round_num >= ABSOLUTE_MAX_ROUNDS:
+    # Guard 1: honor user-supplied max_rounds first, then absolute safety cap
+    if round_num >= max_rounds or round_num >= ABSOLUTE_MAX_ROUNDS:
         return "synthesize_stub"
 
     # Guard 2: genuine convergence — score dropped below threshold

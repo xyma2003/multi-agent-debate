@@ -116,6 +116,7 @@ def _determine_convergence_status(
     divergence_score: float,
     round_num: int,
     round_history: list,
+    max_rounds: int = ABSOLUTE_MAX_ROUNDS,
 ) -> str:
     """Classify how the debate loop terminated.
 
@@ -124,8 +125,8 @@ def _determine_convergence_status(
 
     "partial" is a defensive fallback for unexpected states.
     """
-    # Guard 1: absolute safety cap
-    if round_num >= ABSOLUTE_MAX_ROUNDS:
+    # Guard 1: honor user-supplied max_rounds first, then absolute safety cap
+    if round_num >= max_rounds or round_num >= ABSOLUTE_MAX_ROUNDS:
         return "max_rounds"
     # Guard 2: genuine convergence
     if divergence_score < DIVERGE_THRESHOLD:
@@ -273,7 +274,7 @@ def synthesize_stub(state: DebateState) -> dict:
 
     # Step 1: convergence status
     convergence_status = _determine_convergence_status(
-        divergence_score, round_num, round_history
+        divergence_score, round_num, round_history, max_rounds
     )
 
     # Step 2: compact context

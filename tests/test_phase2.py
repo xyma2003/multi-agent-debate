@@ -96,7 +96,7 @@ def test_roundrecord_has_divergence_score():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.integration
-):
+def test_rebuttal_loop_fires_on_divergence():
     """Graph invokes agent nodes a 2nd time when divergence > threshold.
 
     Uses max_rounds=3 and a genuinely controversial topic. Asserts that
@@ -123,7 +123,7 @@ def test_roundrecord_has_divergence_score():
 
 
 @pytest.mark.integration
-):
+def test_fast_termination_at_max_rounds_1():
     """Graph routes to synthesize_stub after max_rounds=1 regardless of divergence.
 
     This is the fast termination guard test. With max_rounds=1, after the first
@@ -204,7 +204,7 @@ import uuid as _uuid
 
 
 @pytest.mark.integration
-):
+def test_phase2_smoke_max_rounds_1():
     """Full graph.invoke with max_rounds=1 terminates without error.
 
     max_rounds=1 means route_divergence will see round_num=1 >= max_rounds=1
@@ -230,7 +230,7 @@ import uuid as _uuid
 
 
 @pytest.mark.integration
-):
+def test_round_history_length_matches_round_num():
     """After graph completes, len(round_history) == round_num.
 
     collect_round1 increments round_num AND appends to round_history.
@@ -254,7 +254,7 @@ import uuid as _uuid
 
 
 @pytest.mark.integration
-):
+def test_round_history_arguments_count():
     """Every RoundRecord in round_history contains exactly 3 AgentArguments."""
     from debate.graph import graph
 
@@ -274,7 +274,7 @@ import uuid as _uuid
 
 
 @pytest.mark.integration
-):
+def test_concession_schema_integrity():
     """Any concession in any argument has non-empty triggered_by_claim and triggered_by_agent.
 
     This validates DEBATE-07 schema integrity. Concessions may be empty
@@ -310,7 +310,7 @@ import uuid as _uuid
 
 
 @pytest.mark.integration
-):
+def test_recursion_limit_sufficient_for_3_rounds():
     """Graph with max_rounds=3 completes within recursion_limit=30.
 
     LangGraph counts each node execution as one step. For 3 rounds:

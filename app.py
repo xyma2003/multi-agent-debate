@@ -9,7 +9,7 @@ State machine: idle -> running -> complete | error
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # load .env so OPENAI_API_KEY / ANTHROPIC_API_KEY etc. are available
+load_dotenv(override=True)  # load .env, overriding any stale shell vars (e.g. a different OPENAI_API_KEY)
 import uuid
 
 import streamlit as st

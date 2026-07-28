@@ -34,7 +34,10 @@ Final Report:
 ## Prerequisites
 
 - **Python 3.10+**
-- **Anthropic API access** — either a direct API key or a proxy (see below)
+- **An LLM API key** — pick one backend:
+  - SiliconFlow (domestic, free credits, recommended for China) — https://cloud.siliconflow.cn/
+  - Anthropic (direct API key or corporate proxy)
+  - Groq / OpenAI / Cerebras / Together / SambaNova (see `.env.example`)
 
 ---
 
@@ -76,14 +79,26 @@ Copy the example env file and fill in your credentials:
 cp .env.example .env
 ```
 
-**Option A — Direct Anthropic API key (standard):**
+**Option A — SiliconFlow / OpenAI-compatible (domestic, recommended for China):**
+
+```bash
+# .env
+LLM_BACKEND=openai
+OPENAI_API_KEY=sk-...                    # SiliconFlow key
+OPENAI_API_BASE=https://api.siliconflow.cn/v1
+OPENAI_MODEL=Qwen/Qwen3-32B             # or deepseek-ai/DeepSeek-V3
+```
+
+Get a free SiliconFlow key at https://cloud.siliconflow.cn/ (free credits on signup).
+
+**Option B — Direct Anthropic API key (overseas):**
 
 ```bash
 # .env
 ANTHROPIC_API_KEY=sk-ant-api03-...
 ```
 
-**Option B — Internal proxy (e.g. corporate proxy):**
+**Option C — Internal proxy (e.g. corporate proxy):**
 
 ```bash
 # .env
@@ -92,17 +107,7 @@ ANTHROPIC_AUTH_TOKEN=your-auth-token
 ANTHROPIC_CUSTOM_HEADERS=X-Custom-Header: value
 ```
 
-> The app auto-detects which auth method to use based on which env vars are set. No code changes needed.
-
-Then load the env file:
-
-```bash
-# macOS/Linux — add to your shell or run before streamlit:
-export $(grep -v '^#' .env | xargs)
-
-# Or use python-dotenv (already loaded by the app if .env exists):
-pip install python-dotenv   # one-time, optional
-```
+> The app auto-loads `.env` via `python-dotenv` (with `override=True`, so `.env` wins over stale shell vars). No manual `export` needed — just `streamlit run app.py`.
 
 ### 5. Run
 

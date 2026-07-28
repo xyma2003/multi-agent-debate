@@ -1,14 +1,7 @@
+# Disable file watcher to suppress noisy torchvision warnings during startup.
+# Streamlit's local_sources_watcher scans all installed modules (including
+# transformers' image_processing_*) which raises ModuleNotFoundError for
+# torchvision — harmless noise since this project uses text embeddings only.
+# Trade-off: editing app.py won't trigger auto-reload. Restart manually.
 [server]
-port = 8501
-headless = true
-runOnSave = false
-
-[browser]
-gatherUsageStats = false
-
-[theme]
-base = "light"
-primaryColor = "#1f77b4"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f0f2f6"
-textColor = "#262730"
+fileWatcherType = "none"

@@ -7,4 +7,5 @@ langgraph-checkpoint-sqlite==3.0.3
 sentence-transformers==5.4.1
 streamlit==1.56.0
 numpy>=1.26.0
+python-dotenv>=1.0.0
 pytest>=8.0.0

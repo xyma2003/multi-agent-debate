@@ -7,6 +7,9 @@ Stream pattern: graph.stream(stream_mode="updates") — synchronous only.
 State machine: idle -> running -> complete | error
 """
 import os
+from dotenv import load_dotenv
+
+load_dotenv()  # load .env so OPENAI_API_KEY / ANTHROPIC_API_KEY etc. are available
 import uuid
 
 import streamlit as st
@@ -35,17 +38,19 @@ if "debate_status" not in st.session_state:
 
 # ---------------------------------------------------------------------------
 # API key guard (fail loudly on fresh run with no key — UI-04)
-# Supports both direct API key and internal proxy (ANTHROPIC_AUTH_TOKEN)
+# Supports direct API key, internal proxy, and SiliconFlow/OpenAI-compatible.
 # ---------------------------------------------------------------------------
 _has_api_key = bool(
     os.environ.get("ANTHROPIC_API_KEY")
     or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+    or os.environ.get("OPENAI_API_KEY")  # SiliconFlow / OpenAI-compatible
 )
 if not _has_api_key:
     st.warning(
         "⚠️ No API credentials found. Set one of:\n\n"
         "- `ANTHROPIC_API_KEY=sk-ant-...` (direct Anthropic API)\n"
-        "- `ANTHROPIC_AUTH_TOKEN=...` + `ANTHROPIC_BASE_URL=...` (internal proxy)\n\n"
+        "- `ANTHROPIC_AUTH_TOKEN=...` + `ANTHROPIC_BASE_URL=...` (internal proxy)\n"
+        "- `OPENAI_API_KEY=sk-...` + `OPENAI_API_BASE=...` + `LLM_BACKEND=openai` (SiliconFlow / OpenAI-compatible)\n\n"
         "See README.md for setup instructions."
     )
     st.stop()

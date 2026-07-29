@@ -286,8 +286,8 @@ python -m pytest tests/ -v
 | Component | Library | Version |
 |-----------|---------|---------|
 | Agent orchestration | LangGraph | 1.1.9 |
-| LLM (default) | Groq `llama-3.3-70b-versatile` via `LLM_BACKEND=groq` | — |
-| LLM (alt) | Claude / OpenAI via `LLM_BACKEND=anthropic\|openai` | — |
+| LLM (default) | SiliconFlow `Qwen/Qwen3-32B` via `LLM_BACKEND=openai` (国内直连) | — |
+| LLM (alt) | Groq / Claude / Cerebras / Together / SambaNova via `LLM_BACKEND=*` | — |
 | Structured outputs | Pydantic | 2.x |
 | Divergence (cosine) | sentence-transformers + bge-small-en-v1.5 | 5.4.1 |
 | Divergence (NLI) | sentence-transformers + cross-encoder/nli-deberta-v3-small | 5.4.1 |

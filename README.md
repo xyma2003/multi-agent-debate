@@ -170,6 +170,7 @@ initialize ──► [Optimist | Pessimist | Devil's Advocate]  (Round 1, parall
 ```
 multi-agent-debate/
 ├── app.py                    # Streamlit UI — single-file app
+├── conftest.py               # Pytest config + backend-aware skip markers
 ├── requirements.txt          # Pinned dependencies
 ├── .env.example              # API credential template
 ├── debates.db                # Auto-created SQLite DB on first run
@@ -178,8 +179,10 @@ multi-agent-debate/
 │   ├── state.py              # DebateState TypedDict + all Pydantic models
 │   ├── store.py              # SQLite save / load / list API
 │   ├── divergence.py         # compute_divergence() with sentence-transformers
+│   ├── classify.py           # NLI cross-encoder stance classification
 │   ├── llm.py                # Auth-aware ChatAnthropic factory + retry wrapper
 │   ├── prompts.py            # Methodology-based system prompts (PROHIBITION blocks)
+│   ├── prompts_adaptive.py   # Adaptive PROHIBITION variants (ablation study)
 │   └── nodes/
 │       ├── initialize.py     # Sets debate_id, round_num=0
 │       ├── agents.py         # optimist_node, pessimist_node, devil_node
@@ -202,12 +205,15 @@ multi-agent-debate/
 ├── analysis/
 │   ├── analysis.ipynb        # 7-section analysis notebook
 │   └── fig_*.png             # Experiment figures
-└── tests/
-    ├── test_phase1.py        # Graph foundation + smoke test
-    ├── test_phase2.py        # Debate loop + divergence detection
-    ├── test_phase3.py        # Synthesis + confidence formula
-    ├── test_phase4.py        # SQLite persistence + replay
-    └── test_phase5.py        # UI tests
+├── tests/                    # 5-phase test suite
+│   ├── test_phase1.py        # Graph foundation + smoke test
+│   ├── test_phase2.py        # Debate loop + divergence detection
+│   ├── test_phase3.py        # Synthesis + confidence formula
+│   ├── test_phase4.py        # SQLite persistence + replay
+│   └── test_phase5.py        # UI tests
+├── PAPER.md                  # Research writeup (Adaptive PROHIBITION, arXiv format)
+├── BLOG_EN.md                # English blog post
+└── BLOG_ZH.md                # Chinese blog post
 ```
 
 ---

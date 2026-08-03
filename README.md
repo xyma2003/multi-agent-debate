@@ -281,6 +281,36 @@ python -m pytest tests/ -v
 
 ---
 
+## Observability (LangSmith)
+
+This project supports [LangSmith](https://smith.langchain.com) tracing for debugging
+and monitoring agent execution. When enabled, every node (initialize → 3 parallel
+agents → divergence check → synthesize → save) and every LLM call is captured as a
+trace in the LangSmith dashboard, showing:
+
+- Per-node latency (which step is slow)
+- Full LLM input/output (prompt sent, response received)
+- Token consumption and cost per call
+- Error traces when a node fails
+
+### Setup
+
+1. Create a free account at [smith.langchain.com](https://smith.langchain.com)
+2. Add these to `.env`:
+
+```bash
+LANGCHAIN_TRACING_V2=true
+LANGCHAIN_API_KEY=ls-...                    # from LangSmith dashboard
+LANGCHAIN_PROJECT=multi-agent-debate        # project name in dashboard
+```
+
+3. Run as usual — traces appear in real-time on the LangSmith dashboard.
+
+> No code changes required. LangGraph nodes and LangChain chat models
+> automatically report to LangSmith when these env vars are set.
+
+---
+
 ## Tech Stack
 
 | Component | Library | Version |

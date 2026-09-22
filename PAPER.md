@@ -4,11 +4,17 @@
 Independent Researcher  
 u3594619@connect.hku.hk
 
+> **Evidence status.** This is an exploratory engineering report, not a peer-reviewed
+> paper. The experiments use small, mostly single-run samples and, where noted, a
+> single LLM judge. Results should be read as design observations rather than
+> generalizable causal claims. Raw-data validation rules are documented in
+> [`results/README.md`](results/README.md).
+
 ---
 
 ## Abstract
 
-Multi-agent debate systems offer a structural mechanism to counteract sycophancy in large language models (LLMs)—the tendency to produce hedged, non-committal analysis rather than taking committed positions. Existing approaches apply uniform debate constraints across all question types, ignoring that different questions call for fundamentally different forms of disagreement. We introduce **Adaptive PROHIBITION**, a framework that classifies questions into three types—*values-based*, *binary*, and *context-dependent*—and applies calibrated constraint levels accordingly. Built on a LangGraph state machine with NLI-based divergence detection and attribution-aware concession tracking, the system uses hard lexical constraints (PROHIBITION blocks) to force genuine position commitment in agent prompts. Experiments across three question taxonomies (n=10 per type for binary and values-based; n=20 for context-dependent) show that adaptive constraints match full constraints on values-based questions (focus score: 3.10 vs. 3.10) while improving performance on binary questions (+5.7% focus score) and producing the largest gain on context-dependent questions (+75% focus score, 2.00 → 3.50). Adaptive constraints also improve ground-truth decision accuracy from 40% to 60% on a historical M&A evaluation benchmark. We additionally identify a calibration cost: PROHIBITION reduces the `honest_uncertainty` dimension, suggesting a commitment–calibration trade-off that practitioners should account for.
+Multi-agent debate systems may help elicit distinct analytical positions from large language models (LLMs), but fixed anti-hedging constraints can also suppress legitimate uncertainty. We introduce **Adaptive PROHIBITION**, a framework that classifies questions as *values-based*, *binary*, or *context-dependent* and selects a corresponding prompt constraint level. The implementation combines a LangGraph state machine, NLI-based contradiction detection, and attribution-aware concession tracking. In matched, validation-clean subsets, adaptive prompts produced higher mean focus scores on binary questions (3.125 vs. 2.750, n=8 per system) and context-dependent questions (3.719 vs. 2.000, n=16), while tying on values-based questions (3.333, n=9). A separate 10-case historical exercise found partial-or-better key-factor mention rates of 60% for adaptive and single-LLM outputs versus 40% for the fixed system; no response clearly identified a key factor under the rubric's highest score. These small, LLM-judged samples motivate design hypotheses but do not establish generalizable performance gains.
 
 ---
 
@@ -30,7 +36,7 @@ This paper makes three contributions:
 
 1. **A three-class question taxonomy** (values-based, binary, context-dependent) that captures meaningfully different requirements for debate constraint level.
 2. **Adaptive PROHIBITION**, an LLM-based classifier that routes questions to calibrated constraint levels at inference time, without requiring pre-labeled training data.
-3. **Empirical evaluation** showing that adaptive constraints preserve full-PROHIBITION quality on values-based questions while improving performance on the other two types, with an identified commitment–calibration trade-off.
+3. **Exploratory evaluation** of how adaptive constraints behave across the three question types, including validation failures and an observed commitment–calibration trade-off.
 
 ---
 
@@ -40,7 +46,7 @@ This paper makes three contributions:
 
 **Multi-agent debate.** Du et al. [2023] showed that having multiple LLM agents debate factual questions improves accuracy over single-pass generation. Liang et al. [2023] studied disagreement elicitation between agents to improve reasoning diversity. These works focus primarily on factual correctness; we focus on analytical quality and commitment on open-ended strategic questions, and introduce structural mechanisms (PROHIBITION constraints, NLI divergence detection) to prevent debate collapse.
 
-**Prompt constraint engineering.** Constitutional AI [Bai et al. 2022] uses a set of principles to guide model behavior through self-critique. Our PROHIBITION approach differs in that constraints are applied at the generation level (hard lexical bans) rather than through iterative self-evaluation, which proves more effective at enforcing committed positions under debate pressure.
+**Prompt constraint engineering.** Constitutional AI [Bai et al. 2022] uses a set of principles to guide model behavior through self-critique. Our PROHIBITION approach differs in that constraints are applied at the generation level (hard lexical bans) rather than through iterative self-evaluation; in the checked-in sample, this produced less hedged language.
 
 **NLI for semantic analysis.** He et al. [2021] introduced DeBERTa, which achieved state-of-the-art NLI performance and forms the backbone of our divergence detector. We apply NLI cross-encoders as a stance-detection primitive rather than a text-classification end task.
 
@@ -87,7 +93,7 @@ equivalent expression: "however", "but", "on the other hand", "it depends",
 Violating this constraint means your analysis has failed.
 ```
 
-This forces commitment at the expression level, not just the intention level. PROHIBITION reduces the hedge ratio (frequency of hedge markers per 100 tokens) by 28% compared to a single-LLM baseline (0.0093 vs. 0.0129).
+This forces commitment at the expression level, not just the intention level. In one 10-question sample, the multi-agent output's mean hedge ratio was 28% lower than the single-LLM baseline (0.0093 vs. 0.0129). This is a descriptive sample difference, not a causal estimate.
 
 The core design question—addressed in Section 4—is whether PROHIBITION should be applied uniformly or calibrated to question type.
 
@@ -114,30 +120,32 @@ Round 1 enforces **complete cognitive isolation**: each agent receives only the 
 
 The system needs to determine whether agents have genuinely converged—i.e., whether further debate rounds would produce new information. The naive approach is cosine similarity between agent claim embeddings: high similarity implies convergence.
 
-This approach fails categorically. In an initial benchmark run, 10 out of 10 questions triggered convergence after Round 1, with divergence scores uniformly between 0.097 and 0.258. The root cause is that cosine similarity measures **topical overlap**, not **stance opposition**. "Venture capital is an attractive financing vehicle" and "Venture capital is a dangerous financing vehicle" score as highly similar—they share the same topic vocabulary. But they express opposite positions.
+This approach failed in the checked-in initial benchmark: 10 out of 10 questions terminated after Round 1, with divergence scores between 0.097 and 0.258. A plausible mechanism is that cosine similarity measures **topical overlap**, not **stance opposition**. "Venture capital is an attractive financing vehicle" and "Venture capital is a dangerous financing vehicle" can score as highly similar because they share topic vocabulary while expressing opposite positions.
 
 We replace cosine similarity with an NLI cross-encoder (`cross-encoder/nli-deberta-v3-small`) that classifies claim pairs as Entailment, Neutral, or Contradiction:
 
 ```python
+from scipy.special import softmax
+
 def compute_nli_divergence(claims_a: list[str], claims_b: list[str]) -> float:
     pairs = [(a, b) for a in claims_a for b in claims_b]
-    scores = nli_model.predict(pairs)  # shape: (n_pairs, 3): [contradiction, entailment, neutral]
-    contradiction_probs = scores[:, 0]
-    return float(contradiction_probs.max())
+    logits = nli_model.predict(pairs)  # columns: contradiction, entailment, neutral
+    probabilities = softmax(logits, axis=1)
+    return max(row[0] for row in probabilities)
 ```
 
-After switching to NLI, Round 1 divergence scores ranged from 0.83 to 0.86—above the 0.50 threshold—enabling multi-round debates with genuine stance evolution. Mean rounds-to-convergence increased from 1.0 to 3.0; stance stability score (SSS) settled at 0.883, indicating agents maintained their core positions while making calibrated concessions.
+In the canonical seven-question NLI run, four questions reached multiple rounds, mean rounds-to-termination was 2.14, and mean stance stability was 0.977. One illustrative question reached three rounds with SSS 0.883. This supports the engineering choice to use contradiction detection, while remaining too small to establish a population-level effect.
 
 ### 3.5 Four-Guard Convergence Logic
 
 The routing function terminates debate under any of four conditions:
 
 ```python
-# Guard 1: Absolute safety cap (prevents infinite loops)
-if round_num >= 10: return "synthesize"
+# Guard 1: Caller cap, followed by the absolute safety cap
+if round_num >= max_rounds or round_num >= 10: return "synthesize"
 
-# Guard 2: Genuine convergence
-if divergence_score < 0.75: return "synthesize"
+# Guard 2: Detector-specific convergence
+if not diverged_pairs: return "synthesize"
 
 # Guard 3: Score plateau (agents repeating themselves)
 if len(history) >= 2:
@@ -197,7 +205,7 @@ recognizable 'default' right answer in most cases, it's binary.
 
 The classifier uses `with_structured_output` to enforce valid output schema, with three retry attempts and a fallback to `"binary"` on failure.
 
-A key empirical observation: the classifier routes many questions humans would label "binary" to `context_dependent`. Questions framed as *"should startups do X?"* typically have a correct answer that depends on stage, market, and team—and the classifier correctly identifies this. This routing behavior, rather than the moderate PROHIBITION level itself, accounts for a significant portion of adaptive's advantage on binary questions (discussed in Section 7.1).
+A key observation is that the classifier routes many questions humans labeled "binary" to `context_dependent`. Questions framed as *"should startups do X?"* often depend on stage, market, and team. In this sample, routing behavior is confounded with prompt-constraint level, so their separate contributions cannot be identified.
 
 ### 4.3 Three-Level PROHIBITION
 
@@ -240,7 +248,7 @@ This design treats PROHIBITION not as a binary on/off switch, but as a continuou
 
 ### 5.1 Setup
 
-**Models.** Debate agents use `llama-3.3-70b-versatile` via Groq API. Quality evaluation uses `Qwen3-32B` as an independent judge. For the ground-truth historical evaluation, position alignment is assessed against known historical outcomes.
+**Models.** The original base runs used `llama-3.3-70b-versatile` via Groq API, with `Qwen3-32B` used for several judge calls. Older files do not preserve complete model provenance; see `results/README.md`. Historical evaluation uses predefined factors derived from known outcomes, but the match is still scored by an LLM judge.
 
 **Rate-limit note.** The Groq free tier imposes a tokens-per-minute (TPM) limit that is exceeded when three agents generate simultaneously (~4,500 tokens/burst). Experiments run agents sequentially with 15-second delays between calls, preserving Round 1 cognitive isolation (no agent sees others' outputs before generating). This evaluates *Round 1 position quality* as a proxy for overall prompt design quality. Multi-round rebuttal dynamics are measured separately in the system variant comparison (E1).
 
@@ -264,14 +272,14 @@ Type-specific **focus dimensions** reflect what each question type should optimi
 
 **Datasets.**
 
-- *E1 (system variant comparison):* 10 business/technology/policy questions, run across 6 system variants.
-- *E2 (false certainty analysis):* Same 10 questions, full_system vs. single_llm, manually scored for false certainty (claiming certainty while ignoring obvious counterevidence).
-- *E3 (ground-truth accuracy):* 10 historical M&A and product strategy decisions with known outcomes (q51–q60: Facebook/Instagram, Twitter independence, Snapchat/Facebook, Netflix streaming pivot, etc.). Systems assessed on whether their analysis identified the historically correct key factor.
-- *E4 (3-type comparison):* binary (q71–q80, n=10), values-based (q31–q40, n=10), context-dependent (q1, q4, q5, q7–q9, q91–q104, n=20). Two systems: `full_system` vs. `adaptive_prohibition`.
+- *E1 (system variant comparison):* Three complete 10-question base runs plus a separate seven-question canonical NLI run. Additional variants are implemented but do not all have complete checked-in results.
+- *E2 (false certainty analysis):* Seven questions (21 positions per system), `full_system` vs. `single_llm`, categorized by one Qwen judge.
+- *E3 (historical key-factor mentions):* 10 historical M&A and product strategy decisions (q51–q60). A Qwen judge scored whether each analysis missed, partially mentioned, or clearly identified a predefined key factor.
+- *E4 (3-type comparison):* Raw sets contain binary n=10, values-based n=10, and context-dependent n=20 per system. Matched validation filtering leaves n=8, n=9, and n=16 respectively.
 
 ### 5.2 E1: System Variant Comparison
 
-Six system variants are compared to isolate the contribution of each design decision:
+The framework implements the following variants. Only variants with complete, interpretable checked-in outputs are used in headline comparisons:
 
 | Variant | What it tests |
 |---------|--------------|
@@ -286,17 +294,17 @@ Six system variants are compared to isolate the contribution of each design deci
 
 ### 5.3 E2: False Certainty Analysis
 
-For each system, every agent position is scored on a 1–5 false certainty scale: does the agent claim certainty while ignoring obvious counterevidence that any analyst in that role would recognize? Scored by the Qwen judge with explicit rubric.
+For each system, every agent position is categorized by a Qwen judge as false certainty, role-appropriate commitment, or appropriate hedging. This is a single-judge exploratory label, not a human annotation.
 
 ### 5.4 E3: Ground-Truth Historical Accuracy
 
-For 10 historical decisions, each system's output is evaluated on whether it identified the correct strategic factor (e.g., for Facebook/Instagram: whether it flagged mobile user acquisition as the key driver, which proved correct). Accuracy is the fraction of questions where the system's analysis would have supported the historically correct decision.
+For 10 historical decisions, a Qwen judge scores whether each output mentions a predefined strategic factor: 0 = missed, 1 = partial/tangential mention, 2 = clearly identified as critical. The reported rate is the fraction scoring at least 1; it is a key-factor mention rate, not decision accuracy.
 
 ### 5.5 E4: 3-Type Adaptive vs. Full
 
 The primary experiment. For each question in each type bucket, both `full_system` and `adaptive_prohibition` generate Round 1 positions. The Qwen judge scores both on all five dimensions. Comparisons use type-specific focus dimensions as the primary metric and overall total score as secondary.
 
-*Note:* Two questions (q79, q80) returned API validation errors for one system each. These are included with their valid scores; invalid entries are excluded from per-type averages (effective n=8 for two cells, noted in Table 3).
+*Validation note:* The raw file contains 23 sentinel positions across 11 system runs, affecting seven unique questions (q4, q5, q40, q79, q80, q102, q103). To keep comparisons paired, any affected question is excluded from both systems. Raw outputs and original judge scores remain checked in for auditability.
 
 ---
 
@@ -304,14 +312,14 @@ The primary experiment. For each question in each type bucket, both `full_system
 
 ### 6.1 System Variant Comparison (E1)
 
-**Finding A: PROHIBITION reduces hedging by 28%.**
+**Finding A: the checked-in sample shows a 28% lower mean hedge ratio.**
 
 | System | Hedge Ratio | Interpretation |
 |--------|------------|----------------|
 | `single_llm` | 0.0129 | Characteristic hedging — "both sides have merit" |
 | `full_system` | **0.0093** | Committed, non-hedged positions |
 
-The reduction is attributable to the PROHIBITION constraints, not the multi-agent structure: the `no_prohibition` variant produces hedge ratios comparable to `single_llm`.
+This is an observed difference across 10 questions per system. Because the checked-in repository does not contain a complete `no_prohibition` result file, it should not be interpreted as isolating a causal PROHIBITION effect.
 
 **Finding B: The Devil's Advocate prompt fix restores position diversity.**
 
@@ -330,36 +338,34 @@ This illustrates a general principle: **agent role definitions must be validated
 | System | Round 1 divergence range | Mean RTC | SSS |
 |--------|--------------------------|----------|-----|
 | `cosine_detection` | 0.097 – 0.258 | 1.0 | 1.000 |
-| `nli_detection` | **0.83 – 0.86** | **3.0** | **0.883** |
+| `nli_detection` (canonical n=7) | detector-specific | **2.14** | **0.977** |
 
-With cosine detection, 100% of debates terminated after Round 1—the system never ran a multi-round debate. SSS of 1.000 is trivially perfect when there is only one round. With NLI detection, debates ran for three rounds on average with measurable stance evolution (SSS = 0.883: agents maintained core positions while making calibrated concessions).
+With cosine detection, all 10 checked-in base debates terminated after Round 1. SSS of 1.000 is therefore trivial. In the seven-question canonical NLI run, four debates reached multiple rounds, mean rounds were 2.14, and mean SSS was 0.977; q1 is an illustrative three-round case with SSS 0.883.
 
 The practical implication: a debate system's behavior is fundamentally determined by its divergence metric. Cosine similarity and NLI cross-encoders are not interchangeable parameters—they determine whether the system debates at all.
 
 ### 6.2 False Certainty Analysis (E2)
 
-**Finding D: PROHIBITION does not inflate false certainty rates.**
+**Finding D: one Qwen judge assigned the same false-certainty rate to both samples.**
 
 | System | false_certainty | appropriate_hedge | role_appropriate_commitment |
 |--------|----------------|-------------------|-----------------------------|
 | `full_system` | 3 / 21 (14.3%) | 2 / 21 (9.5%) | 16 / 21 (76.2%) |
 | `single_llm` | 3 / 21 (14.3%) | 6 / 21 (28.6%) | 12 / 21 (57.1%) |
 
-Both systems produce the same false certainty rate (14.3%). The meaningful difference is that `single_llm` produces substantially more `appropriate_hedge` verdicts (28.6% vs. 9.5%)—that is, positions that avoid committing to avoid being wrong. PROHIBITION does not push agents toward making indefensible claims; it pushes them from appropriate hedges to committed positions.
+The judge assigned the same false-certainty rate (14.3%) to both samples and more `appropriate_hedge` labels to `single_llm` (28.6% vs. 9.5%). This suggests a hypothesis about commitment behavior, but one judge and 21 positions per system are insufficient to establish calibration safety.
 
-### 6.3 Ground-Truth Accuracy (E3)
+### 6.3 Historical Key-Factor Mentions (E3)
 
-**Finding E: Adaptive PROHIBITION matches single_llm accuracy and outperforms full_system.**
+**Finding E: adaptive and single-LLM outputs more often mentioned at least part of the predefined key factor.**
 
-| System | Ground-truth accuracy (n=10) |
+| System | Partial-or-better key-factor mention rate (n=10) |
 |--------|------------------------------|
 | `full_system` | 0.40 |
 | `single_llm` | 0.60 |
 | `adaptive_prohibition` | **0.60** |
 
-Full PROHIBITION reduces accuracy on historical decisions: forcing agents to maintain committed positions regardless of question type suppresses the contextual analysis needed to identify the key variable in complex strategic decisions. Adaptive constraints, by routing historical decisions to the `context_dependent` mode, preserve the analytical flexibility that single_llm maintains by default.
-
-This result is notable: adaptive PROHIBITION achieves the same accuracy as the single_llm baseline while producing substantially more committed, structured output (lower hedge ratio, higher PDS).
+No output received the rubric's highest score of 2 (clear identification); all counted successes were partial or tangential mentions scored 1. The 40%/60% pattern is therefore exploratory and LLM-judged, not evidence of decision accuracy.
 
 ### 6.4 3-Type Comparison (E4)
 
@@ -368,29 +374,20 @@ This result is notable: adaptive PROHIBITION achieves the same accuracy as the s
 
 | Question type | Metric | full_system | adaptive | Δ | n |
 |---------------|--------|-------------|----------|---|---|
-| **binary** | focus score | 2.65 | **2.80** | +5.7% | 10 |
-| | total score | 2.58 | **2.76** | +7.0% | 10 |
-| **values-based** | focus score | 3.10 | **3.10** | 0.0% | 10 |
-| | total score | 2.32 | 2.24 | −3.4% | 10 |
-| **context-dependent** | focus score | 2.00 | **3.50** | +75.0% | 20 |
-| | total score | 2.41 | **3.19** | +32.4% | 20 |
+| **binary** | focus score | 2.750 | **3.125** | +13.6% | 8 |
+| | total score | 2.700 | **3.100** | +14.8% | 8 |
+| **values-based** | focus score | **3.333** | **3.333** | 0.0% | 9 |
+| | total score | **2.467** | 2.378 | −3.6% | 9 |
+| **context-dependent** | focus score | 2.000 | **3.719** | +85.9% | 16 |
+| | total score | 2.562 | **3.438** | +34.2% | 16 |
 
-**Finding F: The adaptive framework validates its core hypothesis.**
+**Finding F: validation-clean subsets support further testing of adaptive routing.**
 
-The values-based focus score tie (3.10 = 3.10) confirms the central design hypothesis: when question type warrants full PROHIBITION (values conflicts require committed advocacy), adaptive correctly routes there, preserving quality. The classifier does not over-adapt.
+After excluding every question where either system produced a validation sentinel, the values-based focus score tied, while adaptive prompts had higher mean focus scores in the binary and context-dependent subsets. These are post-validation descriptive comparisons from one generation and one judge per question; they motivate replication rather than confirming the hypothesis.
 
-Binary questions show consistent improvement under adaptive (+5.7% focus), driven by condition-mapping prompts that produce more specific, actionable output. Context-dependent questions show the largest gain in the entire experiment: +75% on focus score (2.00 → 3.50, n=20). The effect is consistent across question domains: API design (q91: focus 2.0 → 5.0), infrastructure (q92: 2.0 → 4.5), go-to-market (q97: 2.0 → 4.0), and organizational decisions (q98: 2.0 → 4.5). Three questions show no improvement (q4, q5, q102), all of which the classifier routed to `binary` mode—consistent with the routing-determines-outcome pattern identified in Section 7.1.
-
-**Question-level highlights:**
-
-| Question | full total | adaptive total | Δ focus | Note |
-|----------|-----------|----------------|---------|------|
-| q74 (co-founder vs. solo) | 2.8 | **5.0** | +3.0 | Highest adaptive total; classifier → context_dependent |
-| q91 (GraphQL vs. REST) | 2.8 | **4.4** | +3.0 | Largest focus Δ; adaptive focus=5.0 vs full=2.0 |
-| q96 (mobile vs. web first) | 2.8 | **4.6** | +2.5 | Adaptive focus=5.0; full forces unconditional take |
-| q103 (self-serve vs. high-touch CS) | 1.4 | **3.8** | +2.5 | Lowest full score in dataset; condition-mapping rescued it |
-| q78 (fire underperformers quickly) | **3.6** | 2.6 | −1.5 | full_system wins; topic has values dimension that classifier misses |
-| q4/q5/q102 (3 ties) | — | — | 0 | Classifier routed all three to binary; no condition-mapping gain |
+Question-level raw outputs remain available in `results/type_comparison.json`.
+Questions q4, q5, q40, q79, q80, q102, and q103 are excluded from paired
+summaries because at least one system emitted a validation sentinel.
 
 ---
 
@@ -400,7 +397,7 @@ Binary questions show consistent improvement under adaptive (+5.7% focus), drive
 
 A subtle but important finding: the classifier routes the majority of human-labeled "binary" questions to `context_dependent`. Questions phrased as *"should startups do X?"* are recognized by the classifier as having answers that depend on company stage, market conditions, and team composition—because this is true.
 
-This means the performance gain on binary questions is primarily attributable to the *context-dependent prompt design* (condition mapping, "WHEN...because..." structure), not to the *moderate PROHIBITION level* itself. The classifier's judgment overrides the human labeling, and the classifier's judgment proves more useful.
+This means the observed difference on binary questions may be driven by the *context-dependent prompt design* (condition mapping, "WHEN...because..." structure), the routing decision, or both. The current experiment changes these factors together and cannot isolate their individual effects.
 
 This has a practical implication for system design: **the question taxonomy is not a fixed property of a question's topic—it is a property of the question's analytical requirements given a specific domain and context.** A classifier that operates on these requirements produces better routing than a hardcoded taxonomy.
 
@@ -413,19 +410,19 @@ Across both full_system and adaptive_prohibition, PROHIBITION constraints consis
 | full_system | 1.7 | 1.6 |
 | adaptive | 1.4 | 1.4 |
 
-This is a known trade-off in commitment elicitation: forcing a model to commit reduces both *false hedging* (avoiding a position to avoid being wrong) and *legitimate uncertainty signaling* (acknowledging genuine epistemic limits). The prohibition analysis (Section 6.2) shows PROHIBITION does not increase false certainty rates, but it demonstrably reduces `honest_uncertainty` scores.
+This is a known trade-off in commitment elicitation: forcing a model to commit can reduce both *false hedging* and *legitimate uncertainty signaling*. In this sample, the Qwen judge did not assign a higher false-certainty rate to the constrained system, while its `honest_uncertainty` scores were lower. Replication with human raters is needed.
 
 Practitioners deploying multi-agent debate systems should account for this: PROHIBITION is most appropriate for decisions where a committed recommendation is the desired output (investment decisions, go/no-go calls), and less appropriate for analysis tasks where calibrated confidence levels are themselves valuable outputs.
 
 ### 7.3 Limitations
 
-**Sample size.** Binary and values-based types are evaluated on n=10 questions each; context-dependent on n=20. Effect sizes are consistent across types but should be interpreted cautiously; results may not generalize to question distributions outside the business/technology/policy domain used here.
+**Sample size and validation filtering.** Matched valid subsets contain n=8 binary, n=9 values-based, and n=16 context-dependent questions per system. Each question was generated once, so sampling and run-to-run variance are not estimated.
 
-**LLM-as-judge reliability.** Quality scores are produced by a single judge model (Qwen3-32B). Prior work shows LLM judges exhibit style preferences and position biases. Ground-truth accuracy (E3) provides a judge-independent validation signal, but the five-dimension rubric scores remain subject to judge-specific calibration.
+**LLM-as-judge reliability.** Quality, false-certainty, and historical key-factor scores are produced by a single judge model. The historical rubric is anchored to predefined factors but is still LLM-judged; none of these evaluations is judge-independent.
 
 **Single-round evaluation.** Due to API rate limits, E4 evaluates Round 1 positions only. This measures prompt design quality in isolation from multi-round debate dynamics. While Round 1 quality is the primary driver of final output quality in our system (given the synthesize step), results may differ for systems where rebuttal rounds produce significant position evolution.
 
-**Classifier reliability.** The question type classifier is itself an LLM with no ground-truth validation. Section 7.1 notes that classifier routing on "binary" questions often diverges from human labeling—and produces better results, suggesting the classifier is capturing a meaningful signal. But classifier errors (especially at binary/context-dependent boundaries) could degrade adaptive performance on ambiguous questions.
+**Classifier reliability.** The question type classifier is itself an LLM with no ground-truth validation. Its routing often diverges from the original human buckets, and routing is confounded with prompt choice. Errors at binary/context-dependent boundaries may degrade performance on ambiguous questions.
 
 ---
 

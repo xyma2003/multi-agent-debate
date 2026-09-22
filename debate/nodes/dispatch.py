@@ -10,7 +10,6 @@ from langgraph.types import Send
 
 from debate.divergence import (
     ABSOLUTE_MAX_ROUNDS,
-    DIVERGE_THRESHOLD,
     PLATEAU_DELTA,
     PLATEAU_MIN_ROUNDS,
 )
@@ -70,7 +69,7 @@ def route_divergence(state: DebateState):
     Four-guard adaptive convergence (evaluated in order):
       Guard 1 — rounds cap: honor max_rounds from invoke() first, then absolute
                 safety cap (ABSOLUTE_MAX_ROUNDS). Prevents infinite loops.
-      Guard 2 — genuine convergence: score dropped below DIVERGE_THRESHOLD.
+      Guard 2 — genuine convergence: the active detector found no diverged pairs.
       Guard 3 — score plateau: score changed less than PLATEAU_DELTA for the last
                 two rounds. Agents are stuck — more rounds won't help.
       Guard 4 — no concessions: no agent conceded anything last round. Agents are
@@ -81,7 +80,7 @@ def route_divergence(state: DebateState):
     """
     round_num = state.get("round_num", 0)
     max_rounds = state.get("max_rounds", ABSOLUTE_MAX_ROUNDS)
-    divergence_score = state.get("divergence_score", 0.0)
+    diverged_pairs = state.get("diverged_pairs", [])
     topic = state.get("topic", "")
     round_history = state.get("round_history", [])
 
@@ -89,8 +88,9 @@ def route_divergence(state: DebateState):
     if round_num >= max_rounds or round_num >= ABSOLUTE_MAX_ROUNDS:
         return "synthesize_stub"
 
-    # Guard 2: genuine convergence — score dropped below threshold
-    if divergence_score < DIVERGE_THRESHOLD:
+    # Guard 2: detector-specific convergence. Each detector owns its threshold
+    # and reports only the pairs it considers genuinely divergent.
+    if not diverged_pairs:
         return "synthesize_stub"
 
     # Guard 3: score plateau — no meaningful progress in last two rounds

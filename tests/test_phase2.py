@@ -29,10 +29,23 @@ def _make_arg(role: str, claims: list[str]) -> AgentArgument:
     )
 
 
+def _make_round_record(round_num: int, divergence_score: float) -> RoundRecord:
+    return RoundRecord(
+        round_num=round_num,
+        arguments=[
+            _make_arg("optimist", ["a", "b", "c"]),
+            _make_arg("pessimist", ["d", "e", "f"]),
+            _make_arg("devil", ["g", "h", "i"]),
+        ],
+        divergence_score=divergence_score,
+    )
+
+
 # ---------------------------------------------------------------------------
 # DEBATE-04: DivergeDetector
 # ---------------------------------------------------------------------------
 
+@pytest.mark.model
 def test_compute_divergence_returns_score():
     """compute_divergence returns (float, list) for semantically opposed claims."""
     from debate.divergence import compute_divergence
@@ -56,6 +69,7 @@ def test_compute_divergence_returns_score():
     assert isinstance(pairs, list), f"Expected list, got {type(pairs)}"
 
 
+@pytest.mark.model
 def test_compute_divergence_similar_claims():
     """When claims are semantically identical, divergence is near zero."""
     from debate.divergence import compute_divergence
@@ -84,11 +98,52 @@ def test_compute_divergence_empty():
     assert pairs == []
 
 
+def test_nli_checks_all_claim_pairs_without_cosine_shortcut(monkeypatch):
+    """One identical claim must not hide a contradiction in another claim."""
+    import debate.divergence as divergence
+
+    class FakeNLIModel:
+        def __init__(self):
+            self.seen_pairs = []
+
+        def predict(self, pairs):
+            self.seen_pairs = pairs
+            logits = [[0.0, 8.0, 0.0] for _ in pairs]  # entailment
+            logits[1] = [8.0, 0.0, 0.0]  # contradiction
+            return logits
+
+    fake_model = FakeNLIModel()
+    monkeypatch.setattr(divergence, "_get_nli_model", lambda: fake_model)
+
+    def fail_if_cosine_is_loaded():
+        raise AssertionError("NLI mode must not load the cosine model")
+
+    monkeypatch.setattr(divergence, "_get_model", fail_if_cosine_is_loaded)
+    args = [
+        _make_arg("optimist", ["shared claim", "expand now", "growth is likely"]),
+        _make_arg("pessimist", ["shared claim", "do not expand", "demand is weak"]),
+    ]
+
+    score, pairs = divergence.compute_divergence_nli(args)
+
+    assert len(fake_model.seen_pairs) == 9
+    assert score > 0.99
+    assert pairs == [("optimist", "pessimist")]
+
+
 def test_roundrecord_has_divergence_score():
     """RoundRecord must have divergence_score field defaulting to 0.0."""
     record = RoundRecord(round_num=0, arguments=[])
     assert hasattr(record, "divergence_score"), "RoundRecord missing divergence_score field"
     assert record.divergence_score == 0.0
+
+
+def test_divergence_check_rejects_missing_round_history():
+    """A wiring error must not be reported as a successful convergence."""
+    from debate.nodes.divergence_check import divergence_check_node
+
+    with pytest.raises(RuntimeError, match="completed round"):
+        divergence_check_node({"round_history": []})
 
 
 # ---------------------------------------------------------------------------
@@ -119,7 +174,8 @@ def test_rebuttal_loop_fires_on_divergence():
     )
     assert "round_history" in result, "round_history missing from result"
     assert len(result["round_history"]) >= 1, "No rounds recorded"
-    assert result.get("status") in ("converged", "max_rounds"), f"Unexpected status: {result.get('status')}"
+    assert result.get("status") in ("converged", "plateau", "stalled", "max_rounds"), \
+        f"Unexpected status: {result.get('status')}"
 
 
 @pytest.mark.integration
@@ -142,7 +198,7 @@ def test_fast_termination_at_max_rounds_1():
         {"topic": "Is water wet?", "max_rounds": 1},
         config=config,
     )
-    assert result.get("status") in ("converged", "max_rounds"), \
+    assert result.get("status") in ("converged", "plateau", "stalled", "max_rounds"), \
         f"Graph did not terminate cleanly. status={result.get('status')}"
     assert result.get("round_num", 0) <= 2, \
         f"Too many rounds completed: round_num={result.get('round_num')}"
@@ -169,20 +225,51 @@ def test_route_divergence_terminates_at_max_rounds():
 
 
 def test_route_divergence_terminates_on_convergence():
-    """route_divergence returns 'synthesize_stub' when divergence_score < threshold."""
+    """route_divergence terminates when the active detector finds no diverged pairs."""
     from debate.nodes.dispatch import route_divergence
-    from debate.divergence import DIVERGE_THRESHOLD
 
     state_converged = {
         "round_num": 1,
         "max_rounds": 3,
-        "divergence_score": DIVERGE_THRESHOLD - 0.1,   # below threshold
+        "divergence_score": 0.9,  # scores are detector-specific; pairs are authoritative
+        "diverged_pairs": [],
         "topic": "test",
         "round_history": [],
     }
     result = route_divergence(state_converged)
     assert result == "synthesize_stub", \
         f"Expected 'synthesize_stub' on convergence, got {result!r}"
+
+
+def test_route_divergence_continues_when_detector_reports_divergence():
+    """A detector-reported contradiction triggers a rebuttal before guard 3/4 apply."""
+    from debate.nodes.dispatch import route_divergence
+
+    state_diverged = {
+        "round_num": 1,
+        "max_rounds": 3,
+        "divergence_score": 0.8,
+        "diverged_pairs": [("optimist", "pessimist")],
+        "topic": "test",
+        "round_history": [_make_round_record(0, 0.8)],
+    }
+    result = route_divergence(state_diverged)
+    assert isinstance(result, list) and len(result) == 3
+
+
+def test_route_divergence_nli_honors_user_max_rounds():
+    """The NLI benchmark variant must obey the caller's max_rounds value."""
+    from benchmark.variants import route_divergence_nli
+
+    state_at_limit = {
+        "round_num": 1,
+        "max_rounds": 1,
+        "divergence_score": 0.99,
+        "diverged_pairs": [("optimist", "pessimist")],
+        "topic": "test",
+        "round_history": [_make_round_record(0, 0.99)],
+    }
+    assert route_divergence_nli(state_at_limit) == "synthesize_stub"
 
 
 # ---------------------------------------------------------------------------
@@ -223,7 +310,7 @@ def test_phase2_smoke_max_rounds_1():
         {"topic": "Should cities invest in public transit?", "max_rounds": 1},
         config=config,
     )
-    assert result.get("status") in ("converged", "max_rounds"), \
+    assert result.get("status") in ("converged", "plateau", "stalled", "max_rounds"), \
         f"Graph did not terminate cleanly. status={result.get('status')!r}"
     assert len(result.get("round_history", [])) >= 1, \
         "round_history is empty — no rounds completed"
@@ -330,5 +417,5 @@ def test_recursion_limit_sufficient_for_3_rounds():
         {"topic": "Should social media platforms be broken up?", "max_rounds": 3},
         config=config,
     )
-    assert result.get("status") in ("converged", "max_rounds"), \
+    assert result.get("status") in ("converged", "plateau", "stalled", "max_rounds"), \
         f"Unexpected termination status: {result.get('status')!r}"

@@ -100,6 +100,13 @@ def test_compute_confidence_formula_round3():
     )
 
 
+def test_compute_confidence_round_zero_uses_round_one_adjustment():
+    """The defensive round-zero path follows the documented 1.0 adjustment."""
+    from debate.nodes.synthesize import _compute_confidence_score
+
+    assert _compute_confidence_score([], round_num=0) == 1.0
+
+
 # ---------------------------------------------------------------------------
 # SYNTH-04 unit test: non-convergence path
 # ---------------------------------------------------------------------------
@@ -179,7 +186,7 @@ def test_debate_report_has_all_required_fields():
     assert 0.0 <= report.confidence_score <= 1.0, (
         f"confidence_score {report.confidence_score} out of [0, 1]"
     )
-    assert report.convergence_status in ("converged", "max_rounds", "partial"), (
+    assert report.convergence_status in ("converged", "plateau", "stalled", "max_rounds", "partial"), (
         f"unexpected convergence_status: {report.convergence_status}"
     )
     assert isinstance(report.reasoning_trace, list), "reasoning_trace not a list"

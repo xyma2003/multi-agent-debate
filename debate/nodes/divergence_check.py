@@ -10,22 +10,22 @@ Reads:  round_history (last entry's arguments)
 Writes: divergence_score (float), diverged_pairs (list[tuple[str,str]])
         Also back-fills round_history[-1].divergence_score for Phase 3 SYNTH-03.
 """
-from debate.divergence import compute_divergence
+from debate.divergence import compute_divergence_dispatch
 from debate.state import DebateState
 
 
 def divergence_check_node(state: DebateState) -> dict:
     """Compute divergence from the most recent round and write to state.
 
-    If round_history is empty (should not happen in normal flow), returns
-    divergence_score=1.0 (force rebuttal) to prevent silent failures.
+    An empty history indicates a graph wiring error, so fail loudly instead of
+    silently labeling the debate as converged or divergent.
     """
     round_history = state.get("round_history", [])
     if not round_history:
-        return {"divergence_score": 1.0, "diverged_pairs": []}
+        raise RuntimeError("divergence_check_node requires a completed round")
 
     latest_round = round_history[-1]
-    score, diverged_pairs = compute_divergence(latest_round.arguments)
+    score, diverged_pairs = compute_divergence_dispatch(latest_round.arguments)
 
     # Back-fill per-round score onto the RoundRecord for Phase 3 SYNTH-03.
     # RoundRecord is a Pydantic model — use model_copy to avoid mutating in place.

@@ -191,7 +191,7 @@ def test_full_graph_saves_to_db():
     assert row["topic"] == topic, (
         f"Row topic={row['topic']!r} does not match expected {topic!r}"
     )
-    assert row["status"] in ("converged", "max_rounds", "partial"), (
+    assert row["status"] in ("converged", "plateau", "stalled", "max_rounds", "partial"), (
         f"Unexpected status value: {row['status']!r}"
     )
 

@@ -7,7 +7,7 @@ from the full system in exactly ONE component. This lets us measure each design
 decision's individual contribution.
 
 Variants:
-  full_system         — Baseline. Uses current prompts (fixed devil: challenges shared assumptions).
+  full_system         — Historical cosine baseline with the current prompts.
   original_devil      — Devil uses old "challenge dominant view" prompt (pre-fix baseline).
   no_prohibition      — PROHIBITION blocks removed from all agent prompts.
   sequential          — Round 1 agents run in series (optimist → pessimist → devil);
@@ -15,6 +15,10 @@ Variants:
   fixed_rounds        — Semantic divergence termination disabled; always runs max_rounds.
   fulltext_embedding  — Divergence computed on full reasoning text, not key_claims.
   nli_detection       — Divergence detected via NLI contradiction instead of cosine similarity.
+
+The production graph reads DIVERGENCE_MODE and defaults to NLI. Benchmark
+builders pin their detector explicitly so changing the application default does
+not silently change an ablation or make full_system and nli_detection identical.
 
 Usage:
     from benchmark.variants import build_variant_graph
@@ -41,7 +45,6 @@ from debate.llm import _make_llm
 from debate.nodes.agents import _invoke_with_retry
 from debate.nodes.collect import collect_round1
 from debate.nodes.dispatch import _build_compact_summaries
-from debate.nodes.divergence_check import divergence_check_node
 from debate.nodes.initialize import initialize_node
 from debate.nodes.save import save_node
 from debate.nodes.synthesize import synthesize_stub
@@ -334,6 +337,26 @@ def route_divergence_fixed(state: DebateState):
     ]
 
 
+# --- explicit cosine detector for historical non-NLI ablations ---
+
+def divergence_check_node_cosine(state: DebateState) -> dict:
+    """Run the explicit cosine detector, independent of DIVERGENCE_MODE."""
+    from debate.divergence import compute_divergence
+
+    round_history = state.get("round_history", [])
+    if not round_history:
+        raise RuntimeError("cosine benchmark detector requires a completed round")
+
+    latest_round = round_history[-1]
+    score, diverged_pairs = compute_divergence(latest_round.arguments)
+    updated_record = latest_round.model_copy(update={"divergence_score": score})
+    return {
+        "divergence_score": score,
+        "diverged_pairs": diverged_pairs,
+        "round_history": list(round_history[:-1]) + [updated_record],
+    }
+
+
 # --- fulltext_embedding: compute divergence on reasoning text, not key_claims ---
 
 def divergence_check_node_fulltext(state: DebateState) -> dict:
@@ -346,7 +369,7 @@ def divergence_check_node_fulltext(state: DebateState) -> dict:
     """
     round_history = state.get("round_history", [])
     if not round_history:
-        return {"divergence_score": 1.0, "diverged_pairs": []}
+        raise RuntimeError("full-text benchmark detector requires a completed round")
 
     latest_round = round_history[-1]
     arguments = [a for a in latest_round.arguments if not a.is_sentinel]
@@ -377,8 +400,6 @@ def divergence_check_node_fulltext(state: DebateState) -> dict:
 
         if max_sim < DIVERGE_THRESHOLD:
             diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
-        else:
-            diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
 
     score = 1.0 - (sum(pairwise_max_sims) / len(pairwise_max_sims)) if pairwise_max_sims else 0.0
 
@@ -406,7 +427,7 @@ def _base_graph_nodes(builder: StateGraph, use_nodes: dict) -> None:
     builder.add_node("devil_node", use_nodes.get("devil_node", devil_node))
     builder.add_node("collect_round1", collect_round1)
     builder.add_node("divergence_check_node",
-                     use_nodes.get("divergence_check_node", divergence_check_node))
+                     use_nodes.get("divergence_check_node", divergence_check_node_cosine))
     builder.add_node("synthesize_stub", synthesize_stub)
     builder.add_node("save_node", save_node)
 
@@ -425,8 +446,7 @@ def _standard_edges(builder: StateGraph, dispatch_fn, route_fn) -> None:
 
 
 def build_full_system_graph():
-    """Unmodified full debate graph."""
-    from debate.nodes.agents import optimist_node, pessimist_node, devil_node
+    """Historical full-system benchmark with explicit cosine detection."""
     from debate.nodes.dispatch import dispatch_round1, route_divergence
 
     builder = StateGraph(DebateState)
@@ -468,7 +488,7 @@ def build_sequential_graph():
     builder.add_node("devil_node", devil_node)
 
     builder.add_node("collect_round1", collect_round1)
-    builder.add_node("divergence_check_node", divergence_check_node)
+    builder.add_node("divergence_check_node", divergence_check_node_cosine)
     builder.add_node("synthesize_stub", synthesize_stub)
     builder.add_node("save_node", save_node)
 
@@ -532,7 +552,7 @@ def divergence_check_node_nli(state: DebateState) -> dict:
 
     round_history = state.get("round_history", [])
     if not round_history:
-        return {"divergence_score": 1.0, "diverged_pairs": []}
+        raise RuntimeError("NLI benchmark detector requires a completed round")
 
     latest_round = round_history[-1]
     score, diverged_pairs = compute_divergence_nli(latest_round.arguments)
@@ -548,54 +568,10 @@ def divergence_check_node_nli(state: DebateState) -> dict:
 
 
 def route_divergence_nli(state: DebateState):
-    """Routing function for NLI variant — adaptive convergence with 4 guards.
+    """Compatibility wrapper around the detector-agnostic production router."""
+    from debate.nodes.dispatch import route_divergence
 
-    Uses NLI_CONTRADICTION_THRESHOLD (0.5) for Guard 2 (genuine convergence)
-    instead of cosine DIVERGE_THRESHOLD (0.75). Guards 1/3/4 are identical
-    to the cosine route_divergence.
-    """
-    from debate.divergence import (
-        ABSOLUTE_MAX_ROUNDS,
-        NLI_CONTRADICTION_THRESHOLD,
-        PLATEAU_DELTA,
-        PLATEAU_MIN_ROUNDS,
-    )
-
-    round_num = state.get("round_num", 0)
-    divergence_score = state.get("divergence_score", 0.0)
-    topic = state.get("topic", "")
-    round_history = state.get("round_history", [])
-
-    # Guard 1: absolute safety cap
-    if round_num >= ABSOLUTE_MAX_ROUNDS:
-        return "synthesize_stub"
-
-    # Guard 2: genuine convergence (NLI threshold)
-    if divergence_score < NLI_CONTRADICTION_THRESHOLD:
-        return "synthesize_stub"
-
-    # Guard 3: score plateau
-    if len(round_history) >= PLATEAU_MIN_ROUNDS:
-        prev_score = round_history[-2].divergence_score
-        curr_score = round_history[-1].divergence_score
-        if abs(prev_score - curr_score) < PLATEAU_DELTA:
-            return "synthesize_stub"
-
-    # Guard 4: no concessions last round
-    if len(round_history) >= 2:
-        last_round = round_history[-1]
-        if sum(len(arg.concessions) for arg in last_round.arguments) == 0:
-            return "synthesize_stub"
-
-    compact_summaries = _build_compact_summaries(round_history)
-    return [
-        Send("optimist_node", {"topic": topic, "agent_role": "optimist",
-                               "prior_arguments": compact_summaries, "round_num": round_num}),
-        Send("pessimist_node", {"topic": topic, "agent_role": "pessimist",
-                                "prior_arguments": compact_summaries, "round_num": round_num}),
-        Send("devil_node", {"topic": topic, "agent_role": "devil",
-                            "prior_arguments": compact_summaries, "round_num": round_num}),
-    ]
+    return route_divergence(state)
 
 
 def build_original_devil_graph():

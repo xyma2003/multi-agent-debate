@@ -15,6 +15,7 @@ import uuid
 import streamlit as st
 
 from debate.graph import graph  # module-level singleton — never store in session_state
+from debate.divergence import DIVERGENCE_MODE
 from debate.state import AgentArgument, DebateReport
 from debate.store import list_debates, load_debate
 
@@ -40,18 +41,28 @@ if "debate_status" not in st.session_state:
 # API key guard (fail loudly on fresh run with no key — UI-04)
 # Supports direct API key, internal proxy, and SiliconFlow/OpenAI-compatible.
 # ---------------------------------------------------------------------------
-_has_api_key = bool(
-    os.environ.get("ANTHROPIC_API_KEY")
-    or os.environ.get("ANTHROPIC_AUTH_TOKEN")
-    or os.environ.get("OPENAI_API_KEY")  # SiliconFlow / OpenAI-compatible
-)
+_backend = os.environ.get("LLM_BACKEND", "groq").lower()
+_credential_env = {
+    "groq": "GROQ_API_KEY",
+    "qwen": "GROQ_API_KEY",
+    "openai": "OPENAI_API_KEY",
+    "cerebras": "CEREBRAS_API_KEY",
+    "together": "TOGETHER_API_KEY",
+    "sambanova": "SAMBANOVA_API_KEY",
+    "gemini": "GOOGLE_API_KEY",
+}
+if _backend == "anthropic":
+    _has_api_key = bool(
+        os.environ.get("ANTHROPIC_API_KEY")
+        or os.environ.get("ANTHROPIC_AUTH_TOKEN")
+    )
+else:
+    _required_credential = _credential_env.get(_backend)
+    _has_api_key = bool(_required_credential and os.environ.get(_required_credential))
 if not _has_api_key:
     st.warning(
-        "⚠️ No API credentials found. Set one of:\n\n"
-        "- `ANTHROPIC_API_KEY=sk-ant-...` (direct Anthropic API)\n"
-        "- `ANTHROPIC_AUTH_TOKEN=...` + `ANTHROPIC_BASE_URL=...` (internal proxy)\n"
-        "- `OPENAI_API_KEY=sk-...` + `OPENAI_API_BASE=...` + `LLM_BACKEND=openai` (SiliconFlow / OpenAI-compatible)\n\n"
-        "See README.md for setup instructions."
+        f"⚠️ No credentials found for `LLM_BACKEND={_backend}`. "
+        "See `.env.example` or README.md for the required environment variable."
     )
     st.stop()
 
@@ -80,7 +91,7 @@ with st.sidebar:
 st.title("Multi-Agent Debate System")
 st.caption(
     "Enter any topic and watch three agents — Optimist, Pessimist, and Devil's Advocate — "
-    "debate it in real time using semantic divergence detection."
+    f"debate it in real time using {DIVERGENCE_MODE.upper()} divergence detection."
 )
 
 # ---------------------------------------------------------------------------
@@ -193,10 +204,10 @@ if start_clicked and (topic or "").strip():
 
                 elif node_name == "divergence_check_node":
                     score = node_update.get("divergence_score", 0.0)
-                    continuing = score > 0.75
+                    diverged_pairs = node_update.get("diverged_pairs", [])
                     st.info(
                         f"Divergence score: **{score:.2f}** — "
-                        f"{'debate continues (high divergence)' if continuing else 'converging'}"
+                        f"{'contradiction detected' if diverged_pairs else 'no contradiction detected'}"
                     )
 
                 elif node_name == "synthesize_stub":

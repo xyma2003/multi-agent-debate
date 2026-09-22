@@ -20,7 +20,6 @@ from pydantic import BaseModel, Field
 
 from debate.divergence import (
     ABSOLUTE_MAX_ROUNDS,
-    DIVERGE_THRESHOLD,
     PLATEAU_DELTA,
     PLATEAU_MIN_ROUNDS,
 )
@@ -104,7 +103,7 @@ def _compute_confidence_score(round_history: list[RoundRecord], round_num: int) 
     max_divergence = max(
         (r.divergence_score for r in round_history), default=0.0
     )
-    round_adjustment = _ROUND_ADJUSTMENTS.get(round_num, 0.8)
+    round_adjustment = _ROUND_ADJUSTMENTS.get(max(round_num, 1), 0.8)
     return round((1.0 - max_divergence) * round_adjustment, 4)
 
 
@@ -113,10 +112,10 @@ def _compute_confidence_score(round_history: list[RoundRecord], round_num: int) 
 # ---------------------------------------------------------------------------
 
 def _determine_convergence_status(
-    divergence_score: float,
     round_num: int,
     round_history: list,
     max_rounds: int = ABSOLUTE_MAX_ROUNDS,
+    diverged_pairs: list[tuple[str, str]] | None = None,
 ) -> str:
     """Classify how the debate loop terminated.
 
@@ -128,8 +127,9 @@ def _determine_convergence_status(
     # Guard 1: honor user-supplied max_rounds first, then absolute safety cap
     if round_num >= max_rounds or round_num >= ABSOLUTE_MAX_ROUNDS:
         return "max_rounds"
-    # Guard 2: genuine convergence
-    if divergence_score < DIVERGE_THRESHOLD:
+    # Guard 2: genuine convergence. Prefer the detector-specific pair result;
+    # the numeric score is not directly comparable across cosine and NLI modes.
+    if diverged_pairs is not None and not diverged_pairs:
         return "converged"
     # Guard 3: score plateau
     if len(round_history) >= PLATEAU_MIN_ROUNDS:
@@ -191,7 +191,7 @@ def _build_synthesis_context(
 
     # Non-convergence honest-uncertainty path (SYNTH-04)
     _non_convergence_reasons = {
-        "max_rounds": "the absolute round limit was reached",
+        "max_rounds": "the configured round limit was reached",
         "plateau":    "the divergence score stopped changing (agents are stuck)",
         "stalled":    "no agent made any concessions in the final round",
     }
@@ -270,11 +270,14 @@ def synthesize_stub(state: DebateState) -> dict:
     round_history: list[RoundRecord] = state.get("round_history", [])
     round_num: int = state.get("round_num", 0)
     max_rounds: int = state.get("max_rounds", 3)
-    divergence_score: float = state.get("divergence_score", 0.0)
+    diverged_pairs: list[tuple[str, str]] = state.get("diverged_pairs", [])
 
     # Step 1: convergence status
     convergence_status = _determine_convergence_status(
-        divergence_score, round_num, round_history, max_rounds
+        round_num,
+        round_history,
+        max_rounds,
+        diverged_pairs,
     )
 
     # Step 2: compact context

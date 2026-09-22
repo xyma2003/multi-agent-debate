@@ -117,10 +117,10 @@ class DebateReport(BaseModel):
     convergence_status: Literal["converged", "plateau", "stalled", "max_rounds", "partial"] = Field(
         description=(
             "How the debate loop terminated: "
-            "'converged' = score dropped below threshold; "
+            "'converged' = the active detector found no divergent agent pair; "
             "'plateau' = score stopped changing (< PLATEAU_DELTA per round); "
             "'stalled' = no concessions in last round; "
-            "'max_rounds' = absolute safety cap hit; "
+            "'max_rounds' = caller or absolute round cap hit; "
             "'partial' = defensive fallback"
         )
     )
@@ -153,7 +153,8 @@ class DebateState(TypedDict, total=False):
         round_history      — extended by collect_round1 after each round
         divergence_score, diverged_pairs — written by Phase 2 divergence node
         final_report       — written by Phase 3 synthesizer
-        status             — "running" | "converged" | "max_rounds" | "complete"
+        status             — "running" | "converged" | "plateau" | "stalled" |
+                             "max_rounds" | "partial"
     """
 
     # --- Input fields (set at invoke time) ---

@@ -99,7 +99,11 @@ def _make_llm():
         model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
         return ChatOpenAI(model=model, temperature=0)
 
-    else:  # gemini
+    elif backend == "gemini":
         from langchain_google_genai import ChatGoogleGenerativeAI
         model = os.environ.get("GEMINI_MODEL", "gemini-2.5-flash")
         return ChatGoogleGenerativeAI(model=model, temperature=0)
+
+    raise ValueError(
+        f"Unsupported LLM_BACKEND={backend!r}. See .env.example for valid backends."
+    )

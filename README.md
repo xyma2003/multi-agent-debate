@@ -1,333 +1,182 @@
 # Multi-Agent Debate System
 
-A LangGraph-based multi-agent system where three LLM agents with distinct cognitive biases — **Optimist**, **Pessimist**, and **Devil's Advocate** — debate any topic through multiple rounds of structured argumentation. Agents detect real semantic divergence, track concessions with attribution, and produce an auditable consensus report with a formula-derived confidence score.
+[![CI](https://github.com/xyma2003/multi-agent-debate/actions/workflows/ci.yml/badge.svg)](https://github.com/xyma2003/multi-agent-debate/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Built as a portfolio project demonstrating: multi-agent LangGraph graphs, semantic divergence detection, Pydantic structured outputs, SQLite persistence, and Streamlit streaming UI.
+[中文说明](README_zh.md)
 
----
+A LangGraph portfolio project in which three methodology-driven LLM agents—an Optimist, a Pessimist, and a Frame Challenger—analyze a question independently, rebut one another, record attributed concessions, and produce an auditable report.
 
-## Demo
+The default application uses NLI contradiction detection for multi-round routing. A lightweight cosine mode remains available for comparison, but it is not a reliable stance detector.
 
+## What this project demonstrates
+
+- Parallel LangGraph fan-out/fan-in with bounded rebuttal loops
+- Pydantic structured outputs and validation fallbacks
+- NLI-based contradiction detection with caller-controlled round limits
+- Formula-derived confidence scores and attributed concession logs
+- SQLite persistence, Streamlit replay, and optional LangSmith traces
+- Reproducible benchmark runners for prompt and routing ablations
+
+## Illustrative flow
+
+```text
+topic
+  └─► initialize
+       └─► Optimist ─┐
+           Pessimist ├─► collect ─► divergence check
+           Challenger─┘                    │
+                     ┌─ no contradiction / limit ─► synthesize ─► save
+                     └─ contradiction ─► rebuttal fan-out ─┘
 ```
-User: "Is remote work net positive for companies?"
 
-Round 1 (parallel):
-  🟢 Optimist    → "Remote work increases productivity by 15-20%..."
-  🔴 Pessimist   → "Collaboration and culture suffer irreparably..."
-  😈 Devil's Adv → "The productivity gains are selection bias..."
+The final `DebateReport` contains consensus points, disputed points, a verdict, a formula-derived confidence score, the complete round trace, and every concession with its triggering agent and claim.
 
-Divergence score: 0.82 → Round 2 triggered
+![Cosine and NLI divergence comparison](analysis/fig_C_divergence_detection.png)
 
-Round 2 (rebuttal):
-  🟢 Optimist    → Concedes: "Culture risks are real for junior employees"
-  🔴 Pessimist   → Maintains position
-  😈 Devil's Adv → Shifts: "Hybrid is the actual optimum"
+Historical exploratory visualization; see the evidence and provenance notes below before interpreting it.
 
-Final Report:
-  Confidence: 71% | Status: Converged
-  Consensus: ["Async communication tools are essential", ...]
-  Disputed:  [{"topic": "Culture impact", "optimist": "...", "pessimist": "..."}]
-```
+## Quick start
 
----
-
-## Prerequisites
-
-- **Python 3.10+**
-- **An LLM API key** — pick one backend:
-  - SiliconFlow (domestic, free credits, recommended for China) — https://cloud.siliconflow.cn/
-  - Anthropic (direct API key or corporate proxy)
-  - Groq / OpenAI / Cerebras / Together / SambaNova (see `.env.example`)
-
----
-
-## Setup
-
-### 1. Clone the repo
+Requirements: Python 3.10+ and one supported LLM API key.
 
 ```bash
 git clone https://github.com/xyma2003/multi-agent-debate.git
 cd multi-agent-debate
-```
 
-### 2. Create a virtual environment
-
-```bash
-# Option A: venv (built-in)
 python3 -m venv .venv
-source .venv/bin/activate        # macOS/Linux
-# .venv\Scripts\activate         # Windows
-
-# Option B: conda
-conda create -n debate-agent python=3.10
-conda activate debate-agent
-```
-
-### 3. Install dependencies
-
-```bash
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-```
 
-> **Note:** First run will download the `BAAI/bge-small-en-v1.5` embedding model (~130MB) from HuggingFace. This happens automatically on first debate start.
-
-### 4. Configure API credentials
-
-Copy the example env file and fill in your credentials:
-
-```bash
 cp .env.example .env
-```
-
-**Option A — SiliconFlow / OpenAI-compatible (domestic, recommended for China):**
-
-```bash
-# .env
-LLM_BACKEND=openai
-OPENAI_API_KEY=sk-...                    # SiliconFlow key
-OPENAI_API_BASE=https://api.siliconflow.cn/v1
-OPENAI_MODEL=Qwen/Qwen3-32B             # or deepseek-ai/DeepSeek-V3
-```
-
-Get a free SiliconFlow key at https://cloud.siliconflow.cn/ (free credits on signup).
-
-**Option B — Direct Anthropic API key (overseas):**
-
-```bash
-# .env
-ANTHROPIC_API_KEY=sk-ant-api03-...
-```
-
-**Option C — Internal proxy (e.g. corporate proxy):**
-
-```bash
-# .env
-ANTHROPIC_BASE_URL=https://your-proxy-base-url
-ANTHROPIC_AUTH_TOKEN=your-auth-token
-ANTHROPIC_CUSTOM_HEADERS=X-Custom-Header: value
-```
-
-> The app auto-loads `.env` via `python-dotenv` (with `override=True`, so `.env` wins over stale shell vars). No manual `export` needed — just `streamlit run app.py`.
-
-### 5. Run
-
-```bash
 streamlit run app.py
 ```
 
-Open **http://localhost:8501** in your browser.
+Open <http://localhost:8501>.
 
----
+The default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB) on first use. The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 
-## Usage
+### Configuration
 
-1. Enter any topic or question (e.g. *"Is AI regulation good for innovation?"*)
-2. Set **Max Rounds** (1–3) — more rounds = more rebuttal cycles
-3. Click **Start Debate** — watch agents argue in real time
-4. Read the final report: confidence score, verdict, consensus/disputed split, reasoning trace
-5. Past debates appear in the **sidebar** for instant replay without re-running agents
+The checked-in `.env.example` documents all options. A minimal SiliconFlow/OpenAI-compatible setup is:
 
----
-
-## How It Works
-
-```
-User topic
-    │
-    ▼
-initialize ──► [Optimist | Pessimist | Devil's Advocate]  (Round 1, parallel)
-                    │
-                    ▼
-            collect_round1
-                    │
-                    ▼
-     divergence_check_node  ← semantic similarity on key_claims embeddings
-                    │
-          ┌─────────┴─────────┐
-       diverged           converged / max_rounds
-          │                    │
-   [rebuttal round]      synthesize_stub
-          │                    │
-    (loop back)           save_node → SQLite
-                               │
-                           DebateReport
+```dotenv
+LLM_BACKEND=openai
+OPENAI_API_KEY=sk-...
+OPENAI_API_BASE=https://api.siliconflow.cn/v1
+OPENAI_MODEL=Qwen/Qwen3-32B
+DIVERGENCE_MODE=nli
 ```
 
-**Key design decisions:**
+Supported backends are `openai`, `anthropic`, `groq`, `qwen`, `cerebras`, `together`, `sambanova`, and `gemini`.
+
+## Design choices
 
 | Decision | Rationale |
-|----------|-----------|
-| Methodology-based personas | "You apply bear-case scenario analysis" beats "be pessimistic" — prevents sycophancy collapse |
-| Divergence on `key_claims` (not full text) | Full argument embeddings cluster by topic; claim-level embeddings preserve disagreement signal |
-| Confidence formula in code | `(1 - max_divergence) * round_adjustment` — never LLM-invented, always auditable |
-| Concession attribution | Each concession records `triggered_by_agent` + `triggered_by_claim` — full reasoning chain |
-| Single flat StateGraph | No subgraph nesting — explicit state control and checkpointing for auditable trace |
+|---|---|
+| Methodology-based roles | Gives each agent an analytical procedure, not just a personality label |
+| NLI routing by default | Detects contradiction rather than topical vocabulary overlap |
+| Detector-owned pair decisions | Avoids comparing cosine distance and NLI probability against one shared numeric threshold |
+| Caller round cap plus hard safety cap | Honors `max_rounds` while preventing unbounded loops |
+| Formula-derived confidence | Keeps the displayed score inspectable rather than LLM-invented |
+| Concession attribution | Records which claim changed which position and why |
 
----
+## Tests
 
-## Project Structure
-
-```
-multi-agent-debate/
-├── app.py                    # Streamlit UI — single-file app
-├── conftest.py               # Pytest config + backend-aware skip markers
-├── requirements.txt          # Pinned dependencies
-├── .env.example              # API credential template
-├── debates.db                # Auto-created SQLite DB on first run
-├── debate/
-│   ├── graph.py              # StateGraph assembly + compiled graph singleton
-│   ├── state.py              # DebateState TypedDict + all Pydantic models
-│   ├── store.py              # SQLite save / load / list API
-│   ├── divergence.py         # compute_divergence() with sentence-transformers
-│   ├── classify.py           # NLI cross-encoder stance classification
-│   ├── llm.py                # Auth-aware ChatAnthropic factory + retry wrapper
-│   ├── prompts.py            # Methodology-based system prompts (PROHIBITION blocks)
-│   ├── prompts_adaptive.py   # Adaptive PROHIBITION variants (ablation study)
-│   └── nodes/
-│       ├── initialize.py     # Sets debate_id, round_num=0
-│       ├── agents.py         # optimist_node, pessimist_node, devil_node
-│       ├── dispatch.py       # dispatch_round1 + route_divergence routing functions
-│       ├── collect.py        # collect_round1 fan-in (reused for all rounds)
-│       ├── divergence_check.py
-│       ├── synthesize.py     # Synthesizer → DebateReport assembly
-│       └── save.py           # save_node (SQLite side-effect, returns {})
-├── benchmark/
-│   ├── questions.json        # 30 benchmark questions (business/tech/policy/prediction)
-│   ├── evaluator.py          # PDS / HR / SSS / RTC metric definitions
-│   ├── baseline.py           # Single-LLM runner
-│   ├── variants.py           # 6 ablation variants
-│   └── run_experiment.py     # CLI entry point
-├── results/
-│   ├── full_system.json      # Multi-agent fixed devil (n=10)
-│   ├── original_devil.json   # Multi-agent old devil (n=10)
-│   ├── single_llm.json       # Single-LLM baseline (n=10)
-│   └── nli_detection.json    # NLI divergence (n=2)
-├── analysis/
-│   ├── analysis.ipynb        # 7-section analysis notebook
-│   └── fig_*.png             # Experiment figures
-├── tests/                    # 5-phase test suite
-│   ├── test_phase1.py        # Graph foundation + smoke test
-│   ├── test_phase2.py        # Debate loop + divergence detection
-│   ├── test_phase3.py        # Synthesis + confidence formula
-│   ├── test_phase4.py        # SQLite persistence + replay
-│   └── test_phase5.py        # UI tests
-├── PAPER.md                  # Research writeup (Adaptive PROHIBITION, arXiv format)
-├── BLOG_EN.md                # English blog post
-└── BLOG_ZH.md                # Chinese blog post
-```
-
----
-
-## Experimental Findings
-
-Ablation study across 4 system variants, 10 questions each (business + technology topics).
-
-| Variant | n | PDS ↑ | HR ↓ | SSS | Rounds |
-|---------|---|-------|------|-----|--------|
-| **Multi-agent (fixed devil)** | 10 | **0.2242** | **0.0093** | 1.000 | 1.00 |
-| Single-LLM baseline | 10 | 0.2160 | 0.0129 | N/A | 1.00 |
-| Multi-agent (old devil prompt) | 10 | 0.1707 | 0.0077 | 1.000 | 1.00 |
-| Multi-agent + NLI detection | 2 | 0.1439 | 0.0050 | **0.883** | **3.00** |
-
-- **PDS** (Position Diversity Score): avg pairwise semantic distance between agents' final positions. Higher = more genuinely distinct viewpoints.
-- **HR** (Hedge Ratio): hedge words / total words. Lower = less "on-the-other-hand" hedging.
-- **SSS** (Stance Stability Score): similarity between Round-1 and final position embedding. Only meaningful in multi-round debates.
-
-### Key findings
-
-**Finding A — PROHIBITION reduces sycophantic hedging by 28%**
-Multi-agent HR (0.0093) vs single-LLM HR (0.0129). The PROHIBITION constraints successfully prevent agents from retreating to balanced, non-committal language.
-
-**Finding B — PDS Paradox: wrong devil prompt inverts diversity**
-Old devil prompt ("challenge the dominant view") caused 2-vs-1 alignment — devil auto-sided with pessimist against optimist, producing *lower* PDS than single-LLM (0.1707 < 0.2160). Fixed by redefining devil's role as "Assumption Challenger" who targets the shared premise both sides take for granted. Post-fix PDS (0.2242) exceeds single-LLM baseline.
-
-**Finding C — Cosine similarity is broken for stance detection**
-100% of cosine-based debates terminated after Round 1 (divergence scores 0.097–0.258, all below 0.75 threshold). Cosine measures *topic overlap*, not *stance opposition* — "VC accelerates growth" and "VC destroys growth" score as *similar* because they share vocabulary. NLI cross-encoder correctly detects CONTRADICTION regardless of vocabulary overlap, enabling genuine multi-round debate (SSS = 0.883 vs 1.000).
-
-See [`PAPER.md`](PAPER.md) for the full research writeup (*Adaptive PROHIBITION in Multi-Agent Debate*, Xinyue Ma, 2026) and `analysis/analysis_executed.ipynb` for figures.
-
-### Running the benchmark
+Install development dependencies:
 
 ```bash
-# Requires VPN if using Groq backend
-cd multi-agent-debate
-
-# Run all variants (n=10 each, 2-min delay between questions for rate limits)
-python benchmark/run_experiment.py --variants full_system single_llm --limit 10 --delay 5
-python benchmark/run_experiment.py --variants nli_detection --limit 10 --delay 120
-
-# View results summary
-python -c "
-import json, statistics
-for v in ['full_system', 'single_llm', 'original_devil', 'nli_detection']:
-    with open(f'results/{v}.json') as f: d = json.load(f)
-    pds = [r['pds'] for r in d['results']]
-    hr  = [r['hedge_ratio'] for r in d['results']]
-    print(f'{v}: n={len(pds)}  PDS={statistics.mean(pds):.4f}  HR={statistics.mean(hr):.4f}')
-"
+pip install -r requirements-dev.txt
 ```
 
----
-
-## Running Tests
+Run the deterministic suite used by CI:
 
 ```bash
-# Fast unit tests only (no API calls, ~5 seconds)
-python -m pytest tests/ -m "not integration" -v
-
-# Full suite including live LLM calls (~5 minutes)
-python -m pytest tests/ -v
+python -m pytest -m "not integration and not model and not ui" -q
 ```
 
----
-
-## Observability (LangSmith)
-
-This project supports [LangSmith](https://smith.langchain.com) tracing for debugging
-and monitoring agent execution. When enabled, every node (initialize → 3 parallel
-agents → divergence check → synthesize → save) and every LLM call is captured as a
-trace in the LangSmith dashboard, showing:
-
-- Per-node latency (which step is slow)
-- Full LLM input/output (prompt sent, response received)
-- Token consumption and cost per call
-- Error traces when a node fails
-
-### Setup
-
-1. Create a free account at [smith.langchain.com](https://smith.langchain.com)
-2. Add these to `.env`:
+Optional suites:
 
 ```bash
+# Downloads local embedding/NLI models
+python -m pytest -m model -v
+
+# Requires configured API credentials
+python -m pytest -m integration -v
+
+# Streamlit application tests
+python -m pytest -m ui -v
+```
+
+## Experiments and evidence level
+
+The repository includes raw outputs and runners for engineering exploration, not publication-grade evidence. Results are small-sample, mostly single-run, and some quality evaluations use one LLM judge.
+
+The clean base comparison contains 10 questions per system:
+
+| System | n | PDS ↑ | Hedge ratio ↓ | Mean rounds |
+|---|---:|---:|---:|---:|
+| Fixed frame-challenger prompt | 10 | 0.2242 | 0.0093 | 1.00 |
+| Single-LLM baseline | 10 | 0.2160 | 0.0129 | 1.00 |
+| Original challenger prompt | 10 | 0.1707 | 0.0077 | 1.00 |
+
+In this sample, the fixed prompt produced higher PDS than the original prompt, and the multi-agent output's mean hedge ratio was about 28% lower than the single-LLM baseline. These are observed sample differences, not causal or generalizable performance claims.
+
+A separate canonical NLI run contains 7 questions: 4/7 reached multiple rounds, mean rounds were 2.14, and mean stance stability was 0.977. See [`results/README.md`](results/README.md) for dataset provenance, validation failures, and interpretation rules.
+
+Run a new experiment with:
+
+```bash
+python benchmark/run_experiment.py \
+  --variants full_system single_llm nli_detection \
+  --limit 10 --max-rounds 3 --delay 30
+```
+
+Model-backed runs are intentionally not part of CI because they require credentials, downloads, time, and cost.
+Benchmark variants pin their detector explicitly so the cosine baseline and NLI ablation remain distinct even though the production application defaults to NLI.
+
+## Known limitations
+
+- Small, non-random benchmark sets; most variants have one run per question
+- LLM-as-judge results are sensitive to the selected judge and rubric
+- The cosine detector measures semantic proximity, not logical opposition
+- NLI adds local model download and inference cost
+- Confidence is a transparent heuristic, not a calibrated probability of correctness
+- Prompt constraints can suppress legitimate uncertainty as well as empty hedging
+
+## Project structure
+
+```text
+app.py                         Streamlit UI
+debate/                        graph, schemas, prompts, routing, persistence
+benchmark/                     experiment runners, variants, evaluators
+results/                       raw outputs plus provenance notes
+analysis/                      notebooks and generated figures
+tests/                         deterministic, model, UI, and integration tests
+.github/workflows/ci.yml       deterministic CI
+PAPER.md                       exploratory research-style write-up
+BLOG_EN.md / BLOG_ZH.md        long-form engineering notes
+```
+
+## Observability
+
+LangSmith tracing is optional. Add the following to `.env`:
+
+```dotenv
 LANGCHAIN_TRACING_V2=true
-LANGCHAIN_API_KEY=ls-...                    # from LangSmith dashboard
-LANGCHAIN_PROJECT=multi-agent-debate        # project name in dashboard
+LANGCHAIN_API_KEY=ls-...
+LANGCHAIN_PROJECT=multi-agent-debate
 ```
 
-3. Run as usual — traces appear in real-time on the LangSmith dashboard.
+Traces may contain full prompts and outputs; do not enable them for sensitive topics without reviewing your data-handling requirements.
 
-> No code changes required. LangGraph nodes and LangChain chat models
-> automatically report to LangSmith when these env vars are set.
+## Resume description
 
----
+> Built a LangGraph multi-agent debate system with parallel role orchestration, structured outputs, NLI-based divergence routing, attributed concessions, SQLite replay, and an ablation-oriented evaluation pipeline for prompt and termination strategies.
 
-## Tech Stack
+## Status
 
-| Component | Library | Version |
-|-----------|---------|---------|
-| Agent orchestration | LangGraph | 1.1.9 |
-| LLM (default) | SiliconFlow `Qwen/Qwen3-32B` via `LLM_BACKEND=openai` (国内直连) | — |
-| LLM (alt) | Groq / Claude / Cerebras / Together / SambaNova via `LLM_BACKEND=*` | — |
-| Structured outputs | Pydantic | 2.x |
-| Divergence (cosine) | sentence-transformers + bge-small-en-v1.5 | 5.4.1 |
-| Divergence (NLI) | sentence-transformers + cross-encoder/nli-deberta-v3-small | 5.4.1 |
-| Persistence | SQLite (stdlib) | — |
-| UI | Streamlit | 1.56.0 |
----
+Core development and experiments: **April–June 2026**. Later commits are maintenance, backend compatibility, and observability updates. The project is feature-complete and maintained in stabilization mode.
 
-## Resume
-
-Built as a portfolio project to demonstrate multi-agent LLM system design.
-
-**Resume bullet:**
-> *Built a multi-agent debate system where specialized LLM agents with distinct cognitive biases analyze topics independently, then engage in structured argumentation with divergence detection and concession tracking, producing auditable consensus reports with confidence scoring. (LangGraph · Claude API · Pydantic · Streamlit · SQLite)*
+MIT License.

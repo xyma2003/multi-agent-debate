@@ -2,7 +2,7 @@
 """
 Single-LLM baseline runner.
 
-Asks a single Claude instance to analyze a question from three perspectives
+Asks one configured LLM to analyze a question from three perspectives
 (optimist, pessimist, devil's advocate) in one call — the standard
 "multi-perspective analysis" prompt pattern that most users reach for.
 

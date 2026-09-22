@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, patch
 from datetime import datetime, timezone
 
 APP_PATH = Path(__file__).parent.parent / "app.py"
+pytestmark = pytest.mark.ui
 
 # ---- Fixtures ----
 

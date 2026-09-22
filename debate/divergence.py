@@ -4,21 +4,21 @@ Semantic divergence detector for the multi-agent debate system.
 
 Two detection strategies, selectable via DIVERGENCE_MODE env var:
 
-  cosine (default):
+  cosine (lightweight fallback):
     Two-layer detection using bi-encoder embeddings:
       Layer 1: max cosine similarity on key_claims.
         > CONVERGE_FAST_PATH (0.97) → definitely converged.
-        Otherwise → treated as diverged.
+      Layer 2: similarity below DIVERGE_THRESHOLD (0.75) → diverged.
+        The middle band is treated as converged because cosine cannot resolve
+        whether topical similarity represents agreement or opposition.
     Known limitation: cosine similarity measures topic overlap, not stance
     opposition. "VC is good" and "VC is bad" score as similar because they
     share the same vocabulary. This causes premature convergence detection.
 
-  nli (research variant):
-    Two-layer detection using NLI cross-encoder:
-      Layer 1: cosine fast-path (>0.97 → skip NLI, definitely converged).
-      Layer 2: CrossEncoder NLI on key_claims pairs.
-        High CONTRADICTION probability → genuine stance divergence.
-        ENTAILMENT / NEUTRAL → semantic agreement or unrelated.
+  nli (default):
+    CrossEncoder NLI on every key_claims pair.
+      High CONTRADICTION probability → genuine stance divergence.
+      ENTAILMENT / NEUTRAL → semantic agreement or unrelated.
     Fixes the cosine limitation: "VC is good" vs "VC is bad" correctly
     classified as CONTRADICTION regardless of vocabulary overlap.
 
@@ -29,9 +29,6 @@ from __future__ import annotations
 import os
 from itertools import combinations
 
-import numpy as np
-from sentence_transformers import CrossEncoder, SentenceTransformer
-
 from debate.state import AgentArgument
 
 # ---------------------------------------------------------------------------
@@ -39,7 +36,7 @@ from debate.state import AgentArgument
 # ---------------------------------------------------------------------------
 
 DIVERGE_THRESHOLD: float = 0.75      # cosine: max_sim below this → diverged
-CONVERGE_FAST_PATH: float = 0.97     # both modes: cosine fast-path threshold
+CONVERGE_FAST_PATH: float = 0.97     # cosine-only fast-path threshold
 
 # Adaptive convergence constants (used by route_divergence / route_divergence_nli)
 PLATEAU_DELTA: float = 0.05          # min per-round score change to count as "progress"
@@ -49,7 +46,11 @@ ABSOLUTE_MAX_ROUNDS: int = 10        # hard safety cap regardless of convergence
 # NLI: contradiction probability above this → pair is diverged
 NLI_CONTRADICTION_THRESHOLD: float = 0.5
 
-DIVERGENCE_MODE: str = os.environ.get("DIVERGENCE_MODE", "cosine").lower()
+DIVERGENCE_MODE: str = os.environ.get("DIVERGENCE_MODE", "nli").lower()
+if DIVERGENCE_MODE not in {"cosine", "nli"}:
+    raise ValueError(
+        f"Unsupported DIVERGENCE_MODE={DIVERGENCE_MODE!r}; expected 'cosine' or 'nli'"
+    )
 
 # NLI label indices for cross-encoder/nli-deberta-v3-small
 _NLI_CONTRADICTION = 0
@@ -61,22 +62,26 @@ _NLI_NEUTRAL       = 2
 # Model singletons
 # ---------------------------------------------------------------------------
 
-_BIENCODER: SentenceTransformer | None = None
-_CROSSENCODER: CrossEncoder | None = None
+_BIENCODER = None
+_CROSSENCODER = None
 
 
-def _get_model() -> SentenceTransformer:
+def _get_model():
     """Lazy-load BAAI/bge-small-en-v1.5 bi-encoder."""
     global _BIENCODER
     if _BIENCODER is None:
+        from sentence_transformers import SentenceTransformer
+
         _BIENCODER = SentenceTransformer("BAAI/bge-small-en-v1.5")
     return _BIENCODER
 
 
-def _get_nli_model() -> CrossEncoder:
+def _get_nli_model():
     """Lazy-load cross-encoder/nli-deberta-v3-small NLI model (~180MB)."""
     global _CROSSENCODER
     if _CROSSENCODER is None:
+        from sentence_transformers import CrossEncoder
+
         _CROSSENCODER = CrossEncoder("cross-encoder/nli-deberta-v3-small")
     return _CROSSENCODER
 
@@ -85,9 +90,18 @@ def _get_nli_model() -> CrossEncoder:
 # Public API
 # ---------------------------------------------------------------------------
 
-def _softmax(x: np.ndarray) -> np.ndarray:
-    e = np.exp(x - x.max(axis=-1, keepdims=True))
-    return e / e.sum(axis=-1, keepdims=True)
+def _softmax(x):
+    """Return row-wise softmax values without adding a NumPy import at startup."""
+    from math import exp
+
+    probabilities = []
+    for row in x:
+        values = [float(value) for value in row]
+        maximum = max(values)
+        exponentials = [exp(value - maximum) for value in values]
+        denominator = sum(exponentials)
+        probabilities.append([value / denominator for value in exponentials])
+    return probabilities
 
 
 # ---------------------------------------------------------------------------
@@ -115,7 +129,6 @@ def compute_divergence_nli(
     if len(arguments) < 2:
         return 0.0, []
 
-    biencoder = _get_model()
     nli_model = _get_nli_model()
     diverged_pairs: list[tuple[str, str]] = []
     pairwise_max_contradictions: list[float] = []
@@ -128,24 +141,16 @@ def compute_divergence_nli(
             pairwise_max_contradictions.append(0.0)
             continue
 
-        # --- Layer 1: cosine fast-path (skip NLI if clearly converged) ---
-        all_claims = claims_a + claims_b
-        embeddings = biencoder.encode(all_claims, normalize_embeddings=True)
-        emb_a = embeddings[: len(claims_a)]
-        emb_b = embeddings[len(claims_a):]
-        cosine_max_sim = float((emb_a @ emb_b.T).max())
-
-        if cosine_max_sim > CONVERGE_FAST_PATH:
-            # Definitely converged — NLI not needed
-            pairwise_max_contradictions.append(0.0)
-            continue
-
-        # --- Layer 2: NLI cross-encoder on all cross-claim pairs ---
+        # Evaluate every cross-claim pair. A cosine fast-path is unsafe here:
+        # one nearly identical claim can coexist with a different contradictory
+        # claim, so max cosine similarity cannot prove pairwise convergence.
         cross_pairs = [(c_a, c_b) for c_a in claims_a for c_b in claims_b]
         logits = nli_model.predict(cross_pairs)           # shape: (n_pairs, 3)
-        probs = _softmax(np.array(logits))                # convert logits → probs
-        contradiction_probs = probs[:, _NLI_CONTRADICTION] # shape: (n_pairs,)
-        max_contradiction = float(contradiction_probs.max())
+        probs = _softmax(logits)                          # convert logits → probs
+        contradiction_probs = [
+            row[_NLI_CONTRADICTION] for row in probs
+        ]
+        max_contradiction = max(contradiction_probs)
 
         pairwise_max_contradictions.append(max_contradiction)
 
@@ -215,12 +220,9 @@ def compute_divergence(
         if max_sim > CONVERGE_FAST_PATH:
             continue
 
-        # Below DIVERGE_THRESHOLD (and not fast-path): record as diverged
-        # 0.75–0.97 zone is also treated as diverged until Claude judge is added.
+        # The detector owns this similarity threshold. The routing layer only
+        # consumes the resulting pair decision.
         if max_sim < DIVERGE_THRESHOLD:
-            diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
-        else:
-            # Borderline zone (0.75–0.97): treated conservatively as diverged
             diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
 
     if not pairwise_max_sims:

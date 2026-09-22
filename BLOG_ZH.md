@@ -2,6 +2,8 @@
 
 > 本文记录了一个多智能体辩论系统的设计与实验过程。LLM 的 sycophancy 问题有两种表现：被质疑时改口，以及主动给出"两边都有道理"的中庸答案。本项目针对后者——用结构性机制强制 Agent 产生真实的立场分歧，并通过三个反直觉的实验发现，逐步逼近一个真正有效的解法。
 
+> **证据说明：**本文是工程复盘，不是经过同行评审的研究。实验样本较小，多数问题只运行一次，部分结论由单一 LLM judge 评分。清洗口径和原始数据局限见 [PAPER.md](PAPER.md) 与 [results/README.md](results/README.md)。
+
 ---
 
 ## 背景：LLM 的谄媚问题（Sycophancy）
@@ -123,23 +125,23 @@
 
 ```python
 from sentence_transformers import CrossEncoder
-import numpy as np
+from scipy.special import softmax
 
 nli_model = CrossEncoder("cross-encoder/nli-deberta-v3-small")
 
 def compute_nli_divergence(claims_a: list[str], claims_b: list[str]) -> float:
     pairs = [(a, b) for a in claims_a for b in claims_b]
-    scores = nli_model.predict(pairs)  # shape: (n_pairs, 3)
-    # DeBERTa NLI 输出顺序: [contradiction, entailment, neutral]
-    contradiction_probs = scores[:, 0]
-    return float(contradiction_probs.max())
+    logits = nli_model.predict(pairs)
+    # DeBERTa NLI 列顺序: [contradiction, entailment, neutral]
+    probabilities = softmax(logits, axis=1)
+    return max(row[0] for row in probabilities)
 ```
 
 整体分歧分数是三对 Agent（Optimist-Pessimist、Optimist-Devil、Pessimist-Devil）各自最大矛盾概率的均值。
 
-为避免每轮都跑 cross-encoder（推理成本较高），实现了两层流水线：先用余弦相似度做快速过滤——如果最大余弦相似度已经超过 0.97，直接认定收敛，跳过 NLI；否则才调用 NLI 模型。这个快路径在实测中覆盖了约 15% 的论点对，节省了对应的推理时间。
+默认路径会对每个跨 Agent 论点对运行 NLI。这里刻意不使用余弦快路径：一对几乎相同的论点可能与另一对矛盾论点同时存在，因此“最大余弦相似度”不足以证明已经收敛。
 
-切换到 NLI 后，第一轮分歧分数上升到 0.83–0.86，系统开始正常跑出多轮辩论，平均收敛轮次为 3.0，立场稳定性（SSS）为 0.883。
+在规范的 7 题 NLI 运行中，4 题进入多轮，平均 RTC 为 2.14，平均 SSS 为 0.977。早期 0.83–0.86 的轨迹只作为个案示例，不是汇总结果。
 
 ---
 
@@ -201,12 +203,12 @@ START
 
 ```python
 def route_divergence(state: DebateState) -> list[Send] | str:
-    # Guard 1: 绝对轮次上限，防止无限循环
-    if state["round_num"] >= 10:
+    # Guard 1: 先遵守调用方上限，再检查绝对安全上限
+    if state["round_num"] >= state["max_rounds"] or state["round_num"] >= 10:
         return "synthesize_stub"
 
-    # Guard 2: 分歧分数低于阈值，判定为真实收敛
-    if state["divergence_score"] < 0.75:
+    # Guard 2: 激活的检测器未报告分歧 Agent 对
+    if not state["diverged_pairs"]:
         return "synthesize_stub"
 
     # Guard 3: 分数停滞——连续两轮分歧变化小于 0.05
@@ -225,7 +227,7 @@ def route_divergence(state: DebateState) -> list[Send] | str:
         if total_concessions == 0:
             return "synthesize_stub"
 
-    return [Send("optimist_node", state), Send("pessimist_node", state), Send("devil_node", state)]
+    return build_rebuttal_sends(state)
 ```
 
 Guard 3 和 Guard 4 解决的是同一个问题的两种形态：**高分歧但无实质进展**。有些话题上，三个 Agent 会保持高分歧分数，但每轮只是重新陈述各自的原始立场，论点没有演进，也没有任何一方让步——继续辩论只是在浪费 API 调用。Guard 3 从分数角度捕捉这种情况，Guard 4 从行为角度捕捉。
@@ -280,14 +282,14 @@ def _invoke_with_retry(llm, prompt, max_retries=3) -> AgentArgument:
 
 ---
 
-### Finding A：PROHIBITION 使对冲率降低 28%
+### Finding A：本次样本中平均对冲率低约 28%
 
 | 系统 | HR |
 |------|----|
 | 多 Agent（本系统） | **0.0093** |
 | 单 LLM 基线 | 0.0129 |
 
-PROHIBITION 约束不只是让 Agent "更坚定"——它在表达结构层面彻底封堵了对冲句式的生成路径。模型无法构造被禁止的句子，只能寻找其他方式表达信息，这反而逼出了更具体、更有论点密度的输出。
+在这 10 道题中，多 Agent 系统的平均对冲率低约 28%。现有数据没有把 PROHIBITION 与其他系统差异完全隔离，因此这是描述性观察，不是因果结论。
 
 值得注意的是，这里测量的是 HR 的差异，而不是输出质量的整体评估。PROHIBITION 约束本身可能过滤掉一些合理的限定语——"在假设市场规模准确的前提下"这类表达虽然包含条件语，但它是有效信息，不是对冲。这是该机制的边界条件，需要根据具体使用场景调整禁止词表的粒度。
 
@@ -316,11 +318,11 @@ PROHIBITION 约束不只是让 Agent "更坚定"——它在表达结构层面�
 | 系统 | 第一轮分歧分数 | RTC 均值 | SSS |
 |------|-------------|---------|-----|
 | 余弦检测 | 0.097–0.258 | 1.0 | 1.000（单轮，无意义） |
-| **NLI 检测** | **0.83–0.86** | **3.0** | **0.883** |
+| **NLI 检测（规范运行 n=7）** | 检测器专用指标 | **2.14** | **0.977** |
 
 余弦版本中，SSS = 1.000 并不表示"Agent 立场非常稳定"，而是表示"只有一轮，没有跨轮次可以比较"。这是一个典型的指标陷阱：数字看起来好，但它衡量的是一个退化情况。
 
-NLI 版本的 SSS = 0.883 的含义是：Agent 在多轮辩论中维持了核心立场，同时在边缘论点上做出了有根据的让步——这才是辩论系统应有的行为模式。
+规范的 7 题 NLI 运行中，4/7 进入多轮，平均 RTC 为 2.14，平均 SSS 为 0.977；其中 q1 是 SSS=0.883 的三轮示例。
 
 ---
 
@@ -402,7 +404,7 @@ PROHIBITION 不是开关，而是一个连续谱，根据问题的认知需求�
 
 ---
 
-### Finding D：PROHIBITION 不会放大虚假确定性
+### Finding D：单一 judge 给出了相同的虚假确定性比例
 
 一个合理的担忧：强制 Agent 表态，会不会导致它在忽略明显反证的情况下过度自信——即"虚假确定性"？
 
@@ -413,43 +415,39 @@ PROHIBITION 不是开关，而是一个连续谱，根据问题的认知需求�
 | `full_system` | 3/21 (14.3%) | 2/21 (9.5%) | 16/21 (76.2%) |
 | `single_llm` | 3/21 (14.3%) | 6/21 (28.6%) | 12/21 (57.1%) |
 
-两个系统的虚假确定性比例完全相同（14.3%）。实质差异在于：`single_llm` 产出了更多"合理对冲"（28.6% vs. 9.5%）——即为了不出错而刻意不表态的立场。**PROHIBITION 并不会把 Agent 推向无法辩护的主张，而是把它从合理对冲推向了明确承担的立场。**
+一个 Qwen judge 为两组样本给出了相同的虚假确定性比例（14.3%），并为 `single_llm` 标注了更多"合理对冲"。这形成了一个值得验证的假设，但不足以证明强制表态不会损害校准。
 
 ---
 
-### Finding E：自适应约束提升历史决策准确率
+### Finding E：历史关键因素提及实验
 
-以 10 个有明确历史结论的 M&A 和产品战略决策为基准（Facebook/Instagram 收购、Netflix 流媒体转型、Snapchat 拒绝 Facebook 收购等），评测各系统的分析是否能识别出历史上正确的关键因素：
+对 10 个历史 M&A 和产品战略案例，使用 LLM judge 评估输出是否提及预先定义的关键因素：
 
-| 系统 | 历史决策准确率（n=10） |
+| 系统 | 至少部分提及关键因素的比例（n=10） |
 |------|-----------------|
 | `full_system` | 0.40 |
 | `single_llm` | 0.60 |
 | `adaptive_prohibition` | **0.60** |
 
-全开 PROHIBITION 降低了准确率：强制所有类型的问题都保持对立立场，反而压制了识别复杂决策中关键变量所需的情境分析能力。自适应约束通过将历史决策路由到情境依赖模式，保留了 single_llm 的灵活性——同时产出更结构化、更少对冲的分析。
+没有任何输出获得量表中的最高分 2（清楚识别关键因素）；计入的案例都只是得分 1 的部分或间接提及。因此 40%/60% 是探索性的提及率，不是决策准确率。
 
 ---
 
 ### Finding F：问题类型决定自适应增益的大小
 
-三类问题对比实验（binary n=10，values_based n=10，context_dependent n=20）：
+配对清洗后，凡任一系统产生 sentinel 的问题都会从两组同时排除：
 
 | 问题类型 | full_system focus | adaptive focus | Δ | n |
 |---------|------------------|----------------|---|---|
-| binary | 2.65 | **2.80** | +5.7% | 10 |
-| values-based | 3.10 | **3.10** | 0.0% | 10 |
-| **情境依赖型** | 2.00 | **3.50** | **+75%** | 20 |
+| binary | 2.750 | **3.125** | +13.6% | 8 |
+| values-based | **3.333** | **3.333** | 0.0% | 9 |
+| **情境依赖型** | 2.000 | **3.719** | **+85.9%** | 16 |
 
 Focus score = 各类型重点维度的均值（binary：分析深度+论断具体性；values：视角多样性+分析深度；context：论断具体性+实用性）。
 
-**values_based 零差异（3.10 = 3.10）验证了核心设计假设**：分类器在价值观题上正确路由到全开 PROHIBITION，质量得以保全——分类器没有过度适配。
+values-based 子集持平，另外两个子集的自适应样本平均 focus score 更高。由于每道题只生成一次且由单一 judge 评估，这些差异用于提出复现实验，而不能视为验证了设计假设。
 
-情境依赖类问题获得了最大增益：在 API 设计、基础设施选型、招聘决策、GTM 策略和组织管理 20 道题上，focus score 提升了 **75%**。
-
-**binary 类问题上的反直觉发现**：分类器将多数被人工标注为"binary"的问题路由到了 `context_dependent`。"初创公司该不该做 X"类问题，分类器认为其答案取决于公司阶段、市场和团队——因为本来如此。binary 问题上的性能提升主要来自*情境依赖型提示词设计*（条件映射），而不是*中等 PROHIBITION 级别*本身。
-
-这意味着：**问题类型不是话题固有的属性，而是问题在具体情境下的认知需求属性**。基于认知需求做路由的分类器，比任何硬编码分类体系都更有效。
+分类器把不少人工标注为 binary 的问题路由到了 `context_dependent`。由于路由与提示词同时变化，当前实验无法判断哪一个因素导致了差异。
 
 ---
 
@@ -501,17 +499,17 @@ class Concession(BaseModel):
 
 这个项目的核心是六个反直觉发现：
 
-1. **硬约束比软引导有效**：PROHIBITION 词汇黑名单比"请保持立场"更有效，原因是它封堵了模型的语言生成路径，而不只是在语义层面施加偏好。
+1. **硬约束改变了本次样本中的对冲行为**：现有数据不足以隔离发表级的因果效果。
 
 2. **Agent 角色定义必须在系统均衡态下验证**：Devil 的旧提示词在单独评估时看似合理，但放入有 Pessimist 存在的系统中，被系统动态拉偏为附议者。多 Agent 系统中的角色定义不能在真空中设计。
 
 3. **分歧指标决定系统是否真正运转**：余弦相似度和 NLI 测量的是根本不同的东西——前者是话题距离，后者是逻辑矛盾。选错指标不是性能损失，而是整个辩论机制的失效。
 
-4. **统一 PROHIBITION 在情境依赖题上失效**：没有通用答案的问题需要条件映射，而不是无条件的立场对立。对这类问题强制全开 PROHIBITION，会使最关键维度的得分下降 75%。
+4. **情境依赖问题值得采用自适应提示词继续验证**：清洗后的单次运行样本更偏向条件映射，但仍需复现。
 
-5. **分类器的路由决策比约束级别本身更重要**：binary 问题上的性能提升来自分类器将其路由到情境依赖模式，而非中等 PROHIBITION 设置。问题类型分类才是更根本的设计选择。
+5. **路由和约束级别需要分开消融**：当前实验同时改变两者，无法隔离各自贡献。
 
-6. **强制承担不会放大虚假确定性，但会减少合理的不确定性表达**：PROHIBITION 与 single_llm 的虚假确定性比例相同（14.3%），但会降低 `honest_uncertainty` 维度得分。对需要校准置信度的场景，应提前考虑这一权衡。
+6. **强制承担可能减少合理的不确定性表达**：单一 judge 在本样本中给出相同虚假确定性比例，但不足以证明校准安全。
 
 六个发现的共同结构：系统产出了反预期的结果 → 诊断指向某个"看起来正确"的设计假设在具体场景下失效 → 修复需要重新思考该假设的适用前提。这个模式是多智能体系统工程中最普遍的迭代路径。
 
@@ -523,8 +521,8 @@ class Concession(BaseModel):
 
 ## 相关资源
 
-- 技术栈：LangGraph 1.1.9 · claude-3-5-sonnet · BAAI/bge-small-en-v1.5 · DeBERTa NLI cross-encoder · SQLite · Streamlit
-- 实验数据：`/results/` 目录下有完整 JSON（full_system / original_devil / single_llm / nli_detection）
+- 技术栈：LangGraph · 多后端 LLM API · BAAI/bge-small-en-v1.5 · DeBERTa NLI cross-encoder · SQLite · Streamlit
+- 实验数据与清洗说明：[`results/README.md`](results/README.md)
 - 参考文献：Perez et al., "Sycophancy to Subterfuge: Investigating Reward Tampering in Language Models," 2022
 
 ---

@@ -2,6 +2,8 @@
 
 > This post documents the design and evaluation of a multi-agent debate system built to address a specific failure mode in LLMs: the tendency to produce hedged, non-committal analysis when asked to reason from multiple perspectives. Three findings emerged from benchmarking — each counter-intuitive, each requiring a redesign.
 
+> **Evidence note:** this is an engineering retrospective, not a peer-reviewed study. Results are small-sample, mostly single-run, and partly LLM-judged. Validation-clean calculations and raw-data caveats are maintained in [PAPER.md](PAPER.md) and [results/README.md](results/README.md).
+
 ---
 
 ## The Problem: Sycophancy in LLMs
@@ -90,7 +92,7 @@ The Devil's Advocate role deserves elaboration. The initial prompt defined it as
 
 The system needs to determine whether agents have genuinely converged — i.e., whether another round of debate is likely to produce new information. The natural approach is to embed each agent's key claims and compute pairwise cosine similarity: high similarity implies convergence.
 
-After the first benchmarking run, this approach was invalidated entirely: **10 out of 10 test questions triggered convergence after Round 1**, with divergence scores uniformly falling between 0.097 and 0.258 against a threshold of 0.75.
+The first checked-in benchmark exposed this limitation: **10 out of 10 test questions terminated after Round 1**, with divergence scores between 0.097 and 0.258 against the then-used threshold of 0.75.
 
 The root cause is that cosine similarity measures **topical overlap**, not **stance opposition**. The sentences "venture capital is an attractive financing vehicle" and "venture capital is a dangerous financing vehicle" have high cosine similarity — they share the same topic vocabulary. But they represent opposite positions.
 
@@ -104,19 +106,20 @@ The implementation uses `cross-encoder/nli-deberta-v3-small` to classify all cro
 
 ```python
 from sentence_transformers import CrossEncoder
+from scipy.special import softmax
 
 nli_model = CrossEncoder("cross-encoder/nli-deberta-v3-small")
 
 def compute_nli_divergence(claims_a: list[str], claims_b: list[str]) -> float:
     pairs = [(a, b) for a in claims_a for b in claims_b]
-    scores = nli_model.predict(pairs)  # shape: (n_pairs, 3): [contradiction, entailment, neutral]
-    contradiction_probs = scores[:, 0]
-    return float(contradiction_probs.max())
+    logits = nli_model.predict(pairs)  # columns: contradiction, entailment, neutral
+    probabilities = softmax(logits, axis=1)
+    return max(row[0] for row in probabilities)
 ```
 
-A two-layer detection pipeline applies a cosine fast-path first (skip NLI if max cosine similarity > 0.97, treating it as definitive convergence) and falls back to NLI otherwise. This avoids running the cross-encoder on pairs that are already semantically identical.
+The default path evaluates every cross-agent claim pair with the NLI model. It deliberately avoids a cosine fast-path: one nearly identical claim can coexist with another contradictory claim, so maximum cosine similarity is not sufficient evidence of convergence.
 
-After switching to NLI, Round 1 divergence scores ranged from 0.83 to 0.86 — above the 0.50 threshold — enabling multi-round debates with genuine stance evolution.
+In the canonical seven-question NLI run, four debates reached multiple rounds, with mean RTC 2.14 and mean SSS 0.977. The original 0.83–0.86 trajectory remains an illustrative early run, not an aggregate result.
 
 ---
 
@@ -149,12 +152,12 @@ The routing function terminates debate when any of four conditions fires, evalua
 
 ```python
 def route_divergence(state: DebateState) -> list[Send] | str:
-    # Guard 1: Absolute safety cap
-    if state["round_num"] >= 10:
+    # Guard 1: Caller cap, followed by the absolute safety cap
+    if state["round_num"] >= state["max_rounds"] or state["round_num"] >= 10:
         return "synthesize_stub"
 
-    # Guard 2: Genuine convergence
-    if state["divergence_score"] < 0.75:
+    # Guard 2: detector-owned convergence decision
+    if not state["diverged_pairs"]:
         return "synthesize_stub"
 
     # Guard 3: Score plateau (agents repeating themselves)
@@ -172,7 +175,7 @@ def route_divergence(state: DebateState) -> list[Send] | str:
             return "synthesize_stub"
 
     # Continue debate
-    return [Send("optimist_node", state), Send("pessimist_node", state), Send("devil_node", state)]
+    return build_rebuttal_sends(state)
 ```
 
 Guards 3 and 4 address a failure mode that divergence-threshold-only systems miss: agents can maintain high divergence scores while making no actual argumentative progress — simply restating their positions in different words. If neither the score is moving nor any agent is conceding ground, continued debate is unproductive.
@@ -194,14 +197,14 @@ Test set: 10 questions spanning business, technology, and policy domains. Each s
 
 ---
 
-### Finding A: PROHIBITION Reduces Hedging by 28%
+### Finding A: A 28% Lower Mean Hedge Ratio in This Sample
 
 | System | HR | Interpretation |
 |--------|----|---------------|
 | Multi-agent (this system) | **0.0093** | Committed, non-hedged positions |
 | Single-LLM baseline | 0.0129 | Characteristic hedging — "both sides have merit" |
 
-The reduction in hedge ratio is attributable to the PROHIBITION constraints rather than the multi-agent structure per se. Agents prompted with hard lexical constraints cannot construct hedge sentences even if the underlying model would otherwise generate them.
+Across these 10 questions, the observed mean was about 28% lower. The checked-in results do not isolate PROHIBITION from every other system difference, so this is descriptive rather than a causal claim.
 
 ---
 
@@ -228,11 +231,11 @@ This finding illustrates a broader design principle for multi-agent systems: **a
 | System | Round 1 Divergence | Mean RTC | SSS |
 |--------|--------------------|----------|-----|
 | Cosine detection | 0.097 – 0.258 | 1.0 | 1.000 (trivial) |
-| **NLI detection** | **0.83 – 0.86** | **3.0** | **0.883** |
+| **NLI detection (canonical n=7)** | detector-specific | **2.14** | **0.977** |
 
 With cosine-based detection, 100% of debates terminated after Round 1 — the system never ran a multi-round debate. The SSS of 1.000 reflects this: stance stability is trivially perfect when there is only one round.
 
-With NLI detection, debates ran for three rounds on average, with measurable stance evolution (SSS = 0.883 indicates agents maintained their core positions under rebuttal while making calibrated concessions).
+In the canonical seven-question NLI run, 4/7 debates reached multiple rounds, mean RTC was 2.14, and mean SSS was 0.977. One illustrative three-round question had SSS 0.883.
 
 The practical implication: a debate system's behavior is fundamentally shaped by how it measures divergence. Cosine similarity produces a system that always converges immediately; NLI produces one that debates substantively.
 
@@ -318,7 +321,7 @@ PROHIBITION is not a binary on/off switch. It is a continuous spectrum mapped to
 
 ---
 
-### Finding D: PROHIBITION Does Not Inflate False Certainty
+### Finding D: One Judge Assigned Equal False-Certainty Rates
 
 A natural concern: does forcing agents to commit cause them to make overconfident claims while ignoring obvious counterevidence — "false certainty"?
 
@@ -329,43 +332,39 @@ Every agent position across 7 test questions was scored by an independent judge 
 | `full_system` | 3/21 (14.3%) | 2/21 (9.5%) | 16/21 (76.2%) |
 | `single_llm` | 3/21 (14.3%) | 6/21 (28.6%) | 12/21 (57.1%) |
 
-Both systems produce identical false certainty rates (14.3%). The meaningful difference: `single_llm` produces substantially more `appropriate_hedge` verdicts (28.6% vs. 9.5%) — positions that avoid committing in order to avoid being wrong. PROHIBITION does not push agents toward indefensible claims; it pushes them from appropriate hedges into committed positions.
+One Qwen judge assigned identical false-certainty rates (14.3%) and more `appropriate_hedge` labels to `single_llm`. This suggests a useful hypothesis, but it does not establish that forced commitment is calibration-safe.
 
 ---
 
-### Finding E: Adaptive Constraints Improve Ground-Truth Accuracy
+### Finding E: Historical Key-Factor Mention Exercise
 
-A benchmark of 10 historical M&A and product strategy decisions with known outcomes (Facebook/Instagram acquisition, Netflix streaming pivot, Snapchat/Facebook offer, etc.) measures whether each system's analysis would have supported the historically correct decision.
+A 10-case historical exercise used an LLM judge to score whether each output mentioned a predefined key factor.
 
-| System | Ground-truth accuracy (n=10) |
+| System | Partial-or-better key-factor mention rate (n=10) |
 |--------|------------------------------|
 | `full_system` | 0.40 |
 | `single_llm` | 0.60 |
 | `adaptive_prohibition` | **0.60** |
 
-Full PROHIBITION reduces accuracy: forcing agents to maintain committed positions regardless of question type suppresses the contextual analysis needed to identify the pivotal variable in complex strategic decisions. Adaptive constraints, by routing historical decisions to `context_dependent` mode, preserve the analytical flexibility that single_llm maintains by default — while producing more structured, less hedged output.
+No response earned the rubric's highest score for clearly identifying the factor; all counted cases were partial or tangential mentions. The 40%/60% pattern is exploratory, not decision accuracy.
 
 ---
 
 ### Finding F: Question Type Determines How Much Adaptive Gains
 
-3-type comparison experiment (n=10 binary, n=10 values-based, n=20 context-dependent):
+Matched, validation-clean subsets exclude any question where either system emitted a sentinel:
 
 | Question type | full_system focus | adaptive focus | Δ | n |
 |---------------|------------------|----------------|---|---|
-| binary | 2.65 | **2.80** | +5.7% | 10 |
-| values-based | 3.10 | **3.10** | 0.0% | 10 |
-| **context-dependent** | 2.00 | **3.50** | **+75%** | 20 |
+| binary | 2.750 | **3.125** | +13.6% | 8 |
+| values-based | **3.333** | **3.333** | 0.0% | 9 |
+| **context-dependent** | 2.000 | **3.719** | **+85.9%** | 16 |
 
 Focus score = mean of type-specific focus dimensions (binary: analytical_depth + claim_specificity; values: perspective_diversity + analytical_depth; context: claim_specificity + practical_utility).
 
-The values-based tie (3.10 = 3.10) validates the core design hypothesis: the classifier correctly routes values questions to full PROHIBITION, preserving quality. The classifier does not over-adapt.
+The values-based subset tied, while the adaptive sample had higher mean focus scores in the other two subsets. Because each question was generated once and evaluated by one judge, these differences motivate replication rather than validate the design.
 
-Context-dependent questions show the largest gain: +75% on focus score across 20 questions spanning API design, infrastructure, hiring, go-to-market, and organizational decisions.
-
-**A counter-intuitive finding on binary questions:** the classifier routes the majority of human-labeled "binary" questions to `context_dependent`. Questions phrased as *"should startups do X?"* are recognized by the classifier as having answers that depend on company stage, market, and team — because this is true. The performance gain on binary questions comes primarily from the *context-dependent prompt design* (condition mapping), not from the *moderate PROHIBITION level* itself.
-
-This implies that question taxonomy is not a fixed property of a question's topic — it is a property of the question's analytical requirements in context. A classifier that operates on these requirements produces better routing than any hardcoded taxonomy.
+The classifier routed many human-labeled binary questions to `context_dependent`. Routing and prompt choice changed together, so the experiment cannot identify which factor caused the observed difference.
 
 ---
 
@@ -404,17 +403,17 @@ This enables inspection of the full reasoning chain: not just what the final con
 
 Six findings shaped this system's final design:
 
-1. **Hard constraints outperform soft guidance.** A lexical prohibition list is more effective than an instruction to "avoid hedging." The model cannot construct a forbidden sentence; it can always interpret a soft instruction flexibly.
+1. **Hard constraints changed hedging behavior in the checked-in sample.** The current data does not isolate a publication-grade causal effect.
 
 2. **Role definitions interact with system dynamics.** The Devil's Advocate prompt produced a 2-vs-1 configuration rather than a triangle — not because the prompt was poorly written in isolation, but because it interacted with the system's existing equilibrium in an unintended way. Role definitions in multi-agent systems must be validated against actual system behavior, not evaluated in isolation.
 
 3. **The divergence metric determines whether the system debates at all.** Cosine similarity and NLI cross-encoders measure fundamentally different things. For stance detection, the choice is not a parameter to tune — it determines whether the system ever runs more than one round.
 
-4. **Uniform PROHIBITION fails on context-dependent questions.** Questions with no universal answer require condition mapping, not unconditional advocacy. Forcing full PROHIBITION on these questions reduces output quality by 75% on the dimensions that matter most (claim specificity, practical utility).
+4. **Context-dependent questions are a promising target for adaptive prompts.** Validation-clean single-run samples favored condition mapping, but require replication.
 
-5. **The classifier's routing decision matters more than the constraint level.** Performance gains on binary questions come from the classifier routing them to context-dependent mode, not from the moderate PROHIBITION setting. Question type classification is the more fundamental design choice.
+5. **Routing and constraint level must be ablated separately.** The current experiment changes both together and cannot isolate their effects.
 
-6. **Forced commitment doesn't inflate false certainty — but it does reduce legitimate uncertainty signaling.** PROHIBITION produces the same false certainty rate as single_llm (14.3%), but reduces `honest_uncertainty` scores. Systems where calibrated confidence is a valued output should account for this trade-off.
+6. **Forced commitment may reduce legitimate uncertainty signaling.** A single judge assigned equal false-certainty rates in this sample, which is not enough to establish calibration safety.
 
 Each finding followed the same structure: the system produced unexpected output, diagnosis revealed a specific design assumption that failed under realistic conditions, and the fix required a principled redesign rather than a parameter adjustment. This pattern — surprising behavior → root-cause diagnosis → principled fix — is the most transferable lesson from this project.
 
@@ -426,8 +425,8 @@ Each finding followed the same structure: the system produced unexpected output,
 
 ## Resources
 
-- Tech stack: LangGraph 1.1.9 · claude-3-5-sonnet · BAAI/bge-small-en-v1.5 · DeBERTa NLI cross-encoder · SQLite · Streamlit
-- Experiment data: full result JSONs available in `/results/`
+- Tech stack: LangGraph · multi-backend LLM APIs · BAAI/bge-small-en-v1.5 · DeBERTa NLI cross-encoder · SQLite · Streamlit
+- Experiment data and validation notes: [`results/README.md`](results/README.md)
 - Reference: Perez et al., "Sycophancy to Subterfuge: Investigating Reward Tampering in Language Models," 2022
 
 ---

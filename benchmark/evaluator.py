@@ -76,7 +76,7 @@ class EvaluationResult:
     sss: Optional[float]  # Stance Stability Score (None for single_llm)
     hedge_ratio: float    # HR
     rounds: int           # Rounds to convergence
-    convergence_status: str  # "converged" | "max_rounds" | "partial" | "single_llm"
+    convergence_status: str  # converged | plateau | stalled | max_rounds | partial | single_llm
 
     # Raw text snapshot for manual inspection
     agent_positions: dict[str, str] = field(default_factory=dict)

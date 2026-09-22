@@ -9,15 +9,19 @@ import pytest
 def pytest_configure(config):
     """Register the integration marker to silence PytestUnknownMarkWarning."""
     config.addinivalue_line("markers", "integration: requires live LLM backend")
+    config.addinivalue_line("markers", "model: downloads and runs local embedding/NLI models")
+    config.addinivalue_line("markers", "ui: exercises the Streamlit application")
 
 
 # Map LLM_BACKEND → required env var
 _BACKEND_CRED_MAP = {
     "groq": "GROQ_API_KEY",
+    "qwen": "GROQ_API_KEY",
     "openai": "OPENAI_API_KEY",
     "cerebras": "CEREBRAS_API_KEY",
     "together": "TOGETHER_API_KEY",
     "sambanova": "SAMBANOVA_API_KEY",
+    "gemini": "GOOGLE_API_KEY",
 }
 
 

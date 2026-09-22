@@ -1,0 +1,14 @@
+[project]
+name = "multi-agent-debate"
+version = "1.0.0"
+description = "A LangGraph multi-agent debate system with NLI divergence detection and auditable reports"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "integration: requires a live LLM backend",
+  "model: downloads and runs local embedding/NLI models",
+  "ui: exercises the Streamlit application",
+]

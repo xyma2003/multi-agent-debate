@@ -28,7 +28,9 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
+import subprocess
 import sys
 import time
 import traceback
@@ -42,8 +44,9 @@ from benchmark.baseline import run_single_llm
 from benchmark.evaluator import evaluate_debate, evaluate_single_llm
 from benchmark.variants import build_variant_graph, VARIANT_BUILDERS
 
+ROOT_DIR = Path(__file__).parent.parent
 QUESTIONS_PATH = Path(__file__).parent / "questions.json"
-RESULTS_DIR = Path(__file__).parent.parent / "results"
+RESULTS_DIR = ROOT_DIR / "results"
 
 ALL_VARIANTS = list(VARIANT_BUILDERS.keys()) + ["single_llm"]
 # Note: nli_detection is included via VARIANT_BUILDERS
@@ -69,6 +72,48 @@ def load_existing_results(variant: str) -> dict[int, dict]:
     with open(path) as f:
         data = json.load(f)
     return {r["question_id"]: r for r in data.get("results", [])}
+
+
+def _run_metadata(
+    variant: str,
+    max_rounds: int,
+    questions: list[dict],
+    results: list[dict],
+) -> dict:
+    """Capture enough provenance to distinguish resumed and fresh runs."""
+    backend = os.environ.get("LLM_BACKEND", "groq").lower()
+    model_env = {
+        "groq": "GROQ_MODEL",
+        "qwen": "QWEN_MODEL",
+        "openai": "OPENAI_MODEL",
+        "cerebras": "CEREBRAS_MODEL",
+        "together": "TOGETHER_MODEL",
+        "sambanova": "SAMBANOVA_MODEL",
+        "gemini": "GEMINI_MODEL",
+    }.get(backend)
+    try:
+        commit = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT_DIR, text=True
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = "unknown"
+    detector = {
+        "single_llm": "not_applicable",
+        "nli_detection": "nli",
+        "fulltext_embedding": "cosine_fulltext",
+        "fixed_rounds": "cosine_routing_disabled",
+    }.get(variant, "cosine")
+    return {
+        "max_rounds": max_rounds,
+        "selected_question_ids": [question["id"] for question in questions],
+        "result_question_ids": [row["question_id"] for row in results],
+        "result_count": len(results),
+        "llm_backend": backend,
+        "llm_model": os.environ.get(model_env, "default") if model_env else "default",
+        "divergence_mode": detector,
+        "configured_divergence_mode": os.environ.get("DIVERGENCE_MODE", "nli"),
+        "git_commit": commit,
+    }
 
 
 def save_results(variant: str, results: list[dict], meta: dict) -> None:
@@ -214,7 +259,11 @@ def run_variant(
 
         if result is not None:
             results.append(result)
-            save_results(variant, results, {"max_rounds": max_rounds, "total_questions": len(questions)})
+            save_results(
+                variant,
+                results,
+                _run_metadata(variant, max_rounds, questions, results),
+            )
         else:
             print(f"  Skipping q{qid} (failed)")
 

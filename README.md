@@ -39,7 +39,7 @@ Historical exploratory visualization; see the evidence and provenance notes belo
 
 ## Quick start
 
-Requirements: Python 3.10+ and one supported LLM API key.
+Requirements: Python 3.10+. An LLM API key is required only to start a new debate; saved reports can be viewed without credentials.
 
 ```bash
 git clone https://github.com/xyma2003/multi-agent-debate.git
@@ -49,17 +49,16 @@ python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-cp .env.example .env
 streamlit run app.py
 ```
 
-Open <http://localhost:8501>.
+Open <http://localhost:8501>. Select a saved report from **Past Debates** to review it without API calls or local model downloads. A fresh checkout has no saved debates; the app shows an empty history and keeps **Start Debate** disabled until credentials are configured.
 
-The default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB) on first use. The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
+Starting a new debate uses the configured LLM API. On its first divergence check, the default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB). The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 
 ### Configuration
 
-The checked-in `.env.example` documents all options. A minimal SiliconFlow/OpenAI-compatible setup is:
+To start new debates, copy `.env.example` to `.env` (or edit your existing `.env`), replace the placeholder with your own credentials, and restart the app. The checked-in `.env.example` documents all options. A minimal SiliconFlow/OpenAI-compatible setup is:
 
 ```dotenv
 LLM_BACKEND=openai
@@ -93,7 +92,7 @@ pip install -r requirements-dev.txt
 Run the deterministic suite used by CI:
 
 ```bash
-python -m pytest -m "not integration and not model and not ui" -q
+python -m pytest -m "not integration and not model" -q
 ```
 
 Optional suites:
@@ -105,7 +104,7 @@ python -m pytest -m model -v
 # Requires configured API credentials
 python -m pytest -m integration -v
 
-# Streamlit application tests
+# Offline Streamlit application tests (also included in CI)
 python -m pytest -m ui -v
 ```
 

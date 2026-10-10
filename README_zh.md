@@ -39,7 +39,7 @@
 
 ## 快速开始
 
-需要 Python 3.10+，以及任一受支持的 LLM API 密钥。
+需要 Python 3.10+。只有发起新辩论时需要 LLM API 密钥，查看已保存的报告无需配置凭据。
 
 ```bash
 git clone https://github.com/xyma2003/multi-agent-debate.git
@@ -49,17 +49,16 @@ python3 -m venv .venv
 source .venv/bin/activate          # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 
-cp .env.example .env
 streamlit run app.py
 ```
 
-浏览器访问 <http://localhost:8501>。
+浏览器访问 <http://localhost:8501>，从 **Past Debates** 选择已保存的报告即可回看，不会调用 API 或下载本地模型。全新检出没有历史记录，页面会显示空历史；配置凭据前 **Start Debate** 按钮保持禁用。
 
-默认 NLI 模式首次运行会下载 `cross-encoder/nli-deberta-v3-small`（约 180 MB）。可选的余弦对照模式会下载 `BAAI/bge-small-en-v1.5`（约 130 MB）。
+发起新辩论会调用所配置的 LLM API。默认 NLI 模式首次执行分歧检测时会下载 `cross-encoder/nli-deberta-v3-small`（约 180 MB）；可选的余弦对照模式会下载 `BAAI/bge-small-en-v1.5`（约 130 MB）。
 
 ### 配置示例
 
-`.env.example` 包含全部后端配置。SiliconFlow/OpenAI-compatible 的最小配置如下：
+需要发起新辩论时，将 `.env.example` 复制为 `.env`（已有文件则直接编辑），把占位内容替换为自己的凭据并重启应用。`.env.example` 包含全部后端配置。SiliconFlow/OpenAI-compatible 的最小配置如下：
 
 ```dotenv
 LLM_BACKEND=openai
@@ -88,12 +87,12 @@ DIVERGENCE_MODE=nli
 pip install -r requirements-dev.txt
 
 # CI 使用的确定性测试；不下载模型、不调用 API
-python -m pytest -m "not integration and not model and not ui" -q
+python -m pytest -m "not integration and not model" -q
 
 # 以下按需运行
 python -m pytest -m model -v        # 下载本地嵌入/NLI模型
 python -m pytest -m integration -v  # 需要 API 凭据
-python -m pytest -m ui -v           # Streamlit UI 测试
+python -m pytest -m ui -v           # 离线 Streamlit UI 测试，已纳入 CI
 ```
 
 ## 实验结论应如何理解

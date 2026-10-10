@@ -38,7 +38,7 @@ if "debate_status" not in st.session_state:
     st.session_state.error_msg = None
 
 # ---------------------------------------------------------------------------
-# API key guard (fail loudly on fresh run with no key — UI-04)
+# Credentials are required only when starting a new debate.
 # Supports direct API key, internal proxy, and SiliconFlow/OpenAI-compatible.
 # ---------------------------------------------------------------------------
 _backend = os.environ.get("LLM_BACKEND", "groq").lower()
@@ -62,9 +62,9 @@ else:
 if not _has_api_key:
     st.warning(
         f"⚠️ No credentials found for `LLM_BACKEND={_backend}`. "
-        "See `.env.example` or README.md for the required environment variable."
+        "You can still browse saved reports in Past Debates. "
+        "To start a new debate, configure the credentials described in `.env.example` or README.md."
     )
-    st.stop()
 
 # ---------------------------------------------------------------------------
 # Sidebar — past debates (STORE-02 replay via Phase 4 API)
@@ -107,7 +107,7 @@ col_btn, col_slider = st.columns([1, 3])
 with col_btn:
     start_clicked = st.button(
         "Start Debate",
-        disabled=(st.session_state.debate_status == "running" or not (topic or "").strip()),
+        disabled=(not _has_api_key or st.session_state.debate_status == "running" or not (topic or "").strip()),
         type="primary",
     )
 with col_slider:
@@ -179,7 +179,7 @@ def _render_agent_chunk(node_name: str, node_update: dict) -> None:
 # ---------------------------------------------------------------------------
 # Debate execution — fires only on Start Debate click (UI-02)
 # ---------------------------------------------------------------------------
-if start_clicked and (topic or "").strip():
+if start_clicked and _has_api_key and (topic or "").strip():
     st.session_state.debate_status = "running"
     st.session_state.thread_id = str(uuid.uuid4())
     st.session_state.final_report = None

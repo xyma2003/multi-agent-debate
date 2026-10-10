@@ -1,128 +1,257 @@
-# tests/test_phase5.py
-"""
-Phase 5 UI tests — covers UI-01 through UI-04.
+"""Deterministic Streamlit acceptance tests using synthetic, local reports.
 
-AppTest-based tests require: pip install streamlit==1.56.0
-Unit tests for render_report() and stream dispatch require: debate package installed
+These tests run the real app and compile its real graph, but never execute a
+model, download NLI weights, load a developer's .env, or open debates.db.
+Run with: python -m pytest tests/test_phase5.py -v
 """
-import os
-import pytest
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from unittest.mock import MagicMock, patch
-from datetime import datetime, timezone
+import socket
+from types import SimpleNamespace
+from unittest.mock import Mock
+
+import pytest
+from streamlit.testing.v1 import AppTest
 
 APP_PATH = Path(__file__).parent.parent / "app.py"
 pytestmark = pytest.mark.ui
 
-# ---- Fixtures ----
 
 @pytest.fixture
-def sample_report():
-    """Minimal DebateReport for render tests."""
+def sample_reports():
+    """Two distinguishable, persisted reports with every report section filled."""
     from debate.state import (
-        DebateReport, DisputedPoint, RoundRecord, AgentArgument, Concession
-    )
-    arg = AgentArgument(
-        agent_role="optimist", round_num=0,
-        position="AI is net positive",
-        reasoning="Because productivity",
-        confidence=0.8,
-        key_claims=["Claim A", "Claim B", "Claim C"],
-    )
-    rr = RoundRecord(round_num=0, arguments=[arg], divergence_score=0.3)
-    dp = DisputedPoint(topic="Job displacement", agent_positions={"optimist": "minimal", "pessimist": "severe"})
-    return DebateReport(
-        debate_id="test-id",
-        topic="Is AI beneficial?",
-        consensus_points=["AI accelerates research"],
-        disputed_points=[dp],
-        verdict="Overall net positive with caveats.",
-        confidence_score=0.72,
-        convergence_status="converged",
-        reasoning_trace=[rr],
-        concession_log=[],
-        created_at=datetime.now(timezone.utc),
+        AgentArgument, Concession, DebateReport, DisputedPoint, RoundRecord,
     )
 
-
-# ---- UI-01: Session state initialises clean ----
-
-def test_session_state_init():
-    """AppTest: fresh session has all required keys, no KeyError.
-
-    NOTE: This test loads the full debate graph (including sentence-transformers model).
-    It requires API credentials and may take 10-30s on first run due to model loading.
-    Run manually: pytest tests/test_phase5.py::test_session_state_init -v -s
-    """
-    st_testing = pytest.importorskip("streamlit.testing.v1", reason="streamlit not installed")
-    AppTest = st_testing.AppTest
-    if not APP_PATH.exists():
-        pytest.skip("app.py not yet created")
-    if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-        pytest.skip("No API credentials — set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN to run UI tests")
-    # AppTest default timeout is 3s — increase for model loading
-    at = AppTest.from_file(str(APP_PATH))
-    try:
-        at.run(timeout=30)
-    except RuntimeError as e:
-        if "timed out" in str(e):
-            pytest.skip(f"AppTest timed out loading graph (sentence-transformers model download?): {e}")
-        raise
-    assert not at.exception, f"app.py raised on fresh run: {at.exception}"
-
-
-# ---- UI-02: Stream chunk dispatch ----
-
-def test_stream_dispatch(sample_report):
-    """Unit: _render_agent_chunk handles AgentArgument attributes correctly."""
-    import importlib, sys
-    # Import app only if it exists
-    if not APP_PATH.exists():
-        pytest.skip("app.py not yet created")
-    pytest.importorskip("streamlit", reason="streamlit not installed")
-    import streamlit as st
-    spec = importlib.util.spec_from_file_location("app", APP_PATH)
-    app_mod = importlib.util.module_from_spec(spec)
-    # Provide session state stub so imports don't fail
-    with patch("streamlit.session_state", MagicMock()):
-        try:
-            spec.loader.exec_module(app_mod)
-        except Exception:
-            pass  # module-level side effects may raise; function import is the goal
-    # Verify _render_agent_chunk exists and accepts (str, dict) without AttributeError
-    assert hasattr(app_mod, "_render_agent_chunk"), "_render_agent_chunk must be a top-level function"
+    reports = []
+    for index, subject in enumerate(("Remote work", "Four-day week")):
+        concession = Concession(
+            conceded_point=f"{subject} needs a trial period",
+            triggered_by_agent="pessimist",
+            triggered_by_claim=f"{subject} has transition costs",
+            rationale="A bounded trial can test the transition cost.",
+        )
+        argument = AgentArgument(
+            agent_role="optimist",
+            round_num=0,
+            position=f"{subject} improves flexibility",
+            reasoning=f"A trial of {subject} can measure team outcomes.",
+            confidence=0.8,
+            key_claims=[
+                f"{subject} supports flexibility",
+                "Outcomes can be measured",
+                "A trial limits transition risk",
+            ],
+            concessions=[concession],
+        )
+        reports.append(DebateReport(
+            debate_id=f"offline-report-{index}",
+            topic=f"Should we adopt {subject.lower()}?",
+            consensus_points=[f"Measure {subject} outcomes before expansion"],
+            disputed_points=[DisputedPoint(
+                topic=f"{subject} coordination cost",
+                agent_positions={
+                    "optimist": f"{subject} costs are manageable",
+                    "pessimist": f"{subject} costs remain uncertain",
+                },
+            )],
+            verdict=f"Run a limited {subject} trial and review the results.",
+            confidence_score=(0.72, 0.64)[index],
+            convergence_status=("converged", "max_rounds")[index],
+            reasoning_trace=[RoundRecord(
+                round_num=0, arguments=[argument], divergence_score=0.3,
+            )],
+            concession_log=[concession],
+            created_at=datetime(2026, 1, 1, tzinfo=timezone.utc)
+            + timedelta(days=index),
+        ))
+    return reports
 
 
-# ---- UI-03: render_report renders DebateReport without error ----
+@pytest.fixture
+def offline_app(monkeypatch, tmp_path):
+    """Isolate credentials, persistence, model calls, and outbound networking."""
+    import dotenv
+    from debate import divergence, llm, store
 
-def test_render_report(sample_report):
-    """AppTest: complete app run loads a report from session state and renders without exception."""
-    st_testing = pytest.importorskip("streamlit.testing.v1", reason="streamlit not installed")
-    AppTest = st_testing.AppTest
-    if not APP_PATH.exists():
-        pytest.skip("app.py not yet created")
-    at = AppTest.from_file(str(APP_PATH))
-    at.session_state["debate_status"] = "complete"
-    at.session_state["final_report"] = sample_report
-    at.session_state["thread_id"] = "test-thread"
-    at.session_state["error_msg"] = None
-    at.run()
-    assert not at.exception, f"render_report raised: {at.exception}"
+    for credential in (
+        "GROQ_API_KEY", "OPENAI_API_KEY", "CEREBRAS_API_KEY",
+        "TOGETHER_API_KEY", "SAMBANOVA_API_KEY", "GOOGLE_API_KEY",
+        "ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN",
+    ):
+        monkeypatch.delenv(credential, raising=False)
+    monkeypatch.setenv("LLM_BACKEND", "groq")
+    monkeypatch.setenv("STREAMLIT_BROWSER_GATHER_USAGE_STATS", "false")
+    monkeypatch.setattr(dotenv, "load_dotenv", Mock(return_value=False))
+
+    no_model = Mock(side_effect=AssertionError("UI tests must not create an LLM"))
+    no_nli = Mock(side_effect=AssertionError("UI tests must not load an NLI model"))
+    no_embeddings = Mock(side_effect=AssertionError("UI tests must not load embeddings"))
+    no_network = Mock(side_effect=AssertionError("UI tests must stay offline"))
+    monkeypatch.setattr(llm, "_make_llm", no_model)
+    monkeypatch.setattr(divergence, "_get_nli_model", no_nli)
+    monkeypatch.setattr(divergence, "_get_model", no_embeddings)
+    monkeypatch.setattr(socket.socket, "connect", no_network)
+    monkeypatch.setattr(socket.socket, "connect_ex", no_network)
+    monkeypatch.setattr(socket, "create_connection", no_network)
+
+    # Import the real graph under the model/network guards. Patch the aliases
+    # too, because earlier tests in the full suite may have imported the nodes.
+    from debate.graph import graph
+    from debate.nodes import agents, synthesize
+
+    monkeypatch.setattr(agents, "_make_llm", no_model)
+    monkeypatch.setattr(synthesize, "_make_llm", no_model)
+    stream = Mock(side_effect=AssertionError("Browsing must not execute the graph"))
+    monkeypatch.setattr(graph, "stream", stream)
+
+    database_path = tmp_path / "reports.sqlite3"
+    connection = store.get_connection(database_path)
+    # The default argument in get_connection is bound at definition time;
+    # changing DB_PATH alone would still open the developer's real database.
+    monkeypatch.setattr(store, "get_connection", Mock(return_value=connection))
+
+    def open_app():
+        return AppTest.from_file(str(APP_PATH), default_timeout=10).run()
+
+    yield SimpleNamespace(
+        open=open_app,
+        stream=stream,
+        connection=connection,
+    )
+
+    connection.close()
+    store._connections.pop(str(database_path.resolve()), None)
+    no_model.assert_not_called()
+    no_nli.assert_not_called()
+    no_embeddings.assert_not_called()
+    no_network.assert_not_called()
 
 
-# ---- UI-04: Fresh session, no KeyError ----
+def _start_button(app):
+    return next(button for button in app.button if button.label == "Start Debate")
 
-def test_fresh_session_no_error():
-    """AppTest: idle state on first load produces no exception and renders input + button."""
-    st_testing = pytest.importorskip("streamlit.testing.v1", reason="streamlit not installed")
-    AppTest = st_testing.AppTest
-    if not APP_PATH.exists():
-        pytest.skip("app.py not yet created")
-    if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
-        pytest.skip("No API credentials — set ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN to run UI tests")
-    at = AppTest.from_file(str(APP_PATH))
-    at.run()
-    assert not at.exception, f"Fresh session raised: {at.exception}"
-    # Verify the Start Debate button exists
-    buttons = [b.label for b in at.button]
-    assert any("Start Debate" in lbl for lbl in buttons), f"Start Debate button missing. Found: {buttons}"
+
+def _values(elements):
+    return "\n".join(str(element.value) for element in elements)
+
+
+def _assert_report(app, report):
+    """Check visible report data, not just the absence of a Streamlit error."""
+    assert not app.exception
+    assert app.session_state["debate_status"] == "complete"
+    assert app.session_state["final_report"].debate_id == report.debate_id
+    assert "Debate Result" in _values(app.subheader)
+    assert report.verdict in _values(app.info)
+    assert app.metric[0].value == f"{report.confidence_score:.0%}"
+    assert report.consensus_points[0] in _values(app.success)
+    assert report.disputed_points[0].topic in [item.label for item in app.expander]
+    rendered = _values(app.markdown)
+    assert report.disputed_points[0].agent_positions["pessimist"] in rendered
+    assert report.reasoning_trace[0].arguments[0].position in rendered
+    assert "Round 1" in rendered
+    assert "0.300" in rendered
+    assert report.concession_log[0].conceded_point in rendered
+    assert report.concession_log[0].triggered_by_claim in rendered
+
+
+def test_no_credentials_empty_history_is_usable(offline_app):
+    app = offline_app.open()
+
+    assert not app.exception
+    assert app.session_state["debate_status"] == "idle"
+    assert app.session_state["thread_id"] is None
+    assert app.session_state["final_report"] is None
+    assert app.session_state["error_msg"] is None
+    assert "Multi-Agent Debate System" in _values(app.title)
+    assert "Past Debates" in _values(app.sidebar.header)
+    assert "No past debates yet." in _values(app.sidebar.caption)
+    assert "No credentials" in _values(app.warning)
+    assert app.text_input[0].label == "Debate topic"
+    assert not app.text_input[0].disabled
+    assert _start_button(app).disabled
+    offline_app.stream.assert_not_called()
+
+
+def test_no_credentials_can_switch_between_saved_reports(offline_app, sample_reports):
+    from debate.store import save_debate
+
+    for report in sample_reports:
+        save_debate(report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    # History replay must work even when the database refuses all writes.
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    assert not app.exception
+    assert [button.key for button in app.sidebar.button] == [
+        sample_reports[1].debate_id, sample_reports[0].debate_id,
+    ]
+
+    for report, previous in (
+        (sample_reports[1], sample_reports[0]),
+        (sample_reports[0], sample_reports[1]),
+        (sample_reports[1], sample_reports[0]),
+    ):
+        app.sidebar.button(key=report.debate_id).click().run()
+        _assert_report(app, report)
+        assert previous.verdict not in _values(app.info)
+        assert previous.consensus_points[0] not in _values(app.success)
+        assert _start_button(app).disabled
+
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_topic_does_not_enable_start_without_credentials(offline_app):
+    app = offline_app.open()
+    app.text_input[0].input("Should we adopt remote work?").run()
+
+    assert not app.exception
+    assert _start_button(app).disabled
+    assert app.session_state["debate_status"] == "idle"
+    # AppTest can submit a disabled button event. The server-side guard must
+    # reject it as well, rather than relying solely on the browser's disabled UI.
+    _start_button(app).click().run()
+    assert not app.exception
+    assert app.session_state["debate_status"] == "idle"
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("backend,credential", [
+    ("groq", "GROQ_API_KEY"),
+    ("openai", "OPENAI_API_KEY"),
+    ("anthropic", "ANTHROPIC_API_KEY"),
+    ("anthropic", "ANTHROPIC_AUTH_TOKEN"),
+])
+def test_fake_credentials_allow_mocked_debate(
+    offline_app, sample_reports, monkeypatch, backend, credential,
+):
+    monkeypatch.setenv("LLM_BACKEND", backend)
+    monkeypatch.setenv(credential, "offline-test-placeholder")
+    report = sample_reports[0]
+    argument = report.reasoning_trace[0].arguments[0]
+    offline_app.stream.side_effect = None
+    offline_app.stream.return_value = iter([
+        {"optimist_node": {"current_round_arguments": [argument]}},
+        {"divergence_check_node": {"divergence_score": 0.3, "diverged_pairs": []}},
+        {"synthesize_stub": {"final_report": report}},
+    ])
+
+    app = offline_app.open()
+    assert not app.exception
+    assert not app.warning
+    assert _start_button(app).disabled  # A key alone does not supply a topic.
+    app.text_input[0].input(f"  {report.topic}  ").run()
+    assert not _start_button(app).disabled
+    _start_button(app).click().run()
+
+    _assert_report(app, report)
+    assert argument.key_claims[0] in _values(app.markdown)
+    assert "Divergence score: **0.30**" in _values(app.info)
+    assert "Synthesis complete." in _values(app.success)
+    offline_app.stream.assert_called_once()
+    call = offline_app.stream.call_args
+    assert call.args == ({"topic": report.topic, "max_rounds": 2},)
+    assert call.kwargs["stream_mode"] == "updates"
+    assert call.kwargs["config"]["configurable"]["thread_id"] == app.session_state["thread_id"]

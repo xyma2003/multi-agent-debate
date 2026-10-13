@@ -58,10 +58,10 @@ class SynthesizerOutput(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Confidence formula constants
+# Debate Agreement Index constants (legacy confidence_score storage field)
 # ---------------------------------------------------------------------------
 
-# Round adjustment penalizes debates that needed more rounds to resolve.
+# Fixed round penalty; more rounds do not establish lower answer quality.
 # Key: round_num (count of completed rounds, 1-indexed). Default 0.8 for round_num >= 4.
 _ROUND_ADJUSTMENTS: dict[int, float] = {1: 1.0, 2: 0.9, 3: 0.8}
 
@@ -87,13 +87,15 @@ Rules:
 # ---------------------------------------------------------------------------
 
 def _compute_confidence_score(round_history: list[RoundRecord], round_num: int) -> float:
-    """Compute confidence score from debate outcome.
+    """Compute the heuristic Debate Agreement Index, retaining its legacy name.
 
     Formula: (1 - max_divergence_score) * round_adjustment
 
     max_divergence_score: the highest per-round divergence_score across ALL rounds
       (not just the last round's state["divergence_score"], which is last-write-wins).
     round_adjustment: 1.0 for 1 round, 0.9 for 2 rounds, 0.8 for 3+ rounds.
+    This is not calibrated correctness, evidence quality, or final consensus.
+    Agent self-reported confidence is not an input; detector modes differ.
 
     Edge cases:
       - round_history empty or all divergence_score == 0.0:

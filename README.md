@@ -15,7 +15,7 @@ The default application uses NLI contradiction detection for multi-round routing
 - Parallel LangGraph fan-out/fan-in with bounded rebuttal loops
 - Pydantic structured outputs and validation fallbacks
 - NLI-based contradiction detection with caller-controlled round limits
-- Formula-derived confidence scores and attributed concession logs
+- A formula-derived Debate Agreement Index and attributed concession logs
 - SQLite persistence, Streamlit replay, and optional LangSmith traces
 - Reproducible benchmark runners for prompt and routing ablations
 
@@ -31,7 +31,7 @@ topic
                      └─ contradiction ─► rebuttal fan-out ─┘
 ```
 
-The final `DebateReport` contains consensus points, disputed points, a verdict, a formula-derived confidence score, the complete round trace, and every concession with its triggering agent and claim.
+The final `DebateReport` contains consensus points, disputed points, a verdict, the Debate Agreement Index, the complete round trace, and every concession with its triggering agent and claim. The index is a heuristic about detected disagreement, not the probability that the verdict is correct.
 
 ![Cosine and NLI divergence comparison](analysis/fig_C_divergence_detection.png)
 
@@ -78,8 +78,25 @@ Supported backends are `openai`, `anthropic`, `groq`, `qwen`, `cerebras`, `toget
 | NLI routing by default | Detects contradiction rather than topical vocabulary overlap |
 | Detector-owned pair decisions | Avoids comparing cosine distance and NLI probability against one shared numeric threshold |
 | Caller round cap plus hard safety cap | Honors `max_rounds` while preventing unbounded loops |
-| Formula-derived confidence | Keeps the displayed score inspectable rather than LLM-invented |
+| Debate Agreement Index | Makes the heuristic calculation inspectable without asking an LLM to invent a score |
 | Concession attribution | Records which claim changed which position and why |
+
+## Reading the Debate Agreement Index
+
+The report displays this heuristic as **18.0 / 100**, not as a percentage:
+
+```text
+Debate Agreement Index = 100 × (1 − highest divergence across all rounds) × round adjustment
+Round adjustment: 1 round → 1.0; 2 rounds → 0.9; 3 or more rounds → 0.8
+```
+
+For two rounds with divergence scores `[0.8, 0.2]`, the index is `100 × (1 − 0.8) × 0.9 = 18.0 / 100`. It uses the highest observed divergence, so the lower final-round value does not change the result to 72.0. The round adjustment is a fixed design choice, not a measured relationship between debate length and answer quality.
+
+**A high index does not establish correctness, sufficient evidence, or genuine consensus.** It is not a calibrated probability of correctness and does not measure how much the agents improved or finally agreed. Even zero detected divergence can occur with inadequate evidence. The reported stop reason is separate: `converged` means the active detector found no divergent agent pair, not that the verdict was fact-checked.
+
+In NLI mode, each round's divergence is the mean of the highest claim-pair contradiction probabilities for each agent pair; low contradiction can also mean neutral or unrelated claims. Cosine mode measures semantic proximity, which can be high even for opposing claims. Do not compare index values across these modes. Saved reports do not record the detector mode, so the current application setting cannot establish which mode produced a historical report.
+
+Each agent's **self-reported confidence** describes its own position. It is also uncalibrated, remains separate from this index, and does not enter the formula. For compatibility, the stored report field is still named `confidence_score` and keeps its existing 0–1 value and calculation; the display multiplies it by 100.
 
 ## Tests
 
@@ -141,7 +158,7 @@ Benchmark variants pin their detector explicitly so the cosine baseline and NLI 
 - LLM-as-judge results are sensitive to the selected judge and rubric
 - The cosine detector measures semantic proximity, not logical opposition
 - NLI adds local model download and inference cost
-- Confidence is a transparent heuristic, not a calibrated probability of correctness
+- The Debate Agreement Index is a heuristic, not a calibrated probability of correctness or proof of consensus
 - Prompt constraints can suppress legitimate uncertainty as well as empty hedging
 
 ## Project structure

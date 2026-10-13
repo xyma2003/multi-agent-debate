@@ -158,7 +158,8 @@ def _render_agent_chunk(node_name: str, node_update: dict) -> None:
         return
 
     status.markdown(f"**Position:** {arg.position}")
-    status.markdown(f"**Confidence:** {arg.confidence:.0%}")
+    status.markdown(f"**Self-reported confidence:** {arg.confidence:.0%}")
+    status.caption("The agent's own estimate, not calibrated accuracy or an input to the report index.")
 
     if arg.key_claims:
         status.markdown("**Key Claims:**")
@@ -207,7 +208,7 @@ if start_clicked and _has_api_key and (topic or "").strip():
                     diverged_pairs = node_update.get("diverged_pairs", [])
                     st.info(
                         f"Divergence score: **{score:.2f}** — "
-                        f"{'contradiction detected' if diverged_pairs else 'no contradiction detected'}"
+                        f"{'divergent pair detected' if diverged_pairs else 'no divergent pair detected'}"
                     )
 
                 elif node_name == "synthesize_stub":
@@ -246,18 +247,61 @@ def render_report(report: DebateReport) -> None:
     st.divider()
     st.subheader("Debate Result")
 
-    # --- Confidence score + convergence status ---
-    col1, col2 = st.columns([1, 3])
+    # Keep the persisted field for replay compatibility; clarify its meaning.
+    col1, col2 = st.columns([2, 3])
     with col1:
-        st.metric("Confidence Score", f"{report.confidence_score:.0%}")
+        st.metric(
+            "Debate Agreement Index", f"{report.confidence_score * 100:.1f} / 100",
+            help="A heuristic from detected divergence and round count, not answer accuracy.",
+        )
     with col2:
-        st.progress(report.confidence_score)
         status_labels = {
-            "converged": "Converged",
-            "max_rounds": "Max Rounds Reached",
-            "partial": "Partial Convergence",
+            "converged": "No divergent pair detected",
+            "plateau": "Divergence stopped changing",
+            "stalled": "No new concessions",
+            "max_rounds": "Round limit reached",
+            "partial": "Fallback result",
         }
-        st.caption(f"Status: **{status_labels.get(report.convergence_status, report.convergence_status)}**")
+        st.caption(f"Stop reason: **{status_labels.get(report.convergence_status, report.convergence_status)}**")
+        st.caption(
+            "This heuristic uses the highest detected divergence across all rounds and a round-count penalty. "
+            "It is not a calibrated probability of correctness, a measure of evidence quality, or proof of consensus."
+        )
+
+    with st.expander("How to read this index", expanded=False):
+        st.code("index = 100 × (1 − highest divergence across all rounds) × round factor", language=None)
+        st.markdown(
+            "The round factor is **1.0 for one round, 0.9 for two rounds, and 0.8 for three or more rounds**. "
+            "These are fixed weights, not a learned estimate of answer quality. "
+            "A higher index reflects lower peak detected divergence and/or fewer rounds."
+        )
+        st.markdown(
+            "**Example:** divergences of `0.8 → 0.2` over two rounds give "
+            "`100 × (1 − 0.8) × 0.9 = 18 / 100`, not 72. "
+            "The earlier disagreement still counts even if the last round becomes more aligned. "
+            "Zero measured divergence, or an empty history in the formula's fallback, can produce 100; "
+            "that does not establish that the answer is correct."
+        )
+        st.markdown(
+            "**Detector limits:** NLI measures model-estimated contradictions; low contradiction can also mean "
+            "neutral or unrelated claims. Cosine measures semantic similarity, which can confuse shared topics "
+            "with agreement. Scores from the two modes are not directly comparable. "
+            "Saved reports do not record their detector mode; the current app setting cannot identify the mode "
+            "used by a past report. Historical values are displayed as saved, without recomputation."
+        )
+        st.markdown(
+            "**Agent self-reported confidence** is each agent's own estimate about its position. "
+            "It is not calibrated accuracy and is not used in this index. "
+            "The stop reason describes how the loop ended; it does not verify consensus or factual correctness."
+        )
+        if report.reasoning_trace:
+            peak = max(rr.divergence_score for rr in report.reasoning_trace)
+            st.caption(
+                f"Recorded rounds: {len(report.reasoning_trace)} · "
+                f"Highest recorded divergence: {peak:.4f}. See the full reasoning trace below."
+            )
+        else:
+            st.caption("No round trace is available; this saved index cannot be checked against recorded rounds.")
 
     # --- Verdict ---
     st.info(report.verdict)
@@ -291,6 +335,10 @@ def render_report(report: DebateReport) -> None:
             )
             for arg in rr.arguments:
                 st.markdown(f"- **{arg.agent_role.title()}:** {arg.position}")
+                if arg.is_sentinel:
+                    st.caption("No valid agent output: a fallback was recorded for this round.")
+                else:
+                    st.caption(f"Self-reported confidence: {arg.confidence:.0%} · Agent estimate, not used in the report index.")
 
     # --- Concession log ---
     if report.concession_log:

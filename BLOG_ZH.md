@@ -451,22 +451,27 @@ values-based 子集持平，另外两个子集的自适应样本平均 focus sco
 
 ---
 
-## 可信度机制：置信分与让步追踪
+## 可追溯机制：辩论一致性指数与让步追踪
 
-### 置信分：不经过 LLM 的纯计算值
+### 辩论一致性指数：启发式计算，不是答案正确率
 
-最终报告的置信分（confidence_score）完全由 Python 计算，从不出现在任何 LLM 的提示词或结构化输出 schema 中：
+最终报告展示 **Debate Agreement Index（辩论一致性指数）**，使用 **18.0 / 100** 这样的形式，不带百分号。它由 Python 根据检测到的分歧和固定轮数系数计算，不要求综合报告的 LLM 生成分数。为兼容历史记录，底层字段 `confidence_score` 保留原有的 0–1 数值和公式：
 
 ```python
-def compute_confidence(round_history: list[RoundRecord], round_num: int) -> float:
-    max_divergence = max(r.divergence_score for r in round_history)
-    round_adjustment = {1: 1.0, 2: 0.9, 3: 0.8}.get(round_num, 0.8)
-    return (1.0 - max_divergence) * round_adjustment
+# 原有计算方法与展示尺度的示意。
+max_divergence = max((r.divergence_score for r in round_history), default=0.0)
+round_adjustment = {1: 1.0, 2: 0.9, 3: 0.8}.get(max(round_num, 1), 0.8)
+confidence_score = round((1.0 - max_divergence) * round_adjustment, 4)
+displayed_index = 100 * confidence_score
 ```
 
-两层语义：`(1 - max_divergence)` 反映了这个话题本身有多难达成共识；`round_adjustment` 对需要更多轮次才收敛的结果打折扣。
+展示公式为 `100 ×（1 − 全部轮次中的最高分歧值）× 轮数系数`。系数在一轮时为 1.0、两轮时为 0.9、三轮及以上为 0.8；这是预先选定的设计规则，并非依据答案质量校准得到的参数。
 
-这个设计来自一个具体的失败：早期版本让 LLM 在 synthesize 节点中生成置信分，结果模型在所有测试问题上输出的分数都集中在 0.72–0.88 之间，与实际的辩论激烈程度完全无关。模型在生成置信分时选择了一个"听起来合理"的区间，而不是基于辩论过程做出判断。将置信分改为公式计算后，它开始真正反映辩论的收敛情况：对于快速收敛的简单问题，置信分接近 0.9；对于三轮后仍然高度分歧的问题，置信分可以低至 0.3。
+例如，两轮分歧值为 `[0.8, 0.2]` 时，指数为 **18.0 / 100**，不是 72.0。即使后来分歧降低，早期的高分歧仍会拉低指数。因此，它不衡量最终收敛程度或辩论过程中的改进幅度。
+
+**高分既不是经过校准的答案正确率概率，也不证明真正达成共识或证据充分。** NLI 模式汇总每个 Agent 对的 claim 组合最高矛盾概率；低矛盾也可能只是中立或互不相关。余弦模式衡量语义接近程度，而非逻辑对立。两种模式的数值不能直接比较。已保存报告没有记录检测器模式，不能根据今天的应用配置判断旧报告使用了哪种模式。
+
+Agent 的 `confidence` 是它对自身立场的自报信心，同样未经校准，与报告指数独立，也不参与公式。辩论的停止原因也是另一回事：`converged` 只表示没有检测到分歧 Agent 对，不表示共识或事实正确性已经获得独立验证。指数的价值在于计算过程可检查，而不是提供超出这些输入的可靠性保证。
 
 ### 让步追踪：带归因的推理链
 

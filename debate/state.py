@@ -52,7 +52,7 @@ class AgentArgument(BaseModel):
     confidence: float = Field(
         ge=0.0,
         le=1.0,
-        description="Self-reported confidence in the position, 0.0–1.0",
+        description="Self-reported confidence in the position, 0.0–1.0; not calibrated accuracy or an input to the report's agreement index",
     )
     key_claims: list[str] = Field(
         min_length=3,
@@ -77,7 +77,7 @@ class RoundRecord(BaseModel):
     )
     divergence_score: float = Field(
         default=0.0,
-        description="Divergence score computed after this round (0.0=converged, 1.0=max divergence). Written by divergence_check_node.",
+        description="Detector-specific divergence for this round (0.0=none detected, 1.0=maximum). NLI and cosine scores are not directly comparable; zero does not prove agreement. Written by divergence_check_node.",
     )
 
 
@@ -94,8 +94,10 @@ class DisputedPoint(BaseModel):
 class DebateReport(BaseModel):
     """Final output of the debate system. Written to state['final_report'].
 
-    confidence_score is formula-derived (SYNTH-03): (1 - max_divergence_score) * round_adjustment.
-    It is computed in Python code in synthesize.py, never produced by the LLM.
+    confidence_score is the legacy storage name for the Debate Agreement Index,
+    kept on a 0–1 scale for compatibility. Formula (SYNTH-03):
+    (1 - max_divergence_score across all rounds) * round_adjustment.
+    Python computes it, not the LLM. It is a heuristic, not calibrated accuracy.
     """
 
     debate_id: str
@@ -112,7 +114,7 @@ class DebateReport(BaseModel):
     confidence_score: float = Field(
         ge=0.0,
         le=1.0,
-        description="Formula-derived score: (1 - max_divergence_score) * round_adjustment",
+        description="Debate Agreement Index on a 0–1 scale, retaining the legacy field name: (1 - highest divergence across all rounds) * round_adjustment. A heuristic, not correctness probability, evidence quality, or proof of consensus; excludes agent self-reported confidence.",
     )
     convergence_status: Literal["converged", "plateau", "stalled", "max_rounds", "partial"] = Field(
         description=(

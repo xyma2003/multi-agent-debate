@@ -144,7 +144,11 @@ def _assert_report(app, report):
     assert app.session_state["final_report"].debate_id == report.debate_id
     assert "Debate Result" in _values(app.subheader)
     assert report.verdict in _values(app.info)
-    assert app.metric[0].value == f"{report.confidence_score:.0%}"
+    assert app.metric[0].label == "Debate Agreement Index"
+    assert app.metric[0].value == f"{report.confidence_score * 100:.1f} / 100"
+    captions = _values(app.caption)
+    assert "heuristic" in captions.lower()
+    assert "not a calibrated probability of correctness" in captions.lower()
     assert report.consensus_points[0] in _values(app.success)
     assert report.disputed_points[0].topic in [item.label for item in app.expander]
     rendered = _values(app.markdown)
@@ -152,6 +156,8 @@ def _assert_report(app, report):
     assert report.reasoning_trace[0].arguments[0].position in rendered
     assert "Round 1" in rendered
     assert "0.300" in rendered
+    assert "Self-reported confidence" in captions
+    assert "80%" in captions
     assert report.concession_log[0].conceded_point in rendered
     assert report.concession_log[0].triggered_by_claim in rendered
 
@@ -248,6 +254,14 @@ def test_fake_credentials_allow_mocked_debate(
 
     _assert_report(app, report)
     assert argument.key_claims[0] in _values(app.markdown)
+    # Both the streamed argument and saved trace expose the agent's own 80%
+    # separately from the persisted final index (72.0 / 100).
+    confidence_rows = [
+        str(item.value) for item in [*app.markdown, *app.caption]
+        if "Self-reported confidence" in str(item.value)
+    ]
+    assert len(confidence_rows) == 2
+    assert all("80%" in row for row in confidence_rows)
     assert "Divergence score: **0.30**" in _values(app.info)
     assert "Synthesis complete." in _values(app.success)
     offline_app.stream.assert_called_once()
@@ -255,3 +269,126 @@ def test_fake_credentials_allow_mocked_debate(
     assert call.args == ({"topic": report.topic, "max_rounds": 2},)
     assert call.kwargs["stream_mode"] == "updates"
     assert call.kwargs["config"]["configurable"]["thread_id"] == app.session_state["thread_id"]
+
+
+def _index_explanation(app):
+    return next(
+        expander for expander in app.expander
+        if expander.label == "How to read this index"
+    )
+
+
+def test_empty_legacy_trace_preserves_stored_index(offline_app, sample_reports):
+    from debate.store import save_debate
+
+    report = sample_reports[0].model_copy(update={
+        "confidence_score": 0.375,
+        "reasoning_trace": [],
+        "concession_log": [],
+    })
+    save_debate(report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+
+    assert not app.exception
+    assert app.metric[0].value == "37.5 / 100"
+    assert "No round trace is available" in (
+        _values(app.caption) + _values(app.markdown) + _values(app.info)
+    )
+    assert app.session_state["final_report"].confidence_score == 0.375
+    assert app.session_state["final_report"].reasoning_trace == []
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_history_index_explanation_is_independent_of_current_detector(
+    offline_app, sample_reports, monkeypatch,
+):
+    from debate import divergence
+    from debate.store import save_debate
+
+    # Existing report JSON has no detector/mode metadata. The UI cannot infer
+    # its historical detector from whichever mode happens to be active today.
+    report = sample_reports[0]
+    assert not any("mode" in key or "detector" in key for key in report.model_dump())
+    save_debate(report, conn=offline_app.connection)
+    offline_app.connection.execute("PRAGMA query_only = ON")
+
+    monkeypatch.setattr(divergence, "DIVERGENCE_MODE", "nli")
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+    explanation = _index_explanation(app)
+    original = _values(explanation.markdown) + _values(explanation.caption)
+    assert original
+    assert app.metric[0].value == "72.0 / 100"
+
+    monkeypatch.setattr(divergence, "DIVERGENCE_MODE", "cosine")
+    app.run()
+    assert not app.exception
+    explanation = _index_explanation(app)
+    assert _values(explanation.markdown) + _values(explanation.caption) == original
+    assert app.metric[0].value == "72.0 / 100"
+    assert app.session_state["final_report"].model_dump() == report.model_dump()
+    offline_app.stream.assert_not_called()
+
+
+def test_index_explains_peak_divergence_without_recomputing_saved_value(
+    offline_app, sample_reports,
+):
+    from debate.store import save_debate
+
+    first = sample_reports[0].reasoning_trace[0]
+    report = sample_reports[0].model_copy(update={
+        "confidence_score": 0.437,
+        "reasoning_trace": [
+            first.model_copy(update={"divergence_score": 0.8}),
+            first.model_copy(update={"round_num": 1, "divergence_score": 0.2}),
+        ],
+    })
+    save_debate(report, conn=offline_app.connection)
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+
+    assert not app.exception
+    # An older report may not reproduce under today's formula. Its persisted
+    # value remains authoritative; explaining the current formula is separate.
+    assert app.metric[0].value == "43.7 / 100"
+    explanation = _index_explanation(app)
+    assert "highest divergence across all rounds" in _values(explanation.code)
+    detail = _values(explanation.markdown)
+    for weight in ("1.0", "0.9", "0.8"):
+        assert weight in detail
+    assert "18 / 100" in detail  # .8 then .2: peak-based, not final-round 72.
+    trace = next(item for item in app.expander if item.label == "Full Reasoning Trace")
+    assert "0.800" in _values(trace.markdown)
+    assert "0.200" in _values(trace.markdown)
+    assert app.session_state["final_report"].confidence_score == 0.437
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("status,label", [
+    ("converged", "No divergent pair detected"),
+    ("plateau", "Divergence stopped changing"),
+    ("stalled", "No new concessions"),
+    ("max_rounds", "Round limit reached"),
+    ("partial", "Fallback result"),
+])
+def test_stop_reason_is_distinct_from_index(
+    offline_app, sample_reports, status, label,
+):
+    from debate.store import save_debate
+
+    # An identical stored index must not imply the same stopping condition.
+    report = sample_reports[0].model_copy(update={"convergence_status": status})
+    save_debate(report, conn=offline_app.connection)
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+
+    assert not app.exception
+    assert app.metric[0].value == "72.0 / 100"
+    assert f"Stop reason: **{label}**" in _values(app.caption)
+    offline_app.stream.assert_not_called()

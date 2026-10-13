@@ -368,20 +368,27 @@ The classifier routed many human-labeled binary questions to `context_dependent`
 
 ---
 
-## Auditability: The Confidence Score and Concession Log
+## Auditability: The Debate Agreement Index and Concession Log
 
-### Formula-Derived Confidence Score
+### The Debate Agreement Index Is a Heuristic
 
-The final report includes a confidence score computed entirely in Python — it never appears in any LLM prompt or structured output schema:
+The final report displays a **Debate Agreement Index** on a 0–100 scale, such as **18.0 / 100**, without a percentage sign. It is computed in Python from detected divergence and a fixed round penalty. The report's score is not requested from the synthesizer LLM. Its existing storage field, `confidence_score`, retains the same 0–1 value and formula for compatibility:
 
 ```python
-def compute_confidence(round_history: list[RoundRecord], round_num: int) -> float:
-    max_divergence = max(r.divergence_score for r in round_history)
-    round_adjustment = {1: 1.0, 2: 0.9, 3: 0.8}.get(round_num, 0.8)
-    return (1.0 - max_divergence) * round_adjustment
+# Illustration of the existing calculation and its display scale.
+max_divergence = max((r.divergence_score for r in round_history), default=0.0)
+round_adjustment = {1: 1.0, 2: 0.9, 3: 0.8}.get(max(round_num, 1), 0.8)
+confidence_score = round((1.0 - max_divergence) * round_adjustment, 4)
+displayed_index = 100 * confidence_score
 ```
 
-Two-layer semantics: `(1 - max_divergence)` penalizes topics where agents never genuinely agreed; `round_adjustment` penalizes debates that required more rounds to converge (more rounds implies more contested ground). Early versions delegated confidence scoring to the LLM, which consistently produced scores in the 0.7–0.9 range regardless of actual debate dynamics. The formula replaced model-generated scores with a quantity that is directly computed from observable debate state.
+The displayed formula is `100 × (1 − highest divergence across all rounds) × round adjustment`. The adjustment is 1.0 for one round, 0.9 for two rounds, and 0.8 for three or more. These coefficients are design choices, not empirically calibrated estimates of answer quality.
+
+For divergence values `[0.8, 0.2]` over two rounds, the index is **18.0 / 100**, not 72.0. An early high-divergence round continues to lower the index even if the agents later become less opposed. Consequently, this index does not measure final convergence or improvement during debate.
+
+**A high index is neither a calibrated probability of correctness nor proof of genuine consensus or sufficient evidence.** NLI mode aggregates the maximum claim-pair contradiction probability for each agent pair; low contradiction can also indicate neutral or unrelated claims. Cosine mode measures semantic proximity rather than logical opposition. Values from the two modes are not directly comparable. Saved reports do not record their detector mode, so today's application setting cannot identify the mode used for an older report.
+
+An agent's `confidence` is a separate, uncalibrated self-report about its position and does not enter this formula. The debate's stop reason is also separate: `converged` means no divergent agent pair was detected, not that agreement or factual correctness was independently established. The benefit of the index is that its calculation can be inspected; the name and formula should not imply a stronger guarantee.
 
 ### Attribution-Aware Concession Tracking
 

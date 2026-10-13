@@ -18,6 +18,7 @@ from debate.graph import graph  # module-level singleton — never store in sess
 from debate.divergence import DIVERGENCE_MODE
 from debate.state import AgentArgument, DebateReport
 from debate.store import list_debates, load_debate
+from debate.sample import load_offline_example
 
 # ---------------------------------------------------------------------------
 # Page config (must be first Streamlit call)
@@ -36,6 +37,8 @@ if "debate_status" not in st.session_state:
     st.session_state.thread_id = None
     st.session_state.final_report = None
     st.session_state.error_msg = None
+st.session_state.setdefault("report_source", None)
+st.session_state.setdefault("sample_provenance", None)
 
 # ---------------------------------------------------------------------------
 # Credentials are required only when starting a new debate.
@@ -62,7 +65,7 @@ else:
 if not _has_api_key:
     st.warning(
         f"⚠️ No credentials found for `LLM_BACKEND={_backend}`. "
-        "You can still browse saved reports in Past Debates. "
+        "You can view the offline example below or browse saved reports in Past Debates. "
         "To start a new debate, configure the credentials described in `.env.example` or README.md."
     )
 
@@ -79,6 +82,9 @@ with st.sidebar:
                 loaded = load_debate(row["debate_id"])
                 if loaded:
                     st.session_state.final_report = loaded
+                    st.session_state.report_source = "history"
+                    st.session_state.sample_provenance = None
+                    st.session_state.thread_id = None
                     st.session_state.debate_status = "complete"
                     st.session_state.error_msg = None
                     st.rerun()
@@ -93,6 +99,32 @@ st.caption(
     "Enter any topic and watch three agents — Optimist, Pessimist, and Devil's Advocate — "
     f"debate it in real time using {DIVERGENCE_MODE.upper()} divergence detection."
 )
+
+with st.container(border=True):
+    st.markdown("### Explore a complete example")
+    st.caption(
+        "A fictional team's four-day workweek: two rounds, three perspectives, "
+        "and a final report. No API key or model download needed."
+    )
+    example_clicked = st.button(
+        "View offline example", key="offline_example_btn",
+        disabled=(st.session_state.debate_status == "running"),
+    )
+    if example_clicked and st.session_state.debate_status != "running":
+        try:
+            example = load_offline_example()
+        except (OSError, ValueError):
+            st.error(
+                "Could not open the offline example. Restore examples/offline_debate.json "
+                "from the repository and try again. Your current report has been kept."
+            )
+        else:
+            st.session_state.final_report = example.report
+            st.session_state.report_source = "sample"
+            st.session_state.sample_provenance = example.provenance
+            st.session_state.thread_id = None
+            st.session_state.error_msg = None
+            st.session_state.debate_status = "complete"
 
 # ---------------------------------------------------------------------------
 # Input section (UI-01)
@@ -184,6 +216,8 @@ if start_clicked and _has_api_key and (topic or "").strip():
     st.session_state.debate_status = "running"
     st.session_state.thread_id = str(uuid.uuid4())
     st.session_state.final_report = None
+    st.session_state.report_source = "live"
+    st.session_state.sample_provenance = None
     st.session_state.error_msg = None
 
     st.markdown("### Debate in Progress")
@@ -246,6 +280,10 @@ def render_report(report: DebateReport) -> None:
     """Render the full DebateReport with structured visual layout."""
     st.divider()
     st.subheader("Debate Result")
+    st.markdown(f"**Topic:** {report.topic}")
+    if st.session_state.report_source == "sample":
+        st.info("Fixed synthetic example · No model/API execution · Not saved to your history")
+        st.caption(st.session_state.sample_provenance)
 
     # Keep the persisted field for replay compatibility; clarify its meaning.
     col1, col2 = st.columns([2, 3])
@@ -334,11 +372,24 @@ def render_report(report: DebateReport) -> None:
                 f"**Round {rr.round_num + 1}** — divergence: `{rr.divergence_score:.3f}`"
             )
             for arg in rr.arguments:
-                st.markdown(f"- **{arg.agent_role.title()}:** {arg.position}")
+                st.markdown(f"**{arg.agent_role.title()}:** {arg.position}")
                 if arg.is_sentinel:
                     st.caption("No valid agent output: a fallback was recorded for this round.")
                 else:
                     st.caption(f"Self-reported confidence: {arg.confidence:.0%} · Agent estimate, not used in the report index.")
+                st.markdown(arg.reasoning)
+                if arg.key_claims:
+                    st.markdown("**Key claims:**")
+                    for claim in arg.key_claims:
+                        st.markdown(f"- {claim}")
+                if arg.concessions:
+                    st.markdown("**Concessions this round:**")
+                    for concession in arg.concessions:
+                        st.markdown(f"- {concession.conceded_point}")
+                        st.caption(
+                            f"In response to {concession.triggered_by_agent}: "
+                            f"{concession.triggered_by_claim} — {concession.rationale}"
+                        )
 
     # --- Concession log ---
     if report.concession_log:
@@ -351,6 +402,7 @@ def render_report(report: DebateReport) -> None:
                     f"*(conceded in response to {c.triggered_by_agent}: "
                     f"{c.triggered_by_claim})*"
                 )
+                st.caption(c.rationale)
 
 
 if st.session_state.debate_status == "complete" and st.session_state.final_report is not None:

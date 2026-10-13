@@ -39,7 +39,7 @@
 
 ## 快速开始
 
-需要 Python 3.10+。只有发起新辩论时需要 LLM API 密钥，查看已保存的报告无需配置凭据。
+需要 Python 3.10+。只有发起新辩论时需要 LLM API 密钥，查看内置样例和已保存的报告无需配置凭据。
 
 ```bash
 git clone https://github.com/xyma2003/multi-agent-debate.git
@@ -52,7 +52,9 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-浏览器访问 <http://localhost:8501>，从 **Past Debates** 选择已保存的报告即可回看，不会调用 API 或下载本地模型。全新检出没有历史记录，页面会显示空历史；配置凭据前 **Start Debate** 按钮保持禁用。
+浏览器访问 <http://localhost:8501>，点击 **View offline example**。即使全新检出，也能查看虚构团队是否试行四天工作制的两轮讨论，包括完整论证、关键论点、共识、剩余分歧和带归因的让步。展开 **Full Reasoning Trace** 和 **Concession Log** 即可追溯讨论过程。
+
+[内置样例](examples/offline_debate.json) 是预先编写的固定合成演示，不是实际运行辩论流程的产物，也不作为模型效果证据。分歧值、自报信心和时间戳均为演示设置，报告指数按文档中的公式计算。查看样例不会调用 API、下载本地模型或把样例写入 **Past Debates**；已有报告仍从侧栏单独选择。配置凭据前 **Start Debate** 按钮保持禁用。
 
 发起新辩论会调用所配置的 LLM API。默认 NLI 模式首次执行分歧检测时会下载 `cross-encoder/nli-deberta-v3-small`（约 180 MB）；可选的余弦对照模式会下载 `BAAI/bge-small-en-v1.5`（约 130 MB）。
 

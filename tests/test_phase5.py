@@ -392,3 +392,201 @@ def test_stop_reason_is_distinct_from_index(
     assert app.metric[0].value == "72.0 / 100"
     assert f"Stop reason: **{label}**" in _values(app.caption)
     offline_app.stream.assert_not_called()
+
+
+def _sample_button(app):
+    button = app.button(key="offline_example_btn")
+    assert button.label == "View offline example"
+    return button
+
+
+def _assert_offline_example(app, example):
+    """Verify the actual sample's complete content and its visible provenance."""
+    report = example.report
+    assert not app.exception
+    assert app.session_state["debate_status"] == "complete"
+    assert app.session_state["report_source"] == "sample"
+    assert app.session_state["final_report"].model_dump() == report.model_dump()
+    assert app.session_state["sample_provenance"] == example.provenance
+    assert "Fixed synthetic example" in _values(app.info)
+    visible = "\n".join(_values(elements) for elements in (
+        app.markdown, app.caption, app.info, app.success,
+    ))
+    assert example.provenance in visible
+    assert report.topic in visible
+    assert report.verdict in _values(app.info)
+    assert app.metric[0].value == "18.0 / 100"
+    for point in report.consensus_points:
+        assert point in _values(app.success)
+    for point in report.disputed_points:
+        assert point.topic in [item.label for item in app.expander]
+        for position in point.agent_positions.values():
+            assert position in visible
+    trace = next(item for item in app.expander if item.label == "Full Reasoning Trace")
+    trace_text = _values(trace.markdown) + "\n" + _values(trace.caption)
+    arguments = [argument for record in report.reasoning_trace for argument in record.arguments]
+    assert len(arguments) == 6
+    for argument in arguments:
+        assert argument.position in trace_text
+        assert argument.reasoning in trace_text
+        for claim in argument.key_claims:
+            assert claim in trace_text
+        for concession in argument.concessions:
+            assert concession.conceded_point in trace_text
+            assert concession.triggered_by_claim in trace_text
+            assert concession.rationale in trace_text
+    for concession in report.concession_log:
+        assert concession.conceded_point in visible
+        assert concession.triggered_by_claim in visible
+        assert concession.rationale in visible
+
+
+def test_empty_install_can_read_the_full_offline_example_without_writes(offline_app):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    assert rows_before == []
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    assert not _sample_button(app).disabled
+    _sample_button(app).click().run()
+
+    _assert_offline_example(app, example)
+    assert "No past debates yet." in _values(app.sidebar.caption)
+    assert _start_button(app).disabled
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_sample_history_sample_switches_clear_provenance_and_content(
+    offline_app, sample_reports,
+):
+    from debate.sample import load_offline_example
+    from debate.store import save_debate
+
+    example = load_offline_example()
+    history_report = sample_reports[0]
+    save_debate(history_report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+
+    _sample_button(app).click().run()
+    _assert_offline_example(app, example)
+    assert history_report.verdict not in _values(app.info)
+
+    app.sidebar.button(key=history_report.debate_id).click().run()
+    _assert_report(app, history_report)
+    assert app.session_state["report_source"] == "history"
+    assert not app.session_state["sample_provenance"]
+    assert "Fixed synthetic example" not in _values(app.info)
+    assert example.provenance not in _values(app.caption) + _values(app.info)
+    assert example.report.verdict not in _values(app.info)
+
+    _sample_button(app).click().run()
+    _assert_offline_example(app, example)
+    assert history_report.verdict not in _values(app.info)
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_sample_does_not_enable_debate_without_credentials(offline_app):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    app.text_input[0].input("A new topic must still require credentials").run()
+    assert _start_button(app).disabled
+    # A forged event must also retain the sample without starting the graph.
+    _start_button(app).click().run()
+    _assert_offline_example(app, example)
+    offline_app.stream.assert_not_called()
+
+
+def test_mocked_live_debate_after_sample_clears_sample_provenance(
+    offline_app, sample_reports, monkeypatch,
+):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    report = sample_reports[0]
+    monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
+    offline_app.stream.side_effect = None
+    offline_app.stream.return_value = iter([{"synthesize_stub": {"final_report": report}}])
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    _assert_offline_example(app, example)
+    app.text_input[0].input(report.topic).run()
+    _start_button(app).click().run()
+
+    _assert_report(app, report)
+    assert app.session_state["report_source"] == "live"
+    assert not app.session_state["sample_provenance"]
+    assert "Fixed synthetic example" not in _values(app.info)
+    assert example.provenance not in _values(app.caption) + _values(app.info)
+    assert example.report.verdict not in _values(app.info)
+    offline_app.stream.assert_called_once()
+
+
+@pytest.mark.parametrize("failure", ["missing", "invalid_json"])
+def test_sample_read_failure_preserves_report_and_retry_recovers(
+    offline_app, sample_reports, monkeypatch, tmp_path, failure,
+):
+    from debate import sample
+    from debate.store import save_debate
+
+    example = sample.load_offline_example()
+    valid_path = sample.EXAMPLE_PATH
+    report = sample_reports[0]
+    save_debate(report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+    broken_path = tmp_path / "unavailable-example.json"
+    if failure == "invalid_json":
+        broken_path.write_text("{broken JSON", encoding="utf-8")
+    monkeypatch.setattr(sample, "EXAMPLE_PATH", broken_path)
+
+    _sample_button(app).click().run()
+    _assert_report(app, report)
+    assert "Could not open the offline example" in _values(app.error)
+    assert app.session_state["report_source"] == "history"
+    assert not app.session_state["sample_provenance"]
+    assert "Fixed synthetic example" not in _values(app.info)
+
+    monkeypatch.setattr(sample, "EXAMPLE_PATH", valid_path)
+    _sample_button(app).click().run()
+    _assert_offline_example(app, example)
+    assert "Could not open the offline example" not in _values(app.error)
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_running_debate_rejects_even_a_forged_sample_button_event(
+    offline_app, sample_reports, monkeypatch,
+):
+    from debate import sample
+
+    app = offline_app.open()
+    report = sample_reports[0]
+    app.session_state["debate_status"] = "running"
+    app.session_state["final_report"] = report
+    app.session_state["report_source"] = "live"
+    app.session_state["sample_provenance"] = None
+    app.session_state["thread_id"] = "in-progress-thread"
+    loader = Mock(side_effect=AssertionError("Running debates must not load the sample"))
+    monkeypatch.setattr(sample, "load_offline_example", loader)
+    app.run()
+    assert _sample_button(app).disabled
+    _sample_button(app).click().run()
+
+    assert not app.exception
+    assert app.session_state["debate_status"] == "running"
+    assert app.session_state["final_report"].model_dump() == report.model_dump()
+    assert app.session_state["report_source"] == "live"
+    assert app.session_state["thread_id"] == "in-progress-thread"
+    loader.assert_not_called()
+    offline_app.stream.assert_not_called()

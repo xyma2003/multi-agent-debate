@@ -39,7 +39,7 @@ Historical exploratory visualization; see the evidence and provenance notes belo
 
 ## Quick start
 
-Requirements: Python 3.10+. An LLM API key is required only to start a new debate; saved reports can be viewed without credentials.
+Requirements: Python 3.10+. An LLM API key is required only to start a new debate; the bundled example and saved reports can be viewed without credentials.
 
 ```bash
 git clone https://github.com/xyma2003/multi-agent-debate.git
@@ -52,7 +52,9 @@ pip install -r requirements.txt
 streamlit run app.py
 ```
 
-Open <http://localhost:8501>. Select a saved report from **Past Debates** to review it without API calls or local model downloads. A fresh checkout has no saved debates; the app shows an empty history and keeps **Start Debate** disabled until credentials are configured.
+Open <http://localhost:8501> and click **View offline example**. Even on a fresh checkout, you can explore two rounds of a fictional team's four-day-workweek discussion, the full arguments and key claims, consensus, remaining disagreements, and attributed concessions. Expand **Full Reasoning Trace** and **Concession Log** to follow the discussion.
+
+The [bundled example](examples/offline_debate.json) is a prewritten, fixed synthetic illustration, not the output of a live debate run or evidence of model quality. Its divergence values, confidence estimates, and timestamp are illustrative; the report index follows the documented formula. Viewing it makes no API calls or local model downloads and never saves the example to **Past Debates**. Saved reports remain available separately in that sidebar. **Start Debate** stays disabled until credentials are configured.
 
 Starting a new debate uses the configured LLM API. On its first divergence check, the default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB). The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 

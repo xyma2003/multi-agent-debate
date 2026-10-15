@@ -5,7 +5,8 @@ Public API:
     get_connection(db_path) -> sqlite3.Connection   # singleton per path
     save_debate(report, conn=None) -> None
     load_debate(debate_id, conn=None) -> DebateReport | None
-    list_debates(conn=None) -> list[dict]
+    list_debates(conn=None, *, query=None, limit=None, offset=0) -> list[dict]
+    count_debates(conn=None, *, query=None) -> int
 """
 import sqlite3
 from pathlib import Path
@@ -79,11 +80,59 @@ def load_debate(debate_id: str, conn: Optional[sqlite3.Connection] = None) -> Op
     return DebateReport.model_validate_json(row["report_json"])
 
 
-def list_debates(conn: Optional[sqlite3.Connection] = None) -> list[dict]:
-    """Return summary rows (no report_json) ordered newest-first."""
+def _topic_filter(query: str | None) -> tuple[str, tuple[str, ...]]:
+    """Build the shared literal-substring filter for history reads."""
+    if query is not None and not isinstance(query, str):
+        raise TypeError("query must be a string or None")
+    query = query.strip() if query is not None else ""
+    if not query:
+        return "", ()
+    escaped = query.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return " WHERE topic LIKE ? ESCAPE '\\'", (f"%{escaped}%",)
+
+
+def _validate_page_value(name: str, value: int, minimum: int) -> None:
+    # bool is an int subclass, but is not a meaningful pagination value.
+    if isinstance(value, bool) or not isinstance(value, int):
+        raise TypeError(f"{name} must be an integer")
+    if not minimum <= value <= 2**63 - 1:
+        raise ValueError(f"{name} must be between {minimum} and {2**63 - 1}")
+
+
+def count_debates(
+    conn: Optional[sqlite3.Connection] = None, *, query: str | None = None,
+) -> int:
+    """Count topics matching a trimmed literal substring; blank means all."""
+    where, params = _topic_filter(query)
     if conn is None:
         conn = get_connection()
-    rows = conn.execute(
-        "SELECT debate_id, topic, created_at, status FROM debates ORDER BY created_at DESC"
-    ).fetchall()
+    return int(conn.execute("SELECT COUNT(*) FROM debates" + where, params).fetchone()[0])
+
+
+def list_debates(
+    conn: Optional[sqlite3.Connection] = None, *, query: str | None = None,
+    limit: int | None = None, offset: int = 0,
+) -> list[dict]:
+    """Return summary rows, ordered by created_at then debate_id descending.
+
+    Search is a trimmed literal substring of topic only, using SQLite's LIKE
+    case handling (ASCII case-insensitive by default). An omitted limit keeps
+    the original all-rows API. A supplied limit must be positive; offset must
+    be nonnegative. Both must be integers within SQLite's signed 64-bit range.
+    """
+    where, filter_params = _topic_filter(query)
+    params: tuple[str | int, ...] = filter_params
+    if limit is not None:
+        _validate_page_value("limit", limit, 1)
+    _validate_page_value("offset", offset, 0)
+    sql = (
+        "SELECT debate_id, topic, created_at, status FROM debates" + where
+        + " ORDER BY created_at DESC, debate_id DESC"
+    )
+    if limit is not None or offset:
+        sql += " LIMIT ? OFFSET ?"
+        params += (limit if limit is not None else -1, offset)
+    if conn is None:
+        conn = get_connection()
+    rows = conn.execute(sql, params).fetchall()
     return [dict(r) for r in rows]

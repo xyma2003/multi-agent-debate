@@ -7,6 +7,7 @@ Run with: python -m pytest tests/test_phase5.py -v
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 import socket
+import sqlite3
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -137,6 +138,15 @@ def _values(elements):
     return "\n".join(str(element.value) for element in elements)
 
 
+def _history_keys(app, reports):
+    ids = {report.debate_id for report in reports}
+    return [button.key for button in app.sidebar.button if button.key in ids]
+
+
+def _selected_history_keys(app):
+    return [button.key for button in app.sidebar.button if button.proto.type == "primary"]
+
+
 def _assert_report(app, report):
     """Check visible report data, not just the absence of a Streamlit error."""
     assert not app.exception
@@ -174,8 +184,8 @@ def test_no_credentials_empty_history_is_usable(offline_app):
     assert "Past Debates" in _values(app.sidebar.header)
     assert "No past debates yet." in _values(app.sidebar.caption)
     assert "No credentials" in _values(app.warning)
-    assert app.text_input[0].label == "Debate topic"
-    assert not app.text_input[0].disabled
+    assert app.text_input(key="debate_topic").label == "Debate topic"
+    assert not app.text_input(key="debate_topic").disabled
     assert _start_button(app).disabled
     offline_app.stream.assert_not_called()
 
@@ -190,7 +200,7 @@ def test_no_credentials_can_switch_between_saved_reports(offline_app, sample_rep
     offline_app.connection.execute("PRAGMA query_only = ON")
     app = offline_app.open()
     assert not app.exception
-    assert [button.key for button in app.sidebar.button] == [
+    assert _history_keys(app, sample_reports) == [
         sample_reports[1].debate_id, sample_reports[0].debate_id,
     ]
 
@@ -211,7 +221,7 @@ def test_no_credentials_can_switch_between_saved_reports(offline_app, sample_rep
 
 def test_topic_does_not_enable_start_without_credentials(offline_app):
     app = offline_app.open()
-    app.text_input[0].input("Should we adopt remote work?").run()
+    app.text_input(key="debate_topic").input("Should we adopt remote work?").run()
 
     assert not app.exception
     assert _start_button(app).disabled
@@ -248,22 +258,22 @@ def test_fake_credentials_allow_mocked_debate(
     assert not app.exception
     assert not app.warning
     assert _start_button(app).disabled  # A key alone does not supply a topic.
-    app.text_input[0].input(f"  {report.topic}  ").run()
+    app.text_input(key="debate_topic").input(f"  {report.topic}  ").run()
     assert not _start_button(app).disabled
     _start_button(app).click().run()
 
     _assert_report(app, report)
     assert argument.key_claims[0] in _values(app.markdown)
-    # Both the streamed argument and saved trace expose the agent's own 80%
-    # separately from the persisted final index (72.0 / 100).
+    # Completion refreshes the sidebar and replaces transient streaming output
+    # with the full persisted trace; the agent's own 80% remains visible there.
     confidence_rows = [
         str(item.value) for item in [*app.markdown, *app.caption]
         if "Self-reported confidence" in str(item.value)
     ]
-    assert len(confidence_rows) == 2
+    assert len(confidence_rows) == 1
     assert all("80%" in row for row in confidence_rows)
-    assert "Divergence score: **0.30**" in _values(app.info)
-    assert "Synthesis complete." in _values(app.success)
+    assert "0.300" in _values(app.markdown)
+    assert "### Debate in Progress" not in _values(app.markdown)
     offline_app.stream.assert_called_once()
     call = offline_app.stream.call_args
     assert call.args == ({"topic": report.topic, "max_rounds": 2},)
@@ -474,10 +484,12 @@ def test_sample_history_sample_switches_clear_provenance_and_content(
 
     _sample_button(app).click().run()
     _assert_offline_example(app, example)
+    assert _selected_history_keys(app) == []
     assert history_report.verdict not in _values(app.info)
 
     app.sidebar.button(key=history_report.debate_id).click().run()
     _assert_report(app, history_report)
+    assert _selected_history_keys(app) == [history_report.debate_id]
     assert app.session_state["report_source"] == "history"
     assert not app.session_state["sample_provenance"]
     assert "Fixed synthetic example" not in _values(app.info)
@@ -486,6 +498,7 @@ def test_sample_history_sample_switches_clear_provenance_and_content(
 
     _sample_button(app).click().run()
     _assert_offline_example(app, example)
+    assert _selected_history_keys(app) == []
     assert history_report.verdict not in _values(app.info)
     assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
     offline_app.stream.assert_not_called()
@@ -497,7 +510,7 @@ def test_sample_does_not_enable_debate_without_credentials(offline_app):
     example = load_offline_example()
     app = offline_app.open()
     _sample_button(app).click().run()
-    app.text_input[0].input("A new topic must still require credentials").run()
+    app.text_input(key="debate_topic").input("A new topic must still require credentials").run()
     assert _start_button(app).disabled
     # A forged event must also retain the sample without starting the graph.
     _start_button(app).click().run()
@@ -505,20 +518,33 @@ def test_sample_does_not_enable_debate_without_credentials(offline_app):
     offline_app.stream.assert_not_called()
 
 
-def test_mocked_live_debate_after_sample_clears_sample_provenance(
-    offline_app, sample_reports, monkeypatch,
+@pytest.mark.parametrize("initial_source", ["sample", "history"])
+def test_mocked_live_debate_refreshes_history_and_clears_prior_selection(
+    offline_app, sample_reports, monkeypatch, initial_source,
 ):
     from debate.sample import load_offline_example
+    from debate.store import save_debate
 
     example = load_offline_example()
-    report = sample_reports[0]
+    previous, report = sample_reports
+    save_debate(previous, conn=offline_app.connection)
     monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
-    offline_app.stream.side_effect = None
-    offline_app.stream.return_value = iter([{"synthesize_stub": {"final_report": report}}])
+
+    def completed_stream(*args, **kwargs):
+        yield {"synthesize_stub": {"final_report": report}}
+        save_debate(report, conn=offline_app.connection)
+        yield {"save_node": {}}
+
+    offline_app.stream.side_effect = completed_stream
     app = offline_app.open()
-    _sample_button(app).click().run()
-    _assert_offline_example(app, example)
-    app.text_input[0].input(report.topic).run()
+    if initial_source == "sample":
+        _sample_button(app).click().run()
+        _assert_offline_example(app, example)
+    else:
+        app.sidebar.button(key=previous.debate_id).click().run()
+        _assert_report(app, previous)
+        assert _selected_history_keys(app) == [previous.debate_id]
+    app.text_input(key="debate_topic").input(report.topic).run()
     _start_button(app).click().run()
 
     _assert_report(app, report)
@@ -527,6 +553,37 @@ def test_mocked_live_debate_after_sample_clears_sample_provenance(
     assert "Fixed synthetic example" not in _values(app.info)
     assert example.provenance not in _values(app.caption) + _values(app.info)
     assert example.report.verdict not in _values(app.info)
+    assert _selected_history_keys(app) == []
+    assert _history_keys(app, sample_reports) == [report.debate_id, previous.debate_id]
+    offline_app.stream.assert_called_once()
+
+
+def test_persistence_failure_after_synthesis_remains_an_error(offline_app, sample_reports, monkeypatch):
+    from debate.nodes.save import save_node
+
+    report = sample_reports[0]
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
+
+    def unsaved_stream(*args, **kwargs):
+        yield {"synthesize_stub": {"final_report": report}}
+        # The real persistence node must fail against the isolated read-only DB.
+        # Completing synthesis alone is not a successfully completed debate.
+        save_node({"final_report": report})
+        yield {"save_node": {}}
+
+    offline_app.stream.side_effect = unsaved_stream
+    app = offline_app.open()
+    app.text_input(key="debate_topic").input(report.topic).run()
+    _start_button(app).click().run()
+
+    assert not app.exception
+    assert app.session_state["debate_status"] == "error"
+    assert "readonly" in app.session_state["error_msg"].lower()
+    assert "Debate failed" in _values(app.error)
+    assert "Debate Result" not in _values(app.subheader)
+    assert app.session_state["final_report"].debate_id == report.debate_id
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
     offline_app.stream.assert_called_once()
 
 
@@ -588,5 +645,269 @@ def test_running_debate_rejects_even_a_forged_sample_button_event(
     assert app.session_state["final_report"].model_dump() == report.model_dump()
     assert app.session_state["report_source"] == "live"
     assert app.session_state["thread_id"] == "in-progress-thread"
+    loader.assert_not_called()
+    offline_app.stream.assert_not_called()
+
+
+@pytest.fixture
+def paged_reports(offline_app, sample_reports):
+    """More than two pages, including distinct reports with identical titles."""
+    from debate.store import save_debate
+
+    reports = [sample_reports[0].model_copy(update={
+        "debate_id": f"synthetic-report-page-{index:02d}",
+        "topic": "Remote work policy" if index % 2 == 0 else "Office collaboration",
+        "verdict": f"Synthetic decision {index}; review the trial outcomes.",
+        "created_at": datetime(2026, 2, 1, tzinfo=timezone.utc) + timedelta(days=index),
+    }) for index in range(23)]
+    for report in reports:
+        save_debate(report, conn=offline_app.connection)
+    return reports
+
+
+def test_history_pages_cover_all_reports_without_writes(offline_app, paged_reports):
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    expected = [report.debate_id for report in reversed(paged_reports)]
+    assert not app.exception
+    assert app.sidebar.text_input(key="history_query").label == "Search topics"
+    assert _history_keys(app, paged_reports) == expected[:10]
+    assert app.sidebar.button(key="history_prev").disabled
+    assert not app.sidebar.button(key="history_next").disabled
+
+    app.sidebar.button(key="history_next").click().run()
+    assert not app.exception
+    assert _history_keys(app, paged_reports) == expected[10:20]
+    assert not app.sidebar.button(key="history_prev").disabled
+    assert not app.sidebar.button(key="history_next").disabled
+
+    app.sidebar.button(key="history_next").click().run()
+    assert not app.exception
+    assert _history_keys(app, paged_reports) == expected[20:]
+    assert app.sidebar.button(key="history_next").disabled
+    app.sidebar.button(key="history_prev").click().run()
+    assert _history_keys(app, paged_reports) == expected[10:20]
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_search_resets_page_clear_restores_history_and_preserves_open_report(
+    offline_app, paged_reports,
+):
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    opened = paged_reports[21]
+    app.sidebar.button(key=opened.debate_id).click().run()
+    _assert_report(app, opened)
+    app.sidebar.button(key="history_next").click().run()
+    _assert_report(app, opened)
+
+    app.sidebar.text_input(key="history_query").input("  rEmOtE  ").run()
+    matching = [r.debate_id for r in reversed(paged_reports) if "Remote" in r.topic]
+    assert _history_keys(app, paged_reports) == matching[:10]
+    assert app.sidebar.button(key="history_prev").disabled
+    assert app.sidebar.button(key="history_clear").label == "Clear search"
+    _assert_report(app, opened)
+    assert app.session_state["report_source"] == "history"
+    assert not app.session_state["sample_provenance"]
+
+    app.sidebar.button(key="history_next").click().run()
+    assert _history_keys(app, paged_reports) == matching[10:]
+    _assert_report(app, opened)
+    app.sidebar.text_input(key="history_query").input("Office").run()
+    matching = [r.debate_id for r in reversed(paged_reports) if "Office" in r.topic]
+    assert _history_keys(app, paged_reports) == matching[:10]
+    assert app.sidebar.button(key="history_prev").disabled
+
+    app.sidebar.text_input(key="history_query").input("a topic with no matches").run()
+    assert not app.exception
+    assert _history_keys(app, paged_reports) == []
+    assert "No past debates yet." not in _values(app.sidebar.caption)
+    assert "No saved debates match" in _values(app.sidebar.caption)
+    _assert_report(app, opened)
+    assert app.session_state["report_source"] == "history"
+    app.sidebar.button(key="history_clear").click().run()
+    assert app.sidebar.text_input(key="history_query").value == ""
+    assert _history_keys(app, paged_reports) == [
+        r.debate_id for r in reversed(paged_reports)
+    ][:10]
+    _assert_report(app, opened)
+    offline_app.stream.assert_not_called()
+
+
+def test_search_and_pagination_preserve_offline_example_provenance(
+    offline_app, paged_reports,
+):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    _assert_offline_example(app, example)
+    app.sidebar.button(key="history_next").click().run()
+    _assert_offline_example(app, example)
+    app.sidebar.text_input(key="history_query").input("no-saved-topic-like-this").run()
+    _assert_offline_example(app, example)
+    app.sidebar.button(key="history_clear").click().run()
+    _assert_offline_example(app, example)
+    offline_app.stream.assert_not_called()
+
+
+def test_same_topic_reports_show_identity_and_open_the_correct_record(
+    offline_app, paged_reports,
+):
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    first, second = paged_reports[22], paged_reports[20]
+    assert first.topic == second.topic
+    assert app.sidebar.button(key=first.debate_id).label == app.sidebar.button(key=second.debate_id).label
+    captions = _values(app.sidebar.caption)
+    for report in (first, second):
+        assert report.debate_id[-8:] in captions
+        assert report.created_at.strftime("%Y-%m-%d") in captions
+        app.sidebar.button(key=report.debate_id).click().run()
+        _assert_report(app, report)
+        # The open report remains identifiable even after it is filtered out.
+        assert report.debate_id in _values(app.main.caption)
+        assert report.created_at.strftime("%Y-%m-%d") in _values(app.main.caption)
+    offline_app.stream.assert_not_called()
+
+
+def test_history_refresh_clamps_last_page_after_external_row_removal(
+    offline_app, paged_reports,
+):
+    app = offline_app.open()
+    app.sidebar.button(key="history_next").click().run()
+    app.sidebar.button(key="history_next").click().run()
+    assert len(_history_keys(app, paged_reports)) == 3
+    opened = paged_reports[2]
+    app.sidebar.button(key=opened.debate_id).click().run()
+
+    # Simulate a separate process removing the final page between UI reruns.
+    offline_app.connection.executemany(
+        "DELETE FROM debates WHERE debate_id = ?",
+        [(report.debate_id,) for report in paged_reports[:3]],
+    )
+    offline_app.connection.commit()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app.sidebar.button(key="history_refresh").click().run()
+    assert not app.exception
+    assert _history_keys(app, paged_reports) == [
+        report.debate_id for report in reversed(paged_reports[3:13])
+    ]
+    assert app.sidebar.button(key="history_next").disabled
+    assert not app.sidebar.button(key="history_prev").disabled
+    _assert_report(app, opened)
+    assert app.session_state["report_source"] == "history"
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("failure", ["missing", "corrupt", "database", "wrong_id"])
+def test_history_load_failure_keeps_current_report_and_can_retry(
+    offline_app, sample_reports, monkeypatch, failure,
+):
+    from debate import store
+
+    for report in sample_reports:
+        store.save_debate(report, conn=offline_app.connection)
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    current, target = sample_reports
+    app.sidebar.button(key=current.debate_id).click().run()
+    real_loader = store.load_debate
+    errors = {
+        "corrupt": ValueError("Synthetic invalid report JSON"),
+        "database": sqlite3.OperationalError("Synthetic database lock"),
+    }
+    broken_loader = Mock(
+        return_value=current if failure == "wrong_id" else None,
+        side_effect=errors.get(failure),
+    )
+    monkeypatch.setattr(store, "load_debate", broken_loader)
+    app.sidebar.button(key=target.debate_id).click().run()
+    _assert_report(app, current)
+    assert app.session_state["report_source"] == "history"
+    assert not app.session_state["sample_provenance"]
+    notice = _values(app.sidebar.error) + _values(app.sidebar.warning)
+    assert "Your open report has been kept" in notice
+    broken_loader.assert_called_once_with(target.debate_id)
+
+    monkeypatch.setattr(store, "load_debate", real_loader)
+    app.sidebar.button(key=target.debate_id).click().run()
+    _assert_report(app, target)
+    assert not app.sidebar.error
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("operation", ["count_debates", "list_debates"])
+def test_history_database_read_error_does_not_break_main_view_and_retry_recovers(
+    offline_app, sample_reports, monkeypatch, operation,
+):
+    from debate import store
+    from debate.sample import load_offline_example
+
+    report = sample_reports[0]
+    store.save_debate(report, conn=offline_app.connection)
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    example = load_offline_example()
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    original = getattr(store, operation)
+    monkeypatch.setattr(store, operation, Mock(side_effect=sqlite3.OperationalError("synthetic locked database")))
+    app.run()
+    _assert_offline_example(app, example)
+    assert _values(app.sidebar.error)
+    assert "No past debates yet." not in _values(app.sidebar.caption)
+    retry = app.sidebar.button(key="history_refresh")
+    assert not retry.disabled
+    monkeypatch.setattr(store, operation, original)
+    retry.click().run()
+    _assert_offline_example(app, example)
+    assert _history_keys(app, sample_reports) == [report.debate_id]
+    assert not app.sidebar.error
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("event", ["next", "previous", "clear", "report", "query"])
+def test_running_debate_disables_history_and_rejects_forged_button_events(
+    offline_app, paged_reports, monkeypatch, event,
+):
+    from debate import store
+
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    app.sidebar.text_input(key="history_query").input("Remote").run()
+    if event == "previous":
+        app.sidebar.button(key="history_next").click().run()
+    old_keys = _history_keys(app, paged_reports)
+    report = paged_reports[0]
+    app.session_state["debate_status"] = "running"
+    app.session_state["final_report"] = report
+    app.session_state["report_source"] = "live"
+    app.session_state["sample_provenance"] = None
+    app.session_state["thread_id"] = "synthetic-running-thread"
+    loader = Mock(side_effect=AssertionError("Running debates must not load history"))
+    monkeypatch.setattr(store, "load_debate", loader)
+    app.run()
+    assert app.sidebar.text_input(key="history_query").disabled
+    for key in ("history_prev", "history_next", "history_clear", "history_refresh", *old_keys):
+        assert app.sidebar.button(key=key).disabled
+    if event == "query":
+        app.sidebar.text_input(key="history_query").input("Office").run()
+    else:
+        event_key = {
+            "next": "history_next", "previous": "history_prev",
+            "clear": "history_clear", "report": old_keys[0],
+        }[event]
+        app.sidebar.button(key=event_key).click().run()
+    assert not app.exception
+    assert app.session_state["_history_applied_query"] == "Remote"
+    assert _history_keys(app, paged_reports) == old_keys
+    assert app.session_state["debate_status"] == "running"
+    assert app.session_state["final_report"].model_dump() == report.model_dump()
+    assert app.session_state["report_source"] == "live"
+    assert app.session_state["thread_id"] == "synthetic-running-thread"
     loader.assert_not_called()
     offline_app.stream.assert_not_called()

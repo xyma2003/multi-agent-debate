@@ -56,6 +56,20 @@ Open <http://localhost:8501> and click **View offline example**. Even on a fresh
 
 The [bundled example](examples/offline_debate.json) is a prewritten, fixed synthetic illustration, not the output of a live debate run or evidence of model quality. Its divergence values, confidence estimates, and timestamp are illustrative; the report index follows the documented formula. Viewing it makes no API calls or local model downloads and never saves the example to **Past Debates**. Saved reports remain available separately in that sidebar. **Start Debate** stays disabled until credentials are configured.
 
+### Find a saved debate
+
+In **Past Debates**, use **Search topics** to find a literal substring in a saved
+topic, or **Previous / Next** to browse ten reports per page, newest first.
+Dates and report IDs distinguish repeated topics. Changing the search returns to
+the first page; **Clear search** restores the full list and **Refresh** reloads it.
+Search covers topic text, not report contents; `%` and `_` are ordinary characters.
+
+Searching or paging only changes the sidebar. The open report stays visible with
+its own saved date and ID until you select another report. Missing or unreadable
+entries show a message and preserve the open report. Browsing history needs no
+API credentials and does not rerun models or change stored reports; history
+controls are unavailable while a debate is running.
+
 Starting a new debate uses the configured LLM API. On its first divergence check, the default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB). The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 
 ### Configuration

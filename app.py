@@ -11,13 +11,15 @@ from dotenv import load_dotenv
 
 load_dotenv(override=True)  # load .env, overriding any stale shell vars (e.g. a different OPENAI_API_KEY)
 import uuid
+import sqlite3
+from datetime import datetime
 
 import streamlit as st
 
 from debate.graph import graph  # module-level singleton — never store in session_state
 from debate.divergence import DIVERGENCE_MODE
 from debate.state import AgentArgument, DebateReport
-from debate.store import list_debates, load_debate
+from debate.store import count_debates, list_debates, load_debate
 from debate.sample import load_offline_example
 
 # ---------------------------------------------------------------------------
@@ -72,24 +74,118 @@ if not _has_api_key:
 # ---------------------------------------------------------------------------
 # Sidebar — past debates (STORE-02 replay via Phase 4 API)
 # ---------------------------------------------------------------------------
-with st.sidebar:
+HISTORY_PAGE_SIZE = 10
+
+
+def _history_timestamp(value: str) -> str:
+    """Keep the saved timezone visible without noisy fractional seconds."""
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).isoformat(
+            sep=" ", timespec="seconds",
+        )
+    except (TypeError, ValueError, AttributeError):
+        return str(value)
+
+
+def _clear_history_search() -> None:
+    if st.session_state.debate_status != "running":
+        st.session_state.history_query = ""
+        st.session_state.history_page = 0
+
+
+def _render_history_sidebar() -> None:
     st.header("Past Debates")
-    past = list_debates()
-    if past:
-        for row in past[:10]:
-            label = row["topic"][:40] + ("..." if len(row["topic"]) > 40 else "")
-            if st.button(label, key=row["debate_id"]):
+    busy = st.session_state.debate_status == "running"
+    query = st.text_input(
+        "Search topics", key="history_query", disabled=busy,
+        placeholder="Find a saved debate…",
+        help="Search saved topic text. Matches are literal; report contents are not searched.",
+    ).strip()
+    if query:
+        st.button(
+            "Clear search", key="history_clear", on_click=_clear_history_search,
+            disabled=busy,
+        )
+    if st.button("Refresh", key="history_refresh", disabled=busy) and not busy:
+        st.rerun()
+    # Retain the active list even if a disabled widget event is forged while
+    # the graph is running. Browsing must not replace an in-flight debate.
+    if busy:
+        query = st.session_state.get("_history_applied_query", "")
+    elif query != st.session_state.get("_history_applied_query", ""):
+        st.session_state.history_page = 0
+    st.session_state._history_applied_query = query
+
+    try:
+        total = count_debates(query=query)
+        max_page = max((total - 1) // HISTORY_PAGE_SIZE, 0)
+        page = max(0, min(st.session_state.get("history_page", 0), max_page))
+        st.session_state.history_page = page
+        past = list_debates(query=query, limit=HISTORY_PAGE_SIZE, offset=page * HISTORY_PAGE_SIZE)
+    except sqlite3.Error:
+        st.error("Could not read saved debates. Use Refresh to retry. Your open report has been kept.")
+        return
+
+    if st.session_state.final_report is not None:
+        st.caption("Search and pages change this list only; your open report stays visible.")
+    if not total:
+        if query:
+            st.caption("No saved debates match this topic. Try another search or clear it.")
+        else:
+            st.caption("No past debates yet.")
+        return
+
+    st.caption(f"{total} saved {'debate' if total == 1 else 'debates'} · Page {page + 1} of {max_page + 1}")
+    previous, next_page = st.columns(2)
+    if previous.button(
+        "Previous", key="history_prev", disabled=busy or page == 0,
+        use_container_width=True,
+    ) and not busy and page > 0:
+        st.session_state.history_page = page - 1
+        st.rerun()
+    if next_page.button(
+        "Next", key="history_next", disabled=busy or page >= max_page,
+        use_container_width=True,
+    ) and not busy and page < max_page:
+        st.session_state.history_page = page + 1
+        st.rerun()
+    if not past:
+        st.info("History changed while loading. Use Refresh to reload this page.")
+        return
+
+    opened = st.session_state.final_report
+    selected_id = opened.debate_id if opened and st.session_state.report_source == "history" else None
+    for row in past:
+        label = row["topic"][:52] + ("…" if len(row["topic"]) > 52 else "")
+        clicked = st.button(
+            label, key=row["debate_id"], help=row["topic"], disabled=busy,
+            type="primary" if row["debate_id"] == selected_id else "secondary",
+            use_container_width=True,
+        )
+        short_id = row["debate_id"] if len(row["debate_id"]) <= 12 else "…" + row["debate_id"][-8:]
+        st.caption(f"{_history_timestamp(row['created_at'])} · ID {short_id}")
+        if clicked and not busy:
+            try:
                 loaded = load_debate(row["debate_id"])
-                if loaded:
-                    st.session_state.final_report = loaded
-                    st.session_state.report_source = "history"
-                    st.session_state.sample_provenance = None
-                    st.session_state.thread_id = None
-                    st.session_state.debate_status = "complete"
-                    st.session_state.error_msg = None
-                    st.rerun()
-    else:
-        st.caption("No past debates yet.")
+                if loaded is None:
+                    st.warning("This saved debate is no longer available. Use Refresh to update the list. Your open report has been kept.")
+                    continue
+                if loaded.debate_id != row["debate_id"]:
+                    raise ValueError("Stored report ID does not match the selected debate")
+            except (sqlite3.Error, ValueError):
+                st.error("Could not open this saved debate. Your open report has been kept. You can retry or select another report.")
+                continue
+            st.session_state.final_report = loaded
+            st.session_state.report_source = "history"
+            st.session_state.sample_provenance = None
+            st.session_state.thread_id = None
+            st.session_state.debate_status = "complete"
+            st.session_state.error_msg = None
+            st.rerun()
+
+
+with st.sidebar:
+    _render_history_sidebar()
 
 # ---------------------------------------------------------------------------
 # Main area
@@ -125,12 +221,15 @@ with st.container(border=True):
             st.session_state.thread_id = None
             st.session_state.error_msg = None
             st.session_state.debate_status = "complete"
+            # The sidebar was rendered before this action; refresh its selected
+            # report marker now that the main view contains the example.
+            st.rerun()
 
 # ---------------------------------------------------------------------------
 # Input section (UI-01)
 # ---------------------------------------------------------------------------
 topic = st.text_input(
-    "Debate topic",
+    "Debate topic", key="debate_topic",
     placeholder="e.g. 'Should remote work be the default for knowledge workers?'",
     disabled=(st.session_state.debate_status == "running"),
 )
@@ -259,8 +358,10 @@ if start_clicked and _has_api_key and (topic or "").strip():
         st.session_state.debate_status = "error"
         st.session_state.error_msg = str(exc)
 
-    # st.rerun() intentionally omitted here — Streamlit will re-render on next
-    # interaction. Calling rerun() inside the stream loop would kill the stream.
+    # Refresh navigation only after the stream finishes (or fails), never from
+    # inside the loop. Keep the success/error state above so a persistence failure
+    # cannot become a successful report merely because the page refreshes.
+    st.rerun()
 
 # ---------------------------------------------------------------------------
 # Error state (UI-04)
@@ -281,6 +382,10 @@ def render_report(report: DebateReport) -> None:
     st.divider()
     st.subheader("Debate Result")
     st.markdown(f"**Topic:** {report.topic}")
+    if st.session_state.report_source == "history":
+        st.caption(
+            f"Saved report · {_history_timestamp(report.created_at.isoformat())} · ID {report.debate_id}"
+        )
     if st.session_state.report_source == "sample":
         st.info("Fixed synthetic example · No model/API execution · Not saved to your history")
         st.caption(st.session_state.sample_provenance)

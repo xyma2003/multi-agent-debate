@@ -70,6 +70,23 @@ entries show a message and preserve the open report. Browsing history needs no
 API credentials and does not rerun models or change stored reports; history
 controls are unavailable while a debate is running.
 
+### Export the open report
+
+Under **Debate Result**, choose **Download Markdown** for a readable report or
+**Download JSON** for structured data. Both contain the report ID, original
+timestamp, verdict, consensus and disputes, every recorded argument and claim,
+and the full concession log. Files use UTF-8 and preserve Chinese text.
+Search and pagination do not change the download until you open another report.
+
+JSON uses a versioned envelope: `schema_version`, `source`, `interpretation`, and
+`report`. The `report` object contains the complete `DebateReport` data; its
+legacy `confidence_score` field stays on the saved 0–1 scale, without
+recalculation. This agreement index and agent confidence are not calibrated
+accuracy. Exports do not infer the detector mode from current app settings.
+The offline example keeps its synthetic source label and provenance in both
+formats. Downloading requires no API credentials, runs no models, and does not
+write to history. Export is available only for a completed, open report.
+
 Starting a new debate uses the configured LLM API. On its first divergence check, the default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB). The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 
 ### Configuration

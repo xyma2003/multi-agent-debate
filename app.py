@@ -21,6 +21,7 @@ from debate.divergence import DIVERGENCE_MODE
 from debate.state import AgentArgument, DebateReport
 from debate.store import count_debates, list_debates, load_debate
 from debate.sample import load_offline_example
+from debate.export import build_report_exports
 
 # ---------------------------------------------------------------------------
 # Page config (must be first Streamlit call)
@@ -389,6 +390,32 @@ def render_report(report: DebateReport) -> None:
     if st.session_state.report_source == "sample":
         st.info("Fixed synthetic example · No model/API execution · Not saved to your history")
         st.caption(st.session_state.sample_provenance)
+
+    try:
+        exports = build_report_exports(
+            report, source=st.session_state.report_source,
+            provenance=st.session_state.sample_provenance,
+        )
+    except ValueError:
+        st.warning(
+            "This report could not be exported. Its contents remain visible; "
+            "please select another report or try again."
+        )
+    else:
+        st.caption("Download this open report, including all recorded rounds and concessions.")
+        markdown_download, json_download, _ = st.columns([1, 1, 2])
+        markdown_download.download_button(
+            "Download Markdown", data=exports.markdown.encode("utf-8"),
+            file_name=exports.markdown_filename, mime="text/markdown; charset=utf-8",
+            key="report_export_markdown", on_click="ignore", width="stretch",
+            help="A readable report with its source, full reasoning trace, and score explanations.",
+        )
+        json_download.download_button(
+            "Download JSON", data=exports.json.encode("utf-8"),
+            file_name=exports.json_filename, mime="application/json",
+            key="report_export_json", on_click="ignore", width="stretch",
+            help="Structured report data with source metadata; original saved values are preserved.",
+        )
 
     # Keep the persisted field for replay compatibility; clarify its meaning.
     col1, col2 = st.columns([2, 3])

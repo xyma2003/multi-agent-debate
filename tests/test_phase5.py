@@ -5,9 +5,14 @@ model, download NLI weights, load a developer's .env, or open debates.db.
 Run with: python -m pytest tests/test_phase5.py -v
 """
 from datetime import datetime, timedelta, timezone
+import html
+import importlib
+import json
 from pathlib import Path
+import re
 import socket
 import sqlite3
+from string import punctuation
 from types import SimpleNamespace
 from unittest.mock import Mock
 
@@ -145,6 +150,72 @@ def _history_keys(app, reports):
 
 def _selected_history_keys(app):
     return [button.key for button in app.sidebar.button if button.proto.type == "primary"]
+
+
+@pytest.fixture
+def export_media(monkeypatch):
+    """Retain AppTest's actual in-memory downloads after its runtime closes.
+
+    AppTest does not yet provide a download-button click API. Each run creates
+    a fresh media store, so retain that real store and inspect files referenced
+    by the final button protos instead of mocking the serializer or widget.
+    """
+    app_test_module = importlib.import_module("streamlit.testing.v1.app_test")
+    storage_class = app_test_module.MemoryMediaFileStorage
+    stores = []
+
+    def capture_storage(*args, **kwargs):
+        storage = storage_class(*args, **kwargs)
+        stores.append(storage)
+        return storage
+
+    monkeypatch.setattr(app_test_module, "MemoryMediaFileStorage", capture_storage)
+    return stores
+
+
+def _markdown_export_text(content):
+    """Resolve CommonMark literal escapes for content-preservation assertions."""
+    return html.unescape(re.sub(
+        rf"\\([{re.escape(punctuation)}])", r"\1", content.decode("utf-8"),
+    ))
+
+
+def _report_exports(app, export_media, report, source, *, provenance=None):
+    """Check the files served by the two current download buttons."""
+    assert not app.exception
+    buttons = {button.proto.label: button.proto for button in app.get("download_button")}
+    assert set(buttons) == {"Download Markdown", "Download JSON"}
+    files = {}
+    for label, key, extension, mime in (
+        ("Download Markdown", "report_export_markdown", ".md", "text/markdown; charset=utf-8"),
+        ("Download JSON", "report_export_json", ".json", "application/json"),
+    ):
+        button = buttons[label]
+        assert button.id.endswith(f"-{key}")
+        assert button.ignore_rerun, "Downloading must not rerun an active app session"
+        assert not button.disabled
+        assert button.url.startswith("/mock/media/")
+        stored_file = export_media[-1].get_file(button.url.rsplit("/", 1)[-1])
+        assert isinstance(stored_file.content, bytes)
+        assert stored_file.mimetype == mime
+        assert stored_file.filename.endswith(extension)
+        assert Path(stored_file.filename).name == stored_file.filename
+        files[extension] = stored_file.content
+
+    payload = json.loads(files[".json"].decode("utf-8"))
+    assert payload["schema_version"] == 1
+    assert payload["source"]["kind"] == source
+    assert payload["source"]["description"]
+    assert payload["interpretation"]
+    assert payload["report"] == report.model_dump(mode="json")
+    markdown = _markdown_export_text(files[".md"])
+    assert report.topic in markdown
+    assert report.verdict in markdown
+    assert report.created_at.strftime("%Y-%m-%d") in markdown
+    if provenance is not None:
+        assert provenance in markdown
+        assert provenance in json.dumps(payload["source"], ensure_ascii=False)
+    return files
 
 
 def _assert_report(app, report):
@@ -520,7 +591,7 @@ def test_sample_does_not_enable_debate_without_credentials(offline_app):
 
 @pytest.mark.parametrize("initial_source", ["sample", "history"])
 def test_mocked_live_debate_refreshes_history_and_clears_prior_selection(
-    offline_app, sample_reports, monkeypatch, initial_source,
+    offline_app, sample_reports, monkeypatch, initial_source, export_media,
 ):
     from debate.sample import load_offline_example
     from debate.store import save_debate
@@ -555,6 +626,7 @@ def test_mocked_live_debate_refreshes_history_and_clears_prior_selection(
     assert example.report.verdict not in _values(app.info)
     assert _selected_history_keys(app) == []
     assert _history_keys(app, sample_reports) == [report.debate_id, previous.debate_id]
+    _report_exports(app, export_media, report, "live")
     offline_app.stream.assert_called_once()
 
 
@@ -582,6 +654,7 @@ def test_persistence_failure_after_synthesis_remains_an_error(offline_app, sampl
     assert "readonly" in app.session_state["error_msg"].lower()
     assert "Debate failed" in _values(app.error)
     assert "Debate Result" not in _values(app.subheader)
+    assert not app.get("download_button")
     assert app.session_state["final_report"].debate_id == report.debate_id
     assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
     offline_app.stream.assert_called_once()
@@ -910,4 +983,214 @@ def test_running_debate_disables_history_and_rejects_forged_button_events(
     assert app.session_state["report_source"] == "live"
     assert app.session_state["thread_id"] == "synthetic-running-thread"
     loader.assert_not_called()
+    offline_app.stream.assert_not_called()
+
+
+def test_history_downloads_serve_complete_chinese_report_without_writes(
+    offline_app, sample_reports, export_media,
+):
+    from debate.state import DebateReport
+    from debate.store import save_debate
+
+    data = sample_reports[0].model_dump()
+    data.update(
+        debate_id="export-chinese-report",
+        topic="中文议题：是否实行弹性办公",
+        verdict="先开展小规模试点，再根据结果调整。",
+        consensus_points=["共同测量团队协作效果"],
+        disputed_points=[{
+            "topic": "远程协作的沟通成本",
+            "agent_positions": {
+                "optimist": "异步沟通能够降低干扰",
+                "pessimist": "新成员需要更多同步指导",
+            },
+        }],
+    )
+    concession = {
+        "conceded_point": "新成员入职期需要额外支持",
+        "triggered_by_agent": "pessimist",
+        "triggered_by_claim": "隐性知识难以通过文档传递",
+        "rationale": "为入职期增加固定辅导时间可以降低风险。",
+    }
+    data["reasoning_trace"] = [{
+        "round_num": index,
+        "divergence_score": (0.8, 0.2)[index],
+        "arguments": [{
+            "agent_role": "optimist",
+            "round_num": index,
+            "position": f"第{index + 1}轮主张：逐步验证弹性办公",
+            "reasoning": f"第{index + 1}轮论证：通过真实协作指标检查影响。",
+            "confidence": 0.8,
+            "key_claims": ["试点规模应可控", "协作效果应测量", "入职支持应保留"],
+            "concessions": [concession] if index else [],
+            "is_sentinel": False,
+        }],
+    } for index in range(2)]
+    data["concession_log"] = [concession]
+    report = DebateReport.model_validate(data)
+    save_debate(report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+    exports = _report_exports(app, export_media, report, "history")
+    markdown = _markdown_export_text(exports[".md"])
+    assert "Round 1" in markdown
+    assert "Round 2" in markdown
+    for record in report.reasoning_trace:
+        for argument in record.arguments:
+            assert argument.position in markdown
+            assert argument.reasoning in markdown
+            for claim in argument.key_claims:
+                assert claim in markdown
+    for text in (
+        *report.consensus_points,
+        report.disputed_points[0].topic,
+        *report.disputed_points[0].agent_positions.values(),
+        *concession.values(),
+    ):
+        assert text in markdown
+    # The saved value is deliberately inconsistent with the current formula:
+    # exporting must preserve historical facts instead of recomputing scores.
+    assert json.loads(exports[".json"])["report"]["confidence_score"] == 0.72
+    assert "中文议题".encode("utf-8") in exports[".json"]
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_history_search_and_pagination_keep_downloads_bound_to_open_report(
+    offline_app, paged_reports, export_media,
+):
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    report = paged_reports[21]
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+    original = _report_exports(app, export_media, report, "history")
+
+    app.sidebar.button(key="history_next").click().run()
+    assert _report_exports(app, export_media, report, "history") == original
+    app.sidebar.text_input(key="history_query").input("Remote").run()
+    assert report.debate_id not in _history_keys(app, paged_reports)
+    assert _report_exports(app, export_media, report, "history") == original
+    app.sidebar.text_input(key="history_query").input("No matching topic").run()
+    assert not _history_keys(app, paged_reports)
+    assert _report_exports(app, export_media, report, "history") == original
+    app.sidebar.button(key="history_clear").click().run()
+    assert _report_exports(app, export_media, report, "history") == original
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_selecting_another_same_topic_report_changes_download_content(
+    offline_app, paged_reports, export_media,
+):
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    first, second = paged_reports[22], paged_reports[20]
+    assert first.topic == second.topic
+    app = offline_app.open()
+    app.sidebar.button(key=first.debate_id).click().run()
+    first_exports = _report_exports(app, export_media, first, "history")
+    app.sidebar.button(key=second.debate_id).click().run()
+    second_exports = _report_exports(app, export_media, second, "history")
+    for extension in (".md", ".json"):
+        assert first_exports[extension] != second_exports[extension]
+    assert first.verdict not in _markdown_export_text(second_exports[".md"])
+    assert first.verdict not in second_exports[".json"].decode("utf-8")
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_sample_downloads_keep_synthetic_provenance_after_search_and_switching(
+    offline_app, paged_reports, export_media,
+):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    original = _report_exports(
+        app, export_media, example.report, "sample", provenance=example.provenance,
+    )
+    app.sidebar.button(key="history_next").click().run()
+    assert _report_exports(
+        app, export_media, example.report, "sample", provenance=example.provenance,
+    ) == original
+    app.sidebar.text_input(key="history_query").input("No matching topic").run()
+    assert _report_exports(
+        app, export_media, example.report, "sample", provenance=example.provenance,
+    ) == original
+    app.sidebar.button(key="history_clear").click().run()
+    report = paged_reports[-1]
+    app.sidebar.button(key=report.debate_id).click().run()
+    history_files = _report_exports(app, export_media, report, "history")
+    assert example.provenance not in _markdown_export_text(history_files[".md"])
+    assert example.provenance not in history_files[".json"].decode("utf-8")
+    _sample_button(app).click().run()
+    assert _report_exports(
+        app, export_media, example.report, "sample", provenance=example.provenance,
+    ) == original
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("status", ["idle", "running", "error"])
+def test_unfinished_states_offer_no_report_download_even_with_a_stale_report(
+    offline_app, sample_reports, status,
+):
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    assert not app.get("download_button")
+    app.session_state["debate_status"] = status
+    app.session_state["final_report"] = sample_reports[0]
+    app.session_state["report_source"] = "live"
+    app.session_state["error_msg"] = "Synthetic failure" if status == "error" else None
+    app.run()
+
+    assert not app.exception
+    assert not app.get("download_button")
+    assert "Debate Result" not in _values(app.subheader)
+    assert app.session_state["debate_status"] == status
+    offline_app.stream.assert_not_called()
+
+
+def test_nonfinite_report_export_failure_keeps_content_visible_and_can_retry(
+    offline_app, sample_reports, monkeypatch, export_media,
+):
+    from debate import store
+
+    report = sample_reports[0]
+    store.save_debate(report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    # Legacy/load-time data can contain nonfinite divergence because that field
+    # is unconstrained. Retain a sound stored row and simulate this read result.
+    malformed = report.model_copy(deep=True)
+    malformed.reasoning_trace[0].divergence_score = float("nan")
+    loader = Mock(return_value=malformed)
+    monkeypatch.setattr(store, "load_debate", loader)
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+
+    assert not app.exception
+    assert app.session_state["debate_status"] == "complete"
+    assert "Debate Result" in _values(app.subheader)
+    assert report.topic in _values(app.markdown)
+    assert report.verdict in _values(app.info)
+    assert report.reasoning_trace[0].arguments[0].reasoning in _values(app.markdown)
+    assert not app.get("download_button")
+    assert (
+        "This report could not be exported. Its contents remain visible; "
+        "please select another report or try again."
+    ) in _values(app.warning)
+
+    loader.return_value = report
+    app.sidebar.button(key=report.debate_id).click().run()
+    _report_exports(app, export_media, report, "history")
+    assert "This report could not be exported" not in _values(app.warning)
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
     offline_app.stream.assert_not_called()

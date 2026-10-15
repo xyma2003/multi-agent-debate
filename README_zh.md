@@ -67,6 +67,20 @@ streamlit run app.py
 选择另一条报告后才切换正文。记录缺失或无法读取时会提示，并保留当前报告。
 历史浏览无需 API 凭据，不重新调用模型、不改写报告；辩论运行期间暂停历史导航。
 
+### 导出当前报告
+
+在 **Debate Result** 下点击 **Download Markdown** 下载可读报告，或点击
+**Download JSON** 下载结构化数据。两种格式都包含报告 ID、原始时间、结论、共识、
+分歧、每轮完整论证与关键论点，以及全部让步记录；使用 UTF-8 编码，保留中文。
+搜索和翻页不会改变下载内容，打开另一份报告后才会切换。
+
+JSON 包含 `schema_version`、`source`、`interpretation` 和 `report`；
+`report` 保存完整的 `DebateReport` 数据，兼容字段 `confidence_score` 保持原有
+0–1 数值，不重新计算。报告一致性指数与角色自报信心都不是校准后的正确率；
+导出不会用当前配置推断报告使用的分歧检测器。固定样例的两种导出均保留合成演示
+标记与来源说明。下载无需 API 凭据，不调用模型、不写入历史；仅已完成并打开的
+报告显示导出入口。
+
 发起新辩论会调用所配置的 LLM API。默认 NLI 模式首次执行分歧检测时会下载 `cross-encoder/nli-deberta-v3-small`（约 180 MB）；可选的余弦对照模式会下载 `BAAI/bge-small-en-v1.5`（约 130 MB）。
 
 ### 配置示例

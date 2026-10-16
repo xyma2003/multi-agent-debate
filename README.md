@@ -217,6 +217,7 @@ Benchmark variants pin their detector explicitly so the cosine baseline and NLI 
 - NLI adds local model download and inference cost
 - The Debate Agreement Index is a heuristic, not a calibrated probability of correctness or proof of consensus
 - Prompt constraints can suppress legitimate uncertainty as well as empty hedging
+- Reports do not yet save the detector mode or configuration used for that run; current app settings cannot establish a historical report's detector
 
 ## Project structure
 
@@ -246,12 +247,25 @@ LANGCHAIN_PROJECT=multi-agent-debate
 
 Traces may contain full prompts and outputs; do not enable them for sensitive topics without reviewing your data-handling requirements.
 
-## Resume description
+## Maintenance and contributions
 
-> Built a LangGraph multi-agent debate system with parallel role orchestration, structured outputs, NLI-based divergence routing, attributed concessions, SQLite replay, and an ablation-oriented evaluation pipeline for prompt and termination strategies.
+The app currently includes a bundled offline example, searchable history, and Markdown/JSON export. Maintenance focuses on reliable inspection and replay, backward compatibility, and deterministic regression coverage. Model-backed experiments remain separate from CI; the [known limitations](#known-limitations) and [result provenance](results/README.md) apply to existing reports and benchmarks.
 
-## Status
+### Next small step — planned, not implemented
 
-Core development and exploratory experiments: **April–June 2026**. Current maintenance includes offline onboarding, history navigation, report export, and regression coverage. Deterministic CI is separate from model-backed experiments.
+Save the detector and relevant configuration actually used by each new debate. Older reports with no metadata must remain readable and display **unknown**; never fill the gap from the current environment, recalculate saved scores, or relabel the synthetic example as a detector run.
+
+These contribution tasks have concrete acceptance criteria:
+
+| Task | Starting points | Acceptance |
+|---|---|---|
+| Capture and persist run metadata | [Report schema](debate/state.py), [divergence node](debate/nodes/divergence_check.py), [report assembly](debate/nodes/synthesize.py), [storage tests](tests/test_phase4.py) | A new report retains its actual detector/configuration through save and reload; legacy JSON without the fields still loads with unknown metadata. Verify using local fixtures, without model execution. |
+| Show and export that metadata, after capture is available | [UI](app.py), [serializer](debate/export.py), [export tests](tests/test_report_export.py), [offline UI tests](tests/test_phase5.py) | The screen, Markdown, and JSON agree; changing the current detector does not change a saved report's metadata or scores. Old reports remain unknown, the example remains synthetic, and browsing/exporting makes no model calls or history writes. |
+
+### Report an issue or send a pull request
+
+Include the OS, Python/dependency versions, commit, minimal reproduction, expected versus actual behavior, and the checks you actually ran. Use a small synthetic report when data is needed. For a PR, include the relevant offline tests and [deterministic suite](#tests) results, and state whether any model/API calls or downloads occurred. Do not attach API keys, `.env` files, or private report contents.
+
+[Open an issue](https://github.com/xyma2003/multi-agent-debate/issues) or [submit a pull request](https://github.com/xyma2003/multi-agent-debate/pulls).
 
 MIT License.

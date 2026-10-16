@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "source": {
+    "kind": "sample",
+    "description": "Fixed synthetic example; no model execution. This example is not model-quality evidence.",
+    "provenance": "Prewritten, fixed synthetic example for exploring this interface. The team, arguments, concessions, scores, stop reason, and timestamp are illustrative. Nothing here was produced by a live agent debate or a divergence detector; it is not evidence of model performance or workplace outcomes."
+  },
+  "interpretation": {
+    "saved_values": "Saved report values are preserved, not recomputed during export.",
+    "confidence_score": "The legacy confidence_score field stores the Debate Agreement Index on a 0–1 scale. Its 0–100 display is the saved value multiplied by 100. It is a heuristic, not correctness probability, evidence quality, or proof of consensus.",
+    "agent_confidence": "Each role's confidence is self-reported and uncalibrated; it is not an input to the report's agreement index.",
+    "divergence": "The detector and its configuration were not saved in this report; they are unknown. Do not infer them from the app's current settings. NLI and cosine divergence scores are not directly comparable, and zero does not prove agreement.",
+    "round_numbering": "Stored round_num values are 0-indexed. Markdown also shows their 1-indexed display numbers; the stored values are preserved.",
+    "stop_reason": "convergence_status records why the debate loop stopped. In particular, converged means the detector found no divergent agent pair; it does not verify factual correctness or establish real consensus."
+  },
+  "report": {
+    "debate_id": "offline-example-four-day-week-v1",
+    "topic": "Should a fictional 20-person software team trial a 32-hour, four-day week at unchanged pay?",
+    "consensus_points": [
+      "Any pilot needs a baseline, pre-agreed review criteria, and a reversible decision.",
+      "Weekday customer coverage and handovers must be planned before the pilot begins.",
+      "The fictional scenario provides no evidence that would justify a permanent company-wide change."
+    ],
+    "disputed_points": [
+      {
+        "topic": "When should a pilot begin?",
+        "agent_positions": {
+          "optimist": "Begin the eight-week pilot once coverage owners and review thresholds are assigned.",
+          "pessimist": "First collect a representative baseline and rehearse the proposed support rota; start only if both are adequate.",
+          "devil": "Let each role participate only after agreeing on a fair allocation of coverage duties and time off."
+        }
+      },
+      {
+        "topic": "What would justify wider adoption?",
+        "agent_positions": {
+          "optimist": "A successful bounded trial would justify a larger follow-up pilot.",
+          "pessimist": "Eight weeks may miss seasonal workload, so the trial alone cannot justify wider adoption.",
+          "devil": "Aggregate delivery metrics are insufficient if benefits and on-call burdens differ substantially by role."
+        }
+      }
+    ],
+    "verdict": "Prepare a reversible eight-week pilot with unchanged pay, a baseline, named weekday support owners, and explicit stop criteria. Review delivery, customer coverage, and the distribution of workload across roles before considering expansion. The agents still differ on when preparation is sufficient and what a short pilot could establish; this synthetic discussion is not evidence that the policy works.",
+    "confidence_score": 0.18,
+    "convergence_status": "max_rounds",
+    "reasoning_trace": [
+      {
+        "round_num": 0,
+        "arguments": [
+          {
+            "agent_role": "optimist",
+            "round_num": 0,
+            "position": "The fictional team should begin an eight-week, 32-hour four-day pilot with unchanged pay.",
+            "reasoning": "A bounded pilot can turn a policy preference into a decision with explicit review criteria. In this fictional scenario, the team can compare delivery, support coverage, and workload with a baseline rather than assuming fewer hours will improve outcomes. The proposal is a reversible experiment, not a claim that the policy has already succeeded.",
+            "confidence": 0.78,
+            "key_claims": [
+              "An eight-week pilot can be reversed if pre-agreed delivery or coverage thresholds are missed.",
+              "Delivery, customer coverage, and workload can be reviewed against a baseline.",
+              "A bounded trial can expose planning assumptions before a permanent policy change."
+            ],
+            "concessions": [],
+            "is_sentinel": false
+          },
+          {
+            "agent_role": "pessimist",
+            "round_num": 0,
+            "position": "The fictional team should retain its current schedule until coverage and measurement plans are ready.",
+            "reasoning": "The scenario assumes customers need weekday coverage, so reducing hours without a named rota could shift work into unrecorded overtime. A baseline is also necessary: a quiet eight weeks could make an ineffective schedule appear successful. Preparation must identify support owners and measurable limits before anyone changes working hours.",
+            "confidence": 0.82,
+            "key_claims": [
+              "Weekday customer coverage must be assigned before working hours change.",
+              "A pilot without a baseline cannot separate schedule effects from changes in workload.",
+              "Eight weeks may not include the team's busiest seasonal workload."
+            ],
+            "concessions": [],
+            "is_sentinel": false
+          },
+          {
+            "agent_role": "devil",
+            "round_num": 0,
+            "position": "The team should define a fair allocation of time off and coverage duties before choosing a single schedule.",
+            "reasoning": "A shared policy can affect software delivery and customer-facing roles differently. If everyone takes the same day off, the coverage problem becomes a design constraint; if days are staggered, some staff may receive less flexibility than others. The decision should therefore examine who receives the benefit and who absorbs the coordination cost.",
+            "confidence": 0.73,
+            "key_claims": [
+              "A uniform day off leaves customer-facing roles with different constraints.",
+              "Staggered days off require an explicit handover plan.",
+              "Team-wide averages can hide an uneven allocation of coverage duties."
+            ],
+            "concessions": [],
+            "is_sentinel": false
+          }
+        ],
+        "divergence_score": 0.8
+      },
+      {
+        "round_num": 1,
+        "arguments": [
+          {
+            "agent_role": "optimist",
+            "round_num": 1,
+            "position": "Begin the pilot only after assigning weekday support owners and setting review thresholds.",
+            "reasoning": "The pessimist's coverage requirement changes the launch conditions: a shorter week cannot rely on informal overtime to protect service. Named owners and staggered time off can be part of the design, while role-level workload checks address the devil's fairness concern. These preparations make a trial more interpretable without settling whether it will succeed.",
+            "confidence": 0.7,
+            "key_claims": [
+              "Named support owners are a prerequisite for launching the pilot.",
+              "Role-level workload checks should accompany delivery and coverage measures.",
+              "A successful pilot would support a larger follow-up trial rather than automatic permanent adoption."
+            ],
+            "concessions": [
+              {
+                "conceded_point": "The pilot should not start before weekday support coverage has named owners.",
+                "triggered_by_agent": "pessimist",
+                "triggered_by_claim": "Weekday customer coverage must be assigned before working hours change.",
+                "rationale": "Without assigned coverage, apparent schedule savings could be replaced by informal overtime."
+              }
+            ],
+            "is_sentinel": false
+          },
+          {
+            "agent_role": "pessimist",
+            "round_num": 1,
+            "position": "A reversible pilot is acceptable after a representative baseline and a rehearsal of the support rota.",
+            "reasoning": "The optimist's explicit reversal criteria reduce the cost of a failed trial, so rejecting any experiment is too strong. The remaining concern is readiness: collecting a baseline and rehearsing handovers would reveal avoidable gaps before the schedule changes. Even if the pilot meets its thresholds, an eight-week window cannot answer every question about seasonal demand.",
+            "confidence": 0.76,
+            "key_claims": [
+              "Pre-agreed reversal criteria limit the consequences of an unsuccessful trial.",
+              "A representative baseline and a support-rota rehearsal are prerequisites for this proposal.",
+              "A short pilot alone cannot establish performance during seasonal peaks."
+            ],
+            "concessions": [
+              {
+                "conceded_point": "A reversible pilot is preferable to rejecting every schedule experiment.",
+                "triggered_by_agent": "optimist",
+                "triggered_by_claim": "An eight-week pilot can be reversed if pre-agreed delivery or coverage thresholds are missed.",
+                "rationale": "Explicit stop criteria reduce the risk of locking the team into an unsuccessful policy."
+              }
+            ],
+            "is_sentinel": false
+          },
+          {
+            "agent_role": "devil",
+            "round_num": 1,
+            "position": "Approve participation by role only after staff agree on coverage duties and comparable access to time off.",
+            "reasoning": "Both other agents now require coverage planning, but that does not by itself establish fairness. The review should record who takes on handovers, on-call work, and less desirable days off, then compare those burdens with the promised benefit. Averages that look acceptable across the whole team should not override a persistent imbalance for a smaller group.",
+            "confidence": 0.74,
+            "key_claims": [
+              "Coverage ownership does not by itself ensure a fair distribution of work.",
+              "Pilot reviews should compare workload and access to time off across roles.",
+              "Persistent role-level imbalances require redesign even when team-wide delivery stays stable."
+            ],
+            "concessions": [],
+            "is_sentinel": false
+          }
+        ],
+        "divergence_score": 0.2
+      }
+    ],
+    "concession_log": [
+      {
+        "conceded_point": "The pilot should not start before weekday support coverage has named owners.",
+        "triggered_by_agent": "pessimist",
+        "triggered_by_claim": "Weekday customer coverage must be assigned before working hours change.",
+        "rationale": "Without assigned coverage, apparent schedule savings could be replaced by informal overtime."
+      },
+      {
+        "conceded_point": "A reversible pilot is preferable to rejecting every schedule experiment.",
+        "triggered_by_agent": "optimist",
+        "triggered_by_claim": "An eight-week pilot can be reversed if pre-agreed delivery or coverage thresholds are missed.",
+        "rationale": "Explicit stop criteria reduce the risk of locking the team into an unsuccessful policy."
+      }
+    ],
+    "created_at": "2026-01-01T00:00:00Z"
+  }
+}

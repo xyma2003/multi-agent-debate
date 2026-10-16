@@ -6,36 +6,27 @@
 
 [中文说明](README_zh.md)
 
-A LangGraph portfolio project in which three methodology-driven LLM agents—an Optimist, a Pessimist, and a Frame Challenger—analyze a question independently, rebut one another, record attributed concessions, and produce an auditable report.
+**See where three perspectives disagree—and which claims change their positions.**
 
-The default application uses NLI contradiction detection for multi-round routing. A lightweight cosine mode remains available for comparison, but it is not a reliable stance detector.
+A LangGraph application that follows a question through independent arguments, bounded rebuttal rounds, attributed concessions, and a report you can inspect and export. The three roles are an Optimist, a Pessimist, and a Frame Challenger, shown as Devil's Advocate in the interface.
 
-## What this project demonstrates
+[Read the case](docs/CASE_STUDY.md) · [Open the complete report](docs/example-report.md) · [Run without an API key](#quick-start) · [Evidence and limits](#experiments-and-evidence-level)
 
-- Parallel LangGraph fan-out/fan-in with bounded rebuttal loops
-- Pydantic structured outputs and validation fallbacks
-- NLI-based contradiction detection with caller-controlled round limits
-- A formula-derived Debate Agreement Index and attributed concession logs
-- SQLite persistence, Streamlit replay, and optional LangSmith traces
-- Reproducible benchmark runners for prompt and routing ablations
+![Current Streamlit interface displaying the fixed synthetic four-day-workweek example](docs/images/offline-debate.png)
 
-## Illustrative flow
+The current interface showing the bundled **fixed synthetic example**. Its content and scores are prewritten for demonstration; this is not a live model result or evidence of model quality.
 
-```text
-topic
-  └─► initialize
-       └─► Optimist ─┐
-           Pessimist ├─► collect ─► divergence check
-           Challenger─┘                    │
-                     ┌─ no contradiction / limit ─► synthesize ─► save
-                     └─ contradiction ─► rebuttal fan-out ─┘
-```
+## One question, three perspectives
 
-The final `DebateReport` contains consensus points, disputed points, a verdict, the Debate Agreement Index, the complete round trace, and every concession with its triggering agent and claim. The index is a heuristic about detected disagreement, not the probability that the verdict is correct.
+**Should a fictional 20-person software team trial a 32-hour, four-day week at unchanged pay?**
 
-![Cosine and NLI divergence comparison](analysis/fig_C_divergence_detection.png)
+| Perspective | Starting point | Position after rebuttal |
+|---|---|---|
+| Optimist | Begin a reversible eight-week pilot | Assign weekday support owners and review thresholds first |
+| Pessimist | Keep the current schedule until preparation is complete | Accept a pilot after a representative baseline and rota rehearsal |
+| Frame Challenger | Establish a fair allocation of time off and coverage | Require role-level agreement and workload checks |
 
-Historical exploratory visualization; see the evidence and provenance notes below before interpreting it.
+The example records two attributed concessions, a conditional recommendation, and remaining disagreement about readiness and wider adoption. The [case walkthrough](docs/CASE_STUDY.md) connects each change to its triggering claim; the [complete report](docs/example-report.md) includes all six arguments and can be read directly on GitHub, without installing anything.
 
 ## Quick start
 
@@ -103,6 +94,29 @@ DIVERGENCE_MODE=nli
 
 Supported backends are `openai`, `anthropic`, `groq`, `qwen`, `cerebras`, `together`, `sambanova`, and `gemini`.
 
+## How it works
+
+```text
+topic
+  └─► initialize
+       └─► Optimist ─┐
+           Pessimist ├─► collect ─► divergence check
+           Challenger─┘                    │
+                     ┌─ no contradiction / limit ─► synthesize ─► save
+                     └─ contradiction ─► rebuttal fan-out ─┘
+```
+
+The default application uses NLI contradiction detection for multi-round routing. A lightweight cosine mode remains available for comparison, but it is not a reliable stance detector.
+
+The final `DebateReport` contains consensus points, disputed points, a verdict, the Debate Agreement Index, the complete round trace, and every concession with its triggering agent and claim. The index is a heuristic about detected disagreement, not the probability that the verdict is correct.
+
+- Parallel LangGraph fan-out/fan-in with bounded rebuttal loops
+- Pydantic structured outputs and validation fallbacks
+- NLI-based contradiction detection with caller-controlled round limits
+- A formula-derived Debate Agreement Index and attributed concession logs
+- SQLite persistence, searchable Streamlit replay, and Markdown/JSON export
+- Reproducible benchmark runners for prompt and routing ablations
+
 ## Design choices
 
 | Decision | Rationale |
@@ -162,9 +176,9 @@ python -m pytest -m ui -v
 
 The repository includes raw outputs and runners for engineering exploration, not publication-grade evidence. Results are small-sample, mostly single-run, and some quality evaluations use one LLM judge.
 
-The clean base comparison contains 10 questions per system:
+The clean base comparison contains **10 matching questions per system**. The historical multi-agent runs in this table used **cosine routing**, not the current application's default NLI routing:
 
-| System | n | PDS ↑ | Hedge ratio ↓ | Mean rounds |
+| System | n | PDS | Hedge ratio | Mean rounds |
 |---|---:|---:|---:|---:|
 | Fixed frame-challenger prompt | 10 | 0.2242 | 0.0093 | 1.00 |
 | Single-LLM baseline | 10 | 0.2160 | 0.0129 | 1.00 |
@@ -172,7 +186,17 @@ The clean base comparison contains 10 questions per system:
 
 In this sample, the fixed prompt produced higher PDS than the original prompt, and the multi-agent output's mean hedge ratio was about 28% lower than the single-LLM baseline. These are observed sample differences, not causal or generalizable performance claims.
 
-A separate canonical NLI run contains 7 questions: 4/7 reached multiple rounds, mean rounds were 2.14, and mean stance stability was 0.977. See [`results/README.md`](results/README.md) for dataset provenance, validation failures, and interpretation rules.
+PDS summarizes embedding-based diversity between agents' key claims; hedge ratio counts matched hedge expressions per word. Stance stability (SSS) compares an agent's first and final positions using embedding similarity. These descriptive metrics do not establish answer correctness, evidence quality, or resistance to sycophancy. Fewer hedge expressions can also mean less appropriate uncertainty.
+
+A separate canonical NLI run contains **7 questions**: **4/7** reached multiple rounds, mean rounds were **2.14**, and mean stance stability was **0.9772**. These are separate runs, not a paired estimate of a causal routing improvement. See [`results/README.md`](results/README.md) for canonical files, validation exclusions, judge limitations, and provenance gaps. The fixed offline example above is excluded from these experiments.
+
+![Historical cosine and NLI divergence comparison](analysis/fig_C_divergence_detection.png)
+
+Historical exploratory visualization; interpret it alongside the sample sizes and provenance notes above. Recompute the checked-in summaries without model calls:
+
+```bash
+python benchmark/summarize_results.py
+```
 
 Run a new experiment with:
 
@@ -199,6 +223,8 @@ Benchmark variants pin their detector explicitly so the cosine baseline and NLI 
 ```text
 app.py                         Streamlit UI
 debate/                        graph, schemas, prompts, routing, persistence
+examples/offline_debate.json    fixed synthetic report and provenance
+docs/                          case walkthrough, exported example, UI screenshot
 benchmark/                     experiment runners, variants, evaluators
 results/                       raw outputs plus provenance notes
 analysis/                      notebooks and generated figures
@@ -226,6 +252,6 @@ Traces may contain full prompts and outputs; do not enable them for sensitive to
 
 ## Status
 
-Core development and experiments: **April–June 2026**. Later commits are maintenance, backend compatibility, and observability updates. The project is feature-complete and maintained in stabilization mode.
+Core development and exploratory experiments: **April–June 2026**. Current maintenance includes offline onboarding, history navigation, report export, and regression coverage. Deterministic CI is separate from model-backed experiments.
 
 MIT License.

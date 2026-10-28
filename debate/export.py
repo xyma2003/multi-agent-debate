@@ -9,6 +9,7 @@ import string
 from typing import Literal
 
 from debate.state import Concession, DebateReport
+from debate.detector_display import detector_details, detector_summary
 
 
 @dataclass(frozen=True)
@@ -40,7 +41,8 @@ _INTERPRETATION = {
         "it is not an input to the report's agreement index."
     ),
     "divergence": (
-        "The detector and its configuration were not saved in this report; they are unknown. "
+        "Detector metadata, when present, records each round's saved settings. "
+        "Rounds without metadata have an unknown detector and configuration. "
         "Do not infer them from the app's current settings. NLI and cosine divergence "
         "scores are not directly comparable, and zero does not prove agreement."
     ),
@@ -165,6 +167,8 @@ def build_report_exports(
         sections.extend([
             f"### Round {record.round_num + 1} (stored round_num: {record.round_num})",
             f"Saved divergence score: **{record.divergence_score!r}**.",
+            detector_summary(record.detector_metadata),
+            *(_field(label, value) for label, value in detector_details(record.detector_metadata)),
         ])
         if not record.arguments:
             sections.append("No arguments were saved for this round.")

@@ -9,7 +9,7 @@
     "saved_values": "Saved report values are preserved, not recomputed during export.",
     "confidence_score": "The legacy confidence_score field stores the Debate Agreement Index on a 0–1 scale. Its 0–100 display is the saved value multiplied by 100. It is a heuristic, not correctness probability, evidence quality, or proof of consensus.",
     "agent_confidence": "Each role's confidence is self-reported and uncalibrated; it is not an input to the report's agreement index.",
-    "divergence": "The detector and its configuration were not saved in this report; they are unknown. Do not infer them from the app's current settings. NLI and cosine divergence scores are not directly comparable, and zero does not prove agreement.",
+    "divergence": "Detector metadata, when present, records each round's saved settings. Rounds without metadata have an unknown detector and configuration. Do not infer them from the app's current settings. NLI and cosine divergence scores are not directly comparable, and zero does not prove agreement.",
     "round_numbering": "Stored round_num values are 0-indexed. Markdown also shows their 1-indexed display numbers; the stored values are preserved.",
     "stop_reason": "convergence_status records why the debate loop stopped. In particular, converged means the detector found no divergent agent pair; it does not verify factual correctness or establish real consensus."
   },
@@ -89,7 +89,8 @@
             "is_sentinel": false
           }
         ],
-        "divergence_score": 0.8
+        "divergence_score": 0.8,
+        "detector_metadata": null
       },
       {
         "round_num": 1,
@@ -151,7 +152,8 @@
             "is_sentinel": false
           }
         ],
-        "divergence_score": 0.2
+        "divergence_score": 0.2,
+        "detector_metadata": null
       }
     ],
     "concession_log": [

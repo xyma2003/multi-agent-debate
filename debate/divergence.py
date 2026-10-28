@@ -27,9 +27,11 @@ Select via: DIVERGENCE_MODE=nli python ...
 from __future__ import annotations
 
 import os
+from dataclasses import dataclass
 from itertools import combinations
+from typing import Literal
 
-from debate.state import AgentArgument
+from debate.state import AgentArgument, DetectorMetadata
 
 # ---------------------------------------------------------------------------
 # Constants
@@ -64,6 +66,8 @@ _NLI_NEUTRAL       = 2
 
 _BIENCODER = None
 _CROSSENCODER = None
+COSINE_MODEL_ID = "BAAI/bge-small-en-v1.5"
+NLI_MODEL_ID = "cross-encoder/nli-deberta-v3-small"
 
 
 def _get_model():
@@ -72,7 +76,7 @@ def _get_model():
     if _BIENCODER is None:
         from sentence_transformers import SentenceTransformer
 
-        _BIENCODER = SentenceTransformer("BAAI/bge-small-en-v1.5")
+        _BIENCODER = SentenceTransformer(COSINE_MODEL_ID)
     return _BIENCODER
 
 
@@ -82,13 +86,20 @@ def _get_nli_model():
     if _CROSSENCODER is None:
         from sentence_transformers import CrossEncoder
 
-        _CROSSENCODER = CrossEncoder("cross-encoder/nli-deberta-v3-small")
+        _CROSSENCODER = CrossEncoder(NLI_MODEL_ID)
     return _CROSSENCODER
 
 
 # ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class DivergenceResult:
+    score: float
+    diverged_pairs: list[tuple[str, str]]
+    metadata: DetectorMetadata
+
 
 def _softmax(x):
     """Return row-wise softmax values without adding a NumPy import at startup."""
@@ -108,9 +119,9 @@ def _softmax(x):
 # NLI-based divergence
 # ---------------------------------------------------------------------------
 
-def compute_divergence_nli(
+def _detect_nli(
     arguments: list[AgentArgument],
-) -> tuple[float, list[tuple[str, str]]]:
+) -> DivergenceResult:
     """NLI-based divergence: detects genuine stance contradiction between agents.
 
     For each agent pair, runs cross-encoder NLI on all cross-claim combinations
@@ -126,10 +137,16 @@ def compute_divergence_nli(
             1.0 = all pairs show maximum contradiction.
         diverged_pairs: (role_a, role_b) pairs where max contradiction > threshold.
     """
+    metadata = DetectorMetadata(
+        mode="nli", model_id=NLI_MODEL_ID,
+        divergence_threshold=NLI_CONTRADICTION_THRESHOLD,
+        nli_contradiction_label_index=_NLI_CONTRADICTION,
+    )
     if len(arguments) < 2:
-        return 0.0, []
+        return DivergenceResult(0.0, [], metadata)
 
     nli_model = _get_nli_model()
+    evaluated_pairs = 0
     diverged_pairs: list[tuple[str, str]] = []
     pairwise_max_contradictions: list[float] = []
 
@@ -146,31 +163,33 @@ def compute_divergence_nli(
         # claim, so max cosine similarity cannot prove pairwise convergence.
         cross_pairs = [(c_a, c_b) for c_a in claims_a for c_b in claims_b]
         logits = nli_model.predict(cross_pairs)           # shape: (n_pairs, 3)
+        evaluated_pairs += 1
         probs = _softmax(logits)                          # convert logits → probs
         contradiction_probs = [
-            row[_NLI_CONTRADICTION] for row in probs
+            row[metadata.nli_contradiction_label_index] for row in probs
         ]
         max_contradiction = max(contradiction_probs)
 
         pairwise_max_contradictions.append(max_contradiction)
 
-        if max_contradiction > NLI_CONTRADICTION_THRESHOLD:
+        if max_contradiction > metadata.divergence_threshold:
             diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
 
+    metadata = metadata.model_copy(update={"evaluated_pair_count": evaluated_pairs})
     if not pairwise_max_contradictions:
-        return 0.0, []
+        return DivergenceResult(0.0, [], metadata)
 
     divergence_score = sum(pairwise_max_contradictions) / len(pairwise_max_contradictions)
-    return round(divergence_score, 4), diverged_pairs
+    return DivergenceResult(round(divergence_score, 4), diverged_pairs, metadata)
 
 
 # ---------------------------------------------------------------------------
 # Cosine-based divergence (original)
 # ---------------------------------------------------------------------------
 
-def compute_divergence(
+def _detect_cosine(
     arguments: list[AgentArgument],
-) -> tuple[float, list[tuple[str, str]]]:
+) -> DivergenceResult:
     """Compute pairwise semantic divergence across all agent argument pairs.
 
     Embeds the key_claims of each AgentArgument (joined into one batch for
@@ -187,10 +206,16 @@ def compute_divergence(
             Formula: 1.0 - mean(pairwise max_similarities).
         diverged_pairs: list of (role_a, role_b) tuples where divergence was detected.
     """
+    metadata = DetectorMetadata(
+        mode="cosine", model_id=COSINE_MODEL_ID,
+        divergence_threshold=DIVERGE_THRESHOLD,
+        cosine_fast_path_threshold=CONVERGE_FAST_PATH,
+    )
     if len(arguments) < 2:
-        return 0.0, []
+        return DivergenceResult(0.0, [], metadata)
 
     model = _get_model()
+    evaluated_pairs = 0
     diverged_pairs: list[tuple[str, str]] = []
     pairwise_max_sims: list[float] = []
 
@@ -207,6 +232,7 @@ def compute_divergence(
         all_claims = claims_a + claims_b
         # CRITICAL: normalize_embeddings=True makes dot product == cosine similarity
         embeddings = model.encode(all_claims, normalize_embeddings=True)
+        evaluated_pairs += 1
         emb_a = embeddings[: len(claims_a)]
         emb_b = embeddings[len(claims_a) :]
 
@@ -217,29 +243,59 @@ def compute_divergence(
         pairwise_max_sims.append(max_sim)
 
         # Fast path: clearly converged — do not mark as diverged pair
-        if max_sim > CONVERGE_FAST_PATH:
+        if max_sim > metadata.cosine_fast_path_threshold:
             continue
 
         # The detector owns this similarity threshold. The routing layer only
         # consumes the resulting pair decision.
-        if max_sim < DIVERGE_THRESHOLD:
+        if max_sim < metadata.divergence_threshold:
             diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
 
+    metadata = metadata.model_copy(update={"evaluated_pair_count": evaluated_pairs})
     if not pairwise_max_sims:
-        return 0.0, []
+        return DivergenceResult(0.0, [], metadata)
 
     divergence_score = 1.0 - (sum(pairwise_max_sims) / len(pairwise_max_sims))
-    return divergence_score, diverged_pairs
+    return DivergenceResult(divergence_score, diverged_pairs, metadata)
 
 
 # ---------------------------------------------------------------------------
 # Dispatcher — routes to cosine or NLI based on DIVERGENCE_MODE
 # ---------------------------------------------------------------------------
 
+def detect_divergence(
+    arguments: list[AgentArgument],
+    *,
+    mode: Literal["nli", "cosine"] | None = None,
+) -> DivergenceResult:
+    """Evaluate one round and retain the exact settings used for its decisions."""
+    selected_mode = DIVERGENCE_MODE if mode is None else mode
+    if selected_mode == "nli":
+        return _detect_nli(arguments)
+    if selected_mode == "cosine":
+        return _detect_cosine(arguments)
+    raise ValueError(f"Unsupported divergence mode: {selected_mode!r}")
+
+
+def compute_divergence_nli(
+    arguments: list[AgentArgument],
+) -> tuple[float, list[tuple[str, str]]]:
+    """NLI tuple API retained for callers that do not need round metadata."""
+    result = detect_divergence(arguments, mode="nli")
+    return result.score, result.diverged_pairs
+
+
+def compute_divergence(
+    arguments: list[AgentArgument],
+) -> tuple[float, list[tuple[str, str]]]:
+    """Cosine tuple API retained; scoring and pair thresholds are unchanged."""
+    result = detect_divergence(arguments, mode="cosine")
+    return result.score, result.diverged_pairs
+
+
 def compute_divergence_dispatch(
     arguments: list[AgentArgument],
 ) -> tuple[float, list[tuple[str, str]]]:
     """Dispatch to NLI or cosine divergence based on DIVERGENCE_MODE env var."""
-    if DIVERGENCE_MODE == "nli":
-        return compute_divergence_nli(arguments)
-    return compute_divergence(arguments)
+    result = detect_divergence(arguments)
+    return result.score, result.diverged_pairs

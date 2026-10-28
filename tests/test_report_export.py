@@ -10,7 +10,7 @@ import string
 import pytest
 
 from debate.export import build_report_exports
-from debate.state import AgentArgument, Concession, DebateReport, DisputedPoint, RoundRecord
+from debate.state import AgentArgument, Concession, DebateReport, DetectorMetadata, DisputedPoint, RoundRecord
 
 
 def _literal_quote_contents(markdown):
@@ -228,3 +228,112 @@ def test_nonfinite_saved_score_is_rejected_without_rewriting_report(report, scor
         build_report_exports(report, source="history")
     saved_score = report.reasoning_trace[0].divergence_score
     assert math.isnan(saved_score) if math.isnan(score) else saved_score == score
+
+
+def test_mixed_round_detectors_export_their_own_saved_settings(report):
+    report.reasoning_trace[0].detector_metadata = DetectorMetadata(
+        mode="nli", model_id="saved/nli-model", input_field="reasoning",
+        divergence_threshold=0.625, nli_contradiction_label_index=2,
+        evaluated_pair_count=3, sentinels_excluded=True,
+    )
+    report.reasoning_trace[1].detector_metadata = DetectorMetadata(
+        mode="cosine", model_id="saved/cosine-model", input_field="key_claims",
+        divergence_threshold=0.72, cosine_fast_path_threshold=0.98,
+        evaluated_pair_count=27, sentinels_excluded=False,
+    )
+    report.reasoning_trace.append(RoundRecord(round_num=2, arguments=[]))
+    before = report.model_dump(mode="json")
+    exports = build_report_exports(report, source="history")
+    sections = exports.markdown.split("### Round ")
+    nli, cosine, legacy = sections[1:]
+    assert "Saved detector: NLI · 3 evaluated pairs." in nli
+    assert "saved/nli-model" in _literal_quote_contents(nli)
+    assert "reasoning" in _literal_quote_contents(nli)
+    assert "0.625" in _literal_quote_contents(nli)
+    assert "2" in _literal_quote_contents(nli)
+    assert "Enabled" in _literal_quote_contents(nli)
+    assert "Saved detector: COSINE · 27 evaluated pairs." in cosine
+    assert "saved/cosine-model" in _literal_quote_contents(cosine)
+    assert "key_claims" in _literal_quote_contents(cosine)
+    assert "0.72" in _literal_quote_contents(cosine)
+    assert "0.98" in _literal_quote_contents(cosine)
+    assert "Disabled" in _literal_quote_contents(cosine)
+    assert "Saved detector: unknown" in legacy
+    assert "saved/nli-model" not in _literal_quote_contents(legacy)
+    assert "saved/cosine-model" not in _literal_quote_contents(legacy)
+    assert "pinned weight revision" in exports.markdown
+    assert json.loads(exports.json)["report"] == before
+    assert report.model_dump(mode="json") == before
+
+
+@pytest.mark.parametrize("mode", ["nli", "cosine"])
+def test_zero_evaluated_pairs_do_not_claim_inference_ran(report, mode):
+    report.reasoning_trace = [report.reasoning_trace[0]]
+    report.reasoning_trace[0].detector_metadata = DetectorMetadata(
+        mode=mode, model_id="saved/unused-model", divergence_threshold=0.5,
+        evaluated_pair_count=0,
+    )
+    exports = build_report_exports(report, source="history")
+    assert f"Saved detector: {mode.upper()} · 0 evaluated pairs." in exports.markdown
+    assert "No pairs were evaluated; no pairwise model inference was run." in _literal_quote_contents(exports.markdown)
+    assert json.loads(exports.json)["report"]["reasoning_trace"][0]["detector_metadata"]["evaluated_pair_count"] == 0
+
+
+def test_legacy_missing_metadata_is_unknown_and_not_filled_from_current_settings(report, monkeypatch):
+    from debate import divergence
+
+    legacy = report.model_dump(mode="json")
+    for record in legacy["reasoning_trace"]:
+        record.pop("detector_metadata")
+    loaded = DebateReport.model_validate(legacy)
+    monkeypatch.setattr(divergence, "DIVERGENCE_MODE", "nli")
+    original = build_report_exports(loaded, source="history")
+    monkeypatch.setattr(divergence, "DIVERGENCE_MODE", "cosine")
+    assert build_report_exports(loaded, source="history") == original
+    assert original.markdown.count("Saved detector: unknown") == 2
+    assert all(record["detector_metadata"] is None for record in json.loads(original.json)["report"]["reasoning_trace"])
+
+
+def test_model_identifier_is_exported_as_literal_text(report):
+    model_id = "saved/model\n# Forged heading\n<script>unsafe()</script>"
+    report.reasoning_trace[0].detector_metadata = DetectorMetadata(
+        mode="nli", model_id=model_id, divergence_threshold=0.5,
+        nli_contradiction_label_index=0, evaluated_pair_count=1,
+    )
+    exports = build_report_exports(report, source="history")
+    assert model_id in _literal_quote_contents(exports.markdown)
+    assert "\n# Forged heading" not in exports.markdown
+    assert "<script>" not in exports.markdown
+    assert "Saved detector: NLI · 1 evaluated pair." in exports.markdown
+    assert json.loads(exports.json)["report"]["reasoning_trace"][0]["detector_metadata"]["model_id"] == model_id
+
+
+@pytest.mark.parametrize("mode,input_field,fast_path,nli_label", [
+    ("nli", "key_claims", "Not used", "Not recorded"),
+    ("nli", "reasoning", "Not used", "Not recorded"),
+    ("cosine", "key_claims", "Not recorded", "Not applicable"),
+    ("cosine", "reasoning", "Not used", "Not applicable"),
+])
+def test_detector_details_distinguish_unused_from_missing_settings(mode, input_field, fast_path, nli_label):
+    from debate.detector_display import detector_details
+
+    metadata = DetectorMetadata(
+        mode=mode, model_id="saved/model", input_field=input_field,
+        divergence_threshold=0.5,
+    )
+    details = dict(detector_details(metadata))
+    assert details["Cosine fast-path threshold"] == fast_path
+    assert details["NLI contradiction label index"] == nli_label
+
+
+def test_detector_details_preserve_explicit_values_even_for_an_unusual_configuration():
+    from debate.detector_display import detector_details
+
+    metadata = DetectorMetadata(
+        mode="cosine", model_id="saved/model", input_field="reasoning",
+        divergence_threshold=0.5, cosine_fast_path_threshold=0.99,
+        nli_contradiction_label_index=0,
+    )
+    details = dict(detector_details(metadata))
+    assert details["Cosine fast-path threshold"] == "0.99"
+    assert details["NLI contradiction label index"] == "0"

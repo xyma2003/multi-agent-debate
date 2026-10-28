@@ -416,6 +416,107 @@ def test_history_index_explanation_is_independent_of_current_detector(
     offline_app.stream.assert_not_called()
 
 
+@pytest.mark.parametrize("source", ["history", "live"])
+def test_saved_detector_metadata_stays_per_round_after_settings_change(
+    offline_app, sample_reports, monkeypatch, export_media, source,
+):
+    from debate import divergence
+    from debate.state import DetectorMetadata, RoundRecord
+    from debate.store import save_debate
+
+    report = sample_reports[0].model_copy(deep=True)
+    first = report.reasoning_trace[0]
+    first.detector_metadata = DetectorMetadata(
+        mode="nli", model_id="saved/nli-id", input_field="reasoning",
+        divergence_threshold=0.625, nli_contradiction_label_index=2,
+        evaluated_pair_count=3, sentinels_excluded=True,
+    )
+    report.reasoning_trace.extend([
+        RoundRecord(round_num=1, arguments=[], divergence_score=0.21,
+            detector_metadata=DetectorMetadata(
+                mode="cosine", model_id="saved/cosine-id", input_field="key_claims",
+                divergence_threshold=0.72, cosine_fast_path_threshold=0.98,
+                evaluated_pair_count=0, sentinels_excluded=False,
+            )),
+        RoundRecord(round_num=2, arguments=[], divergence_score=0.19),
+    ])
+    save_debate(report, conn=offline_app.connection)
+    rows_before = offline_app.connection.execute("SELECT * FROM debates").fetchall()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    monkeypatch.setenv("DIVERGENCE_MODE", "nli")
+    monkeypatch.setattr(divergence, "DIVERGENCE_MODE", "nli")
+    app = offline_app.open()
+    if source == "history":
+        app.sidebar.button(key=report.debate_id).click().run()
+    else:
+        app.session_state["debate_status"] = "complete"
+        app.session_state["final_report"] = report
+        app.session_state["report_source"] = "live"
+        app.run()
+
+    def detector_view():
+        return next(item for item in app.expander if item.label == "Saved detector settings")
+
+    view = detector_view()
+    original = _values(view.caption) + _values(view.text)
+    assert "Round 1: NLI · Round 2: COSINE · Round 3: unknown" in _values(app.caption)
+    assert "Saved detector: NLI · 3 evaluated pairs." in original
+    assert "Saved detector: COSINE · 0 evaluated pairs." in original
+    assert "Saved detector: unknown" in original
+    assert "No pairs were evaluated; no pairwise model inference was run." in original
+    assert len(view.text) == 3
+    assert "Model ID: saved/nli-id" in view.text[0].value
+    assert "Input field: reasoning" in view.text[0].value
+    assert "Divergence threshold: 0.625" in view.text[0].value
+    assert "NLI contradiction label index: 2" in view.text[0].value
+    assert "Sentinel filtering: Enabled" in view.text[0].value
+    assert "Model ID: saved/cosine-id" in view.text[1].value
+    assert "Input field: key_claims" in view.text[1].value
+    assert "Cosine fast-path threshold: 0.98" in view.text[1].value
+    assert "Sentinel filtering: Disabled" in view.text[1].value
+    assert "Model ID:" not in view.text[2].value
+    files_before = _report_exports(app, export_media, report, source)
+    markdown = _markdown_export_text(files_before[".md"])
+    assert "saved/nli-id" in markdown and "saved/cosine-id" in markdown
+    assert "Saved detector: unknown" in markdown
+
+    monkeypatch.setenv("DIVERGENCE_MODE", "cosine")
+    monkeypatch.setattr(divergence, "DIVERGENCE_MODE", "cosine")
+    monkeypatch.setattr(divergence, "NLI_CONTRADICTION_THRESHOLD", 0.91)
+    monkeypatch.setattr(divergence, "DIVERGE_THRESHOLD", 0.89)
+    monkeypatch.setattr(divergence, "CONVERGE_FAST_PATH", 0.99)
+    monkeypatch.setattr(divergence, "_NLI_CONTRADICTION", 1)
+    app.run()
+    assert not app.exception
+    assert _values(detector_view().caption) + _values(detector_view().text) == original
+    assert _report_exports(app, export_media, report, source) == files_before
+    assert app.metric[0].value == "72.0 / 100"
+    assert app.session_state["final_report"].model_dump() == report.model_dump()
+    assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
+    offline_app.stream.assert_not_called()
+
+
+def test_sample_detector_settings_remain_unknown_and_synthetic(
+    offline_app, export_media,
+):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    view = next(item for item in app.expander if item.label == "Saved detector settings")
+    assert all(record.detector_metadata is None for record in example.report.reasoning_trace)
+    assert _values(view.caption).count("Saved detector: unknown") == len(example.report.reasoning_trace)
+    assert "Model ID:" not in _values(view.text)
+    files = _report_exports(app, export_media, example.report, "sample", provenance=example.provenance)
+    payload = json.loads(files[".json"])
+    assert "no model execution" in payload["source"]["description"]
+    assert all(record["detector_metadata"] is None for record in payload["report"]["reasoning_trace"])
+    assert "Saved detector: unknown" in _markdown_export_text(files[".md"])
+    offline_app.stream.assert_not_called()
+
+
 def test_index_explains_peak_divergence_without_recomputing_saved_value(
     offline_app, sample_reports,
 ):

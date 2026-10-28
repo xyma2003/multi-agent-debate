@@ -141,7 +141,7 @@ For two rounds with divergence scores `[0.8, 0.2]`, the index is `100 × (1 − 
 
 **A high index does not establish correctness, sufficient evidence, or genuine consensus.** It is not a calibrated probability of correctness and does not measure how much the agents improved or finally agreed. Even zero detected divergence can occur with inadequate evidence. The reported stop reason is separate: `converged` means the active detector found no divergent agent pair, not that the verdict was fact-checked.
 
-In NLI mode, each round's divergence is the mean of the highest claim-pair contradiction probabilities for each agent pair; low contradiction can also mean neutral or unrelated claims. Cosine mode measures semantic proximity, which can be high even for opposing claims. Do not compare index values across these modes. Saved reports do not record the detector mode, so the current application setting cannot establish which mode produced a historical report.
+In NLI mode, each round's divergence is the mean of the highest claim-pair contradiction probabilities for each agent pair; low contradiction can also mean neutral or unrelated claims. Cosine mode measures semantic proximity, which can be high even for opposing claims. Do not compare index values across these modes. New reports record the detector settings for each round. Older reports without this metadata remain **unknown**; current settings cannot establish which detector produced a historical score.
 
 Each agent's **self-reported confidence** describes its own position. It is also uncalibrated, remains separate from this index, and does not enter the formula. For compatibility, the stored report field is still named `confidence_score` and keeps its existing 0–1 value and calculation; the display multiplies it by 100.
 
@@ -217,7 +217,7 @@ Benchmark variants pin their detector explicitly so the cosine baseline and NLI 
 - NLI adds local model download and inference cost
 - The Debate Agreement Index is a heuristic, not a calibrated probability of correctness or proof of consensus
 - Prompt constraints can suppress legitimate uncertainty as well as empty hedging
-- Reports do not yet save the detector mode or configuration used for that run; current app settings cannot establish a historical report's detector
+- Older reports without detector metadata remain unknown; saved model IDs identify the configured loader model, not a pinned revision of its weights
 
 ## Project structure
 
@@ -251,16 +251,20 @@ Traces may contain full prompts and outputs; do not enable them for sensitive to
 
 The app currently includes a bundled offline example, searchable history, and Markdown/JSON export. Maintenance focuses on reliable inspection and replay, backward compatibility, and deterministic regression coverage. Model-backed experiments remain separate from CI; the [known limitations](#known-limitations) and [result provenance](results/README.md) apply to existing reports and benchmarks.
 
-### Next small step — planned, not implemented
+### Saved detector settings
 
-Save the detector and relevant configuration actually used by each new debate. Older reports with no metadata must remain readable and display **unknown**; never fill the gap from the current environment, recalculate saved scores, or relabel the synthetic example as a detector run.
+Each new round records its detector mode, model ID, input field, pair-decision threshold, applicable fast-path threshold or NLI label index, sentinel filtering policy, and number of evaluated agent pairs. Settings are captured at evaluation and retained in `reasoning_trace[].detector_metadata` through report assembly, SQLite storage, history, and Markdown/JSON export. The settings section shows rounds individually, including runs with different detectors across rounds.
 
-These contribution tasks have concrete acceptance criteria:
+A zero evaluated-pair count means no pairwise model inference took place. Explicit benchmark variants retain their selected NLI/cosine detector independently of the app default; the full-text variant records `reasoning` input and its sentinel filter. Scoring formulas and existing saved values are unchanged. Model IDs do not pin weight revisions or establish model quality.
+
+Older JSON with no metadata still loads as **unknown**. Current environment settings never fill those gaps, browsing does not rewrite history, and the bundled synthetic example remains unknown with its synthetic source label. This is an additive report field; no database migration or historical backfill is needed.
+
+Regression checks and contribution entry points:
 
 | Task | Starting points | Acceptance |
 |---|---|---|
-| Capture and persist run metadata | [Report schema](debate/state.py), [divergence node](debate/nodes/divergence_check.py), [report assembly](debate/nodes/synthesize.py), [storage tests](tests/test_phase4.py) | A new report retains its actual detector/configuration through save and reload; legacy JSON without the fields still loads with unknown metadata. Verify using local fixtures, without model execution. |
-| Show and export that metadata, after capture is available | [UI](app.py), [serializer](debate/export.py), [export tests](tests/test_report_export.py), [offline UI tests](tests/test_phase5.py) | The screen, Markdown, and JSON agree; changing the current detector does not change a saved report's metadata or scores. Old reports remain unknown, the example remains synthetic, and browsing/exporting makes no model calls or history writes. |
+| Capture and persistence | [Schema](debate/state.py), [detector/storage tests](tests/test_detector_metadata.py), [benchmark tests](tests/test_detector_benchmark_metadata.py) | Fixed local model outputs verify unchanged decisions and precise settings, including zero evaluations; new and legacy reports survive SQLite save/reload. No model downloads or live inference. |
+| Replay and exports | [UI](app.py), [serializer](debate/export.py), [export tests](tests/test_report_export.py), [offline UI tests](tests/test_phase5.py) | Screen, Markdown, and JSON preserve saved settings and scores after current settings change; unknown rounds and synthetic provenance remain explicit, with no model calls or history writes. |
 
 ### Report an issue or send a pull request
 

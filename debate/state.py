@@ -16,7 +16,7 @@ from datetime import datetime
 from operator import add
 from typing import Annotated, Literal, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from typing_extensions import TypedDict
 
 
@@ -68,6 +68,26 @@ class AgentArgument(BaseModel):
     )
 
 
+class DetectorMetadata(BaseModel):
+    """Whitelisted settings captured where a round is evaluated, not at replay.
+
+    Model IDs describe the loader's configured model, not a pinned weight revision.
+    A zero evaluated_pair_count means no pair was evaluated by the model.
+    """
+
+    model_config = ConfigDict(frozen=True)
+
+    schema_version: Literal[1] = 1
+    mode: Literal["nli", "cosine"]
+    model_id: str
+    input_field: Literal["key_claims", "reasoning"] = "key_claims"
+    divergence_threshold: float = Field(ge=0.0, le=1.0)
+    cosine_fast_path_threshold: float | None = Field(default=None, ge=0.0, le=1.0)
+    nli_contradiction_label_index: int | None = Field(default=None, ge=0)
+    evaluated_pair_count: int = Field(default=0, ge=0)
+    sentinels_excluded: bool = False
+
+
 class RoundRecord(BaseModel):
     """Container for all three agent arguments from a single debate round."""
 
@@ -78,6 +98,10 @@ class RoundRecord(BaseModel):
     divergence_score: float = Field(
         default=0.0,
         description="Detector-specific divergence for this round (0.0=none detected, 1.0=maximum). NLI and cosine scores are not directly comparable; zero does not prove agreement. Written by divergence_check_node.",
+    )
+    detector_metadata: DetectorMetadata | None = Field(
+        default=None,
+        description="Detector settings captured during this round's evaluation. None means unknown; never infer missing metadata from current settings or synthetic scores.",
     )
 
 

@@ -22,6 +22,7 @@ from debate.state import AgentArgument, DebateReport
 from debate.store import count_debates, list_debates, load_debate
 from debate.sample import load_offline_example
 from debate.export import build_report_exports
+from debate.detector_display import detector_details, detector_summary
 
 # ---------------------------------------------------------------------------
 # Page config (must be first Streamlit call)
@@ -456,8 +457,9 @@ def render_report(report: DebateReport) -> None:
             "**Detector limits:** NLI measures model-estimated contradictions; low contradiction can also mean "
             "neutral or unrelated claims. Cosine measures semantic similarity, which can confuse shared topics "
             "with agreement. Scores from the two modes are not directly comparable. "
-            "Saved reports do not record their detector mode; the current app setting cannot identify the mode "
-            "used by a past report. Historical values are displayed as saved, without recomputation."
+            "Each round's saved detector metadata is shown when available. Missing metadata means the detector "
+            "is unknown; the current app setting cannot identify the mode used by a past report. "
+            "Historical values are displayed as saved, without recomputation."
         )
         st.markdown(
             "**Agent self-reported confidence** is each agent's own estimate about its position. "
@@ -472,6 +474,17 @@ def render_report(report: DebateReport) -> None:
             )
         else:
             st.caption("No round trace is available; this saved index cannot be checked against recorded rounds.")
+
+    if report.reasoning_trace:
+        st.caption("Saved detectors by round: " + " · ".join(
+            f"Round {rr.round_num + 1}: {rr.detector_metadata.mode.upper() if rr.detector_metadata else 'unknown'}"
+            for rr in report.reasoning_trace
+        ))
+        with st.expander("Saved detector settings", expanded=False):
+            for rr in report.reasoning_trace:
+                st.markdown(f"**Round {rr.round_num + 1}**")
+                st.caption(detector_summary(rr.detector_metadata))
+                st.text("\n".join(f"{label}: {value}" for label, value in detector_details(rr.detector_metadata)))
 
     # --- Verdict ---
     st.info(report.verdict)
@@ -503,6 +516,7 @@ def render_report(report: DebateReport) -> None:
             st.markdown(
                 f"**Round {rr.round_num + 1}** — divergence: `{rr.divergence_score:.3f}`"
             )
+            st.caption(detector_summary(rr.detector_metadata))
             for arg in rr.arguments:
                 st.markdown(f"**{arg.agent_role.title()}:** {arg.position}")
                 if arg.is_sentinel:

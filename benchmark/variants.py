@@ -40,7 +40,7 @@ from langgraph.checkpoint.memory import InMemorySaver
 from langgraph.graph import END, START, StateGraph
 from langgraph.types import Send
 
-from debate.divergence import _get_model, DIVERGE_THRESHOLD
+from debate.divergence import _get_model, COSINE_MODEL_ID, DIVERGE_THRESHOLD
 from debate.llm import _make_llm
 from debate.nodes.agents import _invoke_with_retry
 from debate.nodes.collect import collect_round1
@@ -49,7 +49,7 @@ from debate.nodes.initialize import initialize_node
 from debate.nodes.save import save_node
 from debate.nodes.synthesize import synthesize_stub
 from debate.prompts import AGENT_PROMPTS
-from debate.state import AgentArgument, DebateState
+from debate.state import AgentArgument, DebateState, DetectorMetadata
 
 
 # ---------------------------------------------------------------------------
@@ -341,18 +341,21 @@ def route_divergence_fixed(state: DebateState):
 
 def divergence_check_node_cosine(state: DebateState) -> dict:
     """Run the explicit cosine detector, independent of DIVERGENCE_MODE."""
-    from debate.divergence import compute_divergence
+    from debate.divergence import detect_divergence
 
     round_history = state.get("round_history", [])
     if not round_history:
         raise RuntimeError("cosine benchmark detector requires a completed round")
 
     latest_round = round_history[-1]
-    score, diverged_pairs = compute_divergence(latest_round.arguments)
-    updated_record = latest_round.model_copy(update={"divergence_score": score})
+    result = detect_divergence(latest_round.arguments, mode="cosine")
+    updated_record = latest_round.model_copy(update={
+        "divergence_score": result.score,
+        "detector_metadata": result.metadata,
+    })
     return {
-        "divergence_score": score,
-        "diverged_pairs": diverged_pairs,
+        "divergence_score": result.score,
+        "diverged_pairs": result.diverged_pairs,
         "round_history": list(round_history[:-1]) + [updated_record],
     }
 
@@ -373,13 +376,30 @@ def divergence_check_node_fulltext(state: DebateState) -> dict:
 
     latest_round = round_history[-1]
     arguments = [a for a in latest_round.arguments if not a.is_sentinel]
+    threshold = DIVERGE_THRESHOLD
+    metadata = DetectorMetadata(
+        mode="cosine",
+        model_id=COSINE_MODEL_ID,
+        input_field="reasoning",
+        divergence_threshold=threshold,
+        cosine_fast_path_threshold=None,
+        sentinels_excluded=True,
+    )
 
     if len(arguments) < 2:
-        return {"divergence_score": 0.0, "diverged_pairs": []}
+        # Retain the original early-return score semantics: the state receives
+        # zero, while any existing per-round score remains unchanged.
+        updated_record = latest_round.model_copy(update={"detector_metadata": metadata})
+        return {
+            "divergence_score": 0.0,
+            "diverged_pairs": [],
+            "round_history": list(round_history[:-1]) + [updated_record],
+        }
 
     model = _get_model()
     pairwise_max_sims: list[float] = []
     diverged_pairs: list[tuple[str, str]] = []
+    evaluated_pair_count = 0
 
     for arg_a, arg_b in combinations(arguments, 2):
         # Use reasoning text instead of key_claims
@@ -392,18 +412,24 @@ def divergence_check_node_fulltext(state: DebateState) -> dict:
 
         all_texts = texts_a + texts_b
         embeddings = model.encode(all_texts, normalize_embeddings=True)
+        evaluated_pair_count += 1
         emb_a = embeddings[: len(texts_a)]
         emb_b = embeddings[len(texts_a):]
         sim_matrix = emb_a @ emb_b.T
         max_sim = float(sim_matrix.max())
         pairwise_max_sims.append(max_sim)
 
-        if max_sim < DIVERGE_THRESHOLD:
+        if max_sim < threshold:
             diverged_pairs.append((arg_a.agent_role, arg_b.agent_role))
 
     score = 1.0 - (sum(pairwise_max_sims) / len(pairwise_max_sims)) if pairwise_max_sims else 0.0
 
-    updated_record = latest_round.model_copy(update={"divergence_score": score})
+    updated_record = latest_round.model_copy(update={
+        "divergence_score": score,
+        "detector_metadata": metadata.model_copy(update={
+            "evaluated_pair_count": evaluated_pair_count,
+        }),
+    })
     updated_history = list(round_history[:-1]) + [updated_record]
 
     return {
@@ -540,7 +566,7 @@ def build_fulltext_graph():
 def divergence_check_node_nli(state: DebateState) -> dict:
     """Divergence check using NLI cross-encoder instead of cosine similarity.
 
-    Uses compute_divergence_nli() which classifies claim pairs as
+    Uses the explicit NLI detector, which classifies claim pairs as
     CONTRADICTION / ENTAILMENT / NEUTRAL. High CONTRADICTION probability
     indicates genuine stance opposition even when vocabulary overlaps.
 
@@ -548,21 +574,24 @@ def divergence_check_node_nli(state: DebateState) -> dict:
     'VC is bad' score as similar under cosine, but NLI correctly flags
     them as CONTRADICTION.
     """
-    from debate.divergence import compute_divergence_nli
+    from debate.divergence import detect_divergence
 
     round_history = state.get("round_history", [])
     if not round_history:
         raise RuntimeError("NLI benchmark detector requires a completed round")
 
     latest_round = round_history[-1]
-    score, diverged_pairs = compute_divergence_nli(latest_round.arguments)
+    result = detect_divergence(latest_round.arguments, mode="nli")
 
-    updated_record = latest_round.model_copy(update={"divergence_score": score})
+    updated_record = latest_round.model_copy(update={
+        "divergence_score": result.score,
+        "detector_metadata": result.metadata,
+    })
     updated_history = list(round_history[:-1]) + [updated_record]
 
     return {
-        "divergence_score": score,
-        "diverged_pairs": diverged_pairs,
+        "divergence_score": result.score,
+        "diverged_pairs": result.diverged_pairs,
         "round_history": updated_history,
     }
 

@@ -32,7 +32,7 @@ The legacy confidence_score field stores the Debate Agreement Index on a 0–1 s
 
 Each role's confidence is self-reported and uncalibrated; it is not an input to the report's agreement index.
 
-The detector and its configuration were not saved in this report; they are unknown. Do not infer them from the app's current settings. NLI and cosine divergence scores are not directly comparable, and zero does not prove agreement.
+Detector metadata, when present, records each round's saved settings. Rounds without metadata have an unknown detector and configuration. Do not infer them from the app's current settings. NLI and cosine divergence scores are not directly comparable, and zero does not prove agreement.
 
 Stored round_num values are 0-indexed. Markdown also shows their 1-indexed display numbers; the stored values are preserved.
 
@@ -133,6 +133,12 @@ Debate Agreement Index (0–100 display): **18.0 / 100**.
 ### Round 1 (stored round_num: 0)
 
 Saved divergence score: **0.8**.
+
+Saved detector: unknown — no detector metadata was recorded.
+
+**Provenance**
+
+> Unknown\; current settings cannot identify this round\'s detector\.
 
 #### Argument 1
 
@@ -251,6 +257,12 @@ None saved.
 ### Round 2 (stored round_num: 1)
 
 Saved divergence score: **0.2**.
+
+Saved detector: unknown — no detector metadata was recorded.
+
+**Provenance**
+
+> Unknown\; current settings cannot identify this round\'s detector\.
 
 #### Argument 1
 

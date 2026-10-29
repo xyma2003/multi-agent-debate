@@ -324,9 +324,9 @@ def test_synthesis_and_sqlite_keep_metadata_without_capturing_environment(
         "round_history": [original_round],
     }
     state.update(divergence_check.divergence_check_node(state))
-    monkeypatch.setattr(synthesize, "_invoke_synthesizer", lambda context: synthesize.SynthesizerOutput(
+    monkeypatch.setattr(synthesize, "_invoke_synthesizer", lambda context: (synthesize.SynthesizerOutput(
         consensus_points=[], disputed_points=[], verdict="Synthetic offline synthesis.",
-    ))
+    ), "complete"))
     report = synthesize.synthesize_stub(state)["final_report"]
     store.save_debate(report, conn=database)
     raw = database.execute("SELECT report_json FROM debates").fetchone()[0]

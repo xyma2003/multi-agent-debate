@@ -1542,3 +1542,173 @@ def test_nonfinite_report_export_failure_keeps_content_visible_and_can_retry(
     assert "This report could not be exported" not in _values(app.warning)
     assert offline_app.connection.execute("SELECT * FROM debates").fetchall() == rows_before
     offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("synthesis_status", ["complete", "failed", "unknown"])
+def test_saved_synthesis_status_is_visible_and_independent_of_stop_reason(
+    offline_app, sample_reports, export_media, synthesis_status,
+):
+    from debate.store import save_debate
+
+    report = sample_reports[0].model_copy(update={
+        "synthesis_status": synthesis_status,
+        "consensus_points": [], "disputed_points": [],
+        "verdict": "Synthetic recorded verdict; status comes from its own field.",
+    })
+    save_debate(report, conn=offline_app.connection)
+    before = list(map(tuple, offline_app.connection.execute("SELECT * FROM debates")))
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+
+    assert not app.exception
+    assert app.session_state["debate_status"] == "complete"  # Saved, even if synthesis failed.
+    assert app.session_state["final_report"].model_dump() == report.model_dump()
+    assert app.metric[0].value == "72.0 / 100"
+    assert "Stop reason: **No divergent pair detected**" in _values(app.caption)
+    assert report.verdict in _values(app.info)
+    assert report.reasoning_trace[0].arguments[0].reasoning in _values(app.markdown)
+    files = _report_exports(app, export_media, report, "history")
+    assert json.loads(files[".json"])["report"]["synthesis_status"] == synthesis_status
+    captions = _values(app.caption)
+    if synthesis_status == "failed":
+        assert "Synthesis failed: the final summary is unavailable" in _values(app.warning)
+        assert "recorded discussion remains available" in _values(app.warning)
+        assert "Consensus summary unavailable because synthesis failed." in captions
+        assert "Dispute summary unavailable because synthesis failed." in captions
+        assert "No consensus" not in captions
+        assert "No disputed points" not in captions
+    else:
+        assert f"Synthesis status: {synthesis_status}" in captions
+        assert "Synthesis failed" not in _values(app.warning)
+        if synthesis_status == "unknown":
+            assert "not recorded for this report" in captions
+        else:
+            assert "claims have not been fact-checked" in captions
+    assert list(map(tuple, offline_app.connection.execute("SELECT * FROM debates"))) == before
+    offline_app.stream.assert_not_called()
+
+
+def test_legacy_missing_synthesis_status_is_unknown_even_with_failure_verdict(
+    offline_app, sample_reports, export_media,
+):
+    from debate.store import save_debate
+
+    report = sample_reports[0].model_copy(update={
+        "verdict": "[Synthesis unavailable due to repeated parse failures]",
+    })
+    save_debate(report, conn=offline_app.connection)
+    original = report.model_dump(mode="json")
+    original.pop("synthesis_status")
+    offline_app.connection.execute(
+        "UPDATE debates SET report_json = ? WHERE debate_id = ?",
+        (json.dumps(original), report.debate_id),
+    )
+    offline_app.connection.commit()
+    before = list(map(tuple, offline_app.connection.execute("SELECT * FROM debates")))
+    offline_app.connection.execute("PRAGMA query_only = ON")
+    app = offline_app.open()
+    app.sidebar.button(key=report.debate_id).click().run()
+    assert not app.exception
+    assert "Synthesis status: unknown" in _values(app.caption)
+    assert "Synthesis failed" not in _values(app.warning)
+    assert report.verdict in _values(app.info)
+    files = _report_exports(app, export_media, report, "history")
+    assert json.loads(files[".json"])["report"]["synthesis_status"] == "unknown"
+    assert list(map(tuple, offline_app.connection.execute("SELECT * FROM debates"))) == before
+    offline_app.stream.assert_not_called()
+
+
+def test_fixed_sample_keeps_unknown_synthesis_status_and_synthetic_source(
+    offline_app, export_media,
+):
+    from debate.sample import load_offline_example
+
+    example = load_offline_example()
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    assert "Synthesis status: unknown" in _values(app.caption)
+    assert "Fixed synthetic example" in _values(app.info)
+    assert "Synthesis failed" not in _values(app.warning)
+    files = _report_exports(app, export_media, example.report, "sample", provenance=example.provenance)
+    assert json.loads(files[".json"])["report"]["synthesis_status"] == "unknown"
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
+    offline_app.stream.assert_not_called()
+
+
+@pytest.mark.parametrize("synthesis_status", ["complete", "failed", "unknown"])
+def test_stream_synthesis_message_uses_recorded_status(
+    offline_app, sample_reports, monkeypatch, synthesis_status,
+):
+    import streamlit as st
+    from debate.nodes.save import save_node
+
+    report = sample_reports[0].model_copy(update={"synthesis_status": synthesis_status})
+    # Capture actual rendering calls because the final rerun replaces progress.
+    success = Mock(wraps=st.success)
+    warning = Mock(wraps=st.warning)
+    caption = Mock(wraps=st.caption)
+    monkeypatch.setattr(st, "success", success)
+    monkeypatch.setattr(st, "warning", warning)
+    monkeypatch.setattr(st, "caption", caption)
+    monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
+
+    def stream(*args, **kwargs):
+        yield {"synthesize_stub": {"final_report": report}}
+        save_node({"final_report": report})
+        yield {"save_node": {}}
+
+    offline_app.stream.side_effect = stream
+    app = offline_app.open()
+    app.text_input(key="debate_topic").input(report.topic).run()
+    _start_button(app).click().run()
+    _assert_report(app, report)
+    messages = [call.args[0] for call in success.call_args_list]
+    if synthesis_status == "complete":
+        assert "Synthesis complete." in messages
+    else:
+        assert "Synthesis complete." not in messages
+        if synthesis_status == "failed":
+            assert any("Synthesis failed" in call.args[0] for call in warning.call_args_list)
+        else:
+            assert any("Synthesis status: unknown" in call.args[0] for call in caption.call_args_list)
+    assert app.session_state["pending_save_report"] is None
+    offline_app.stream.assert_called_once()
+
+
+def test_failed_synthesis_and_unconfirmed_save_remain_independent_after_retry(
+    offline_app, sample_reports, monkeypatch, export_media,
+):
+    from debate.store import load_debate
+
+    report = sample_reports[0].model_copy(update={
+        "synthesis_status": "failed", "consensus_points": [], "disputed_points": [],
+        "verdict": "[Synthesis unavailable due to repeated parse failures]",
+    })
+    app = _open_unsaved_report(offline_app, report, monkeypatch)
+    assert app.session_state["debate_status"] == "error"
+    assert "Synthesis failed" in _values(app.warning)
+    assert "saving has not been confirmed" in _values(app.warning)
+    failed_files = _report_exports(app, export_media, report, "live")
+    payload = json.loads(failed_files[".json"])
+    assert payload["report"]["synthesis_status"] == "failed"
+    assert payload["source"]["persistence"] == "unconfirmed"
+    assert app.metric[0].value == "72.0 / 100"
+
+    monkeypatch.delenv("GROQ_API_KEY")
+    offline_app.connection.execute("PRAGMA query_only = OFF")
+    app.button(key=f"pending_retry_{report.debate_id}").click().run()
+    assert app.session_state["debate_status"] == "complete"
+    assert app.session_state["pending_save_report"] is None
+    assert "Synthesis failed" in _values(app.warning)
+    assert "saving has not been confirmed" not in _values(app.warning)
+    assert load_debate(report.debate_id).model_dump() == report.model_dump()
+    app.sidebar.button(key=report.debate_id).click().run()
+    saved_files = _report_exports(app, export_media, report, "history")
+    saved_payload = json.loads(saved_files[".json"])
+    assert saved_payload["report"] == payload["report"]
+    assert "persistence" not in saved_payload["source"]
+    assert "Synthesis failed" in _values(app.warning)
+    assert "Dispute summary unavailable because synthesis failed." in _values(app.caption)
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 1
+    offline_app.stream.assert_called_once()

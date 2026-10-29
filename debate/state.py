@@ -135,6 +135,16 @@ class DebateReport(BaseModel):
     verdict: str = Field(
         description="Synthesizer's final 2-4 sentence assessment of the debate outcome"
     )
+    synthesis_status: Literal["complete", "failed", "unknown"] = Field(
+        default="unknown",
+        description=(
+            "Whether final synthesis was generated: 'complete' means a structured "
+            "response was parsed, 'failed' means the existing attempts were exhausted, "
+            "and 'unknown' means no status was recorded. Assigned by application code, "
+            "not the model; independent of loop termination, factual correctness, "
+            "and whether the report was saved."
+        ),
+    )
     confidence_score: float = Field(
         ge=0.0,
         le=1.0,

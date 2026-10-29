@@ -88,6 +88,18 @@ the server. A download alone does not add the report to history.
 
 Starting a new debate uses the configured LLM API. On its first divergence check, the default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB). The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 
+### Final synthesis status
+
+Reports record `synthesis_status` separately from the debate's stop reason and
+agreement index. `complete` means the final summary was parsed successfully;
+`failed` means the existing synthesis attempts were exhausted and the report
+contains a fallback. The discussion trace remains available for inspection,
+but empty consensus or dispute sections in a failed summary are not findings.
+Older reports and the fixed example have `unknown` when this field was not
+recorded. The page and exports show that limit without guessing from the verdict.
+Saving an incomplete report does not make its synthesis successful, and a
+successfully generated summary is not a guarantee of factual correctness.
+
 ### Configuration
 
 To start new debates, copy `.env.example` to `.env` (or edit your existing `.env`), replace the placeholder with your own credentials, and restart the app. The checked-in `.env.example` documents all options. A minimal SiliconFlow/OpenAI-compatible setup is:

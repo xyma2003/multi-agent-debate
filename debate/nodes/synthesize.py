@@ -14,6 +14,7 @@ SYNTH-03 invariant: confidence_score NEVER appears in the LLM prompt or Synthesi
 It is computed by _compute_confidence_score() after the LLM call.
 """
 from datetime import datetime, timezone
+from typing import Literal
 
 from langchain_core.messages import HumanMessage, SystemMessage
 from pydantic import BaseModel, Field
@@ -212,11 +213,14 @@ def _build_synthesis_context(
 # Helper: LLM invocation with retry
 # ---------------------------------------------------------------------------
 
-def _invoke_synthesizer(context: str) -> SynthesizerOutput:
+def _invoke_synthesizer(
+    context: str,
+) -> tuple[SynthesizerOutput, Literal["complete", "failed"]]:
     """Call the LLM and parse into SynthesizerOutput, with up to 2 retries.
 
     Uses include_raw=True so parse failures surface as result["parsed"] is None
-    rather than raising ValidationError. Returns a minimal fallback on exhaustion.
+    rather than raising ValidationError. Returns the parsed output and an
+    application-assigned status, or a minimal fallback marked failed on exhaustion.
     """
     llm = _make_llm()
     structured_llm = llm.with_structured_output(SynthesizerOutput, include_raw=True)
@@ -237,7 +241,7 @@ def _invoke_synthesizer(context: str) -> SynthesizerOutput:
                 continue
             raise
         if result.get("parsed") is not None:
-            return result["parsed"]
+            return result["parsed"], "complete"
         print(
             f"[synthesizer] Pydantic parse failed "
             f"(attempt {attempt + 1}/3): {result.get('parsing_error')}"
@@ -247,7 +251,7 @@ def _invoke_synthesizer(context: str) -> SynthesizerOutput:
         consensus_points=[],
         disputed_points=[],
         verdict="[Synthesis unavailable due to repeated parse failures]",
-    )
+    ), "failed"
 
 
 # ---------------------------------------------------------------------------
@@ -286,7 +290,7 @@ def synthesize_stub(state: DebateState) -> dict:
     context = _build_synthesis_context(topic, round_history, convergence_status)
 
     # Step 3: LLM call (consensus / disputed / verdict — no confidence_score)
-    synthesis = _invoke_synthesizer(context)
+    synthesis, synthesis_status = _invoke_synthesizer(context)
 
     # Step 4: confidence formula (SYNTH-03)
     confidence_score = _compute_confidence_score(round_history, round_num)
@@ -306,6 +310,7 @@ def synthesize_stub(state: DebateState) -> dict:
         consensus_points=synthesis.consensus_points,
         disputed_points=synthesis.disputed_points,
         verdict=synthesis.verdict,
+        synthesis_status=synthesis_status,
         confidence_score=confidence_score,
         convergence_status=convergence_status,
         reasoning_trace=round_history,

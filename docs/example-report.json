@@ -11,7 +11,8 @@
     "agent_confidence": "Each role's confidence is self-reported and uncalibrated; it is not an input to the report's agreement index.",
     "divergence": "Detector metadata, when present, records each round's saved settings. Rounds without metadata have an unknown detector and configuration. Do not infer them from the app's current settings. NLI and cosine divergence scores are not directly comparable, and zero does not prove agreement.",
     "round_numbering": "Stored round_num values are 0-indexed. Markdown also shows their 1-indexed display numbers; the stored values are preserved.",
-    "stop_reason": "convergence_status records why the debate loop stopped. In particular, converged means the detector found no divergent agent pair; it does not verify factual correctness or establish real consensus."
+    "stop_reason": "convergence_status records why the debate loop stopped. In particular, converged means the detector found no divergent agent pair; it does not verify factual correctness or establish real consensus.",
+    "synthesis_status": "synthesis_status records whether a structured summary was generated (complete), generation exhausted its attempts and used a fallback (failed), or the status was not recorded (unknown). It is independent of the stop reason, agreement index, and whether the report was saved."
   },
   "report": {
     "debate_id": "offline-example-four-day-week-v1",
@@ -40,6 +41,7 @@
       }
     ],
     "verdict": "Prepare a reversible eight-week pilot with unchanged pay, a baseline, named weekday support owners, and explicit stop criteria. Review delivery, customer coverage, and the distribution of workload across roles before considering expansion. The agents still differ on when preparation is sufficient and what a short pilot could establish; this synthetic discussion is not evidence that the policy works.",
+    "synthesis_status": "unknown",
     "confidence_score": 0.18,
     "convergence_status": "max_rounds",
     "reasoning_trace": [

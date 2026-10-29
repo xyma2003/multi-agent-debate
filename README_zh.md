@@ -80,6 +80,14 @@ JSON 包含 `schema_version`、`source`、`interpretation` 和 `report`；
 
 发起新辩论会调用所配置的 LLM API。默认 NLI 模式首次执行分歧检测时会下载 `cross-encoder/nli-deberta-v3-small`（约 180 MB）；可选的余弦对照模式会下载 `BAAI/bge-small-en-v1.5`（约 130 MB）。
 
+### 最终总结生成状态
+
+报告用 `synthesis_status` 单独记录总结状态，不改变讨论停止原因或一致性指数。
+`complete` 表示成功解析了最终总结；`failed` 表示原有尝试次数耗尽，只留下兜底内容。
+这时仍能查看原始讨论，但空的共识、分歧栏不能理解为“没有共识”或“没有分歧”。
+旧报告与固定样例缺少该字段时显示 `unknown`，页面和导出明确说明未记录，不根据
+结论文字猜测。保存成功不代表总结生成成功；生成成功也不保证内容正确。
+
 ### 配置示例
 
 需要发起新辩论时，将 `.env.example` 复制为 `.env`（已有文件则直接编辑），把占位内容替换为自己的凭据并重启应用。`.env.example` 包含全部后端配置。SiliconFlow/OpenAI-compatible 的最小配置如下：

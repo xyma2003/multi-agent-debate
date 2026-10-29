@@ -24,6 +24,12 @@ Source kind: `sample`.
 
 > Should a fictional 20\-person software team trial a 32\-hour\, four\-day week at unchanged pay\?
 
+## Synthesis status
+
+Recorded `synthesis_status`: **unknown**.
+
+Synthesis status was not recorded for this report; it cannot be inferred from the verdict text.
+
 ## How to read this report
 
 Saved report values are preserved, not recomputed during export.
@@ -37,6 +43,8 @@ Detector metadata, when present, records each round's saved settings. Rounds wit
 Stored round_num values are 0-indexed. Markdown also shows their 1-indexed display numbers; the stored values are preserved.
 
 convergence_status records why the debate loop stopped. In particular, converged means the detector found no divergent agent pair; it does not verify factual correctness or establish real consensus.
+
+synthesis_status records whether a structured summary was generated (complete), generation exhausted its attempts and used a fallback (failed), or the status was not recorded (unknown). It is independent of the stop reason, agreement index, and whether the report was saved.
 
 ## Outcome
 

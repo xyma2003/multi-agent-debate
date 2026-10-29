@@ -358,3 +358,53 @@ def test_detector_details_preserve_explicit_values_even_for_an_unusual_configura
     details = dict(detector_details(metadata))
     assert details["Cosine fast-path threshold"] == "0.99"
     assert details["NLI contradiction label index"] == "0"
+
+
+@pytest.mark.parametrize("synthesis_status", ["complete", "failed", "unknown"])
+def test_exports_record_synthesis_status_without_changing_report_values(report, synthesis_status):
+    report.synthesis_status = synthesis_status
+    original = report.model_dump(mode="json")
+    exports = build_report_exports(report, source="history")
+    payload = json.loads(exports.json)
+    assert payload["schema_version"] == 1
+    assert payload["report"] == original
+    assert payload["report"]["synthesis_status"] == synthesis_status
+    assert "independent of the stop reason" in payload["interpretation"]["synthesis_status"]
+    assert f"Recorded `synthesis_status`: **{synthesis_status}**." in exports.markdown
+    assert report.model_dump(mode="json") == original
+    if synthesis_status == "failed":
+        assert "Synthesis failed: the final summary is unavailable" in exports.markdown
+        assert "recorded discussion remains available below" in exports.markdown
+    elif synthesis_status == "unknown":
+        assert "cannot be inferred from the verdict text" in exports.markdown
+    else:
+        assert "claims have not been fact-checked" in exports.markdown
+
+
+def test_failed_synthesis_empty_sections_are_unavailable_not_absent(report):
+    report.synthesis_status = "failed"
+    report.consensus_points = []
+    report.disputed_points = []
+    exports = build_report_exports(report, source="live", persistence="unconfirmed")
+    assert "Consensus summary unavailable because synthesis failed." in exports.markdown
+    assert "Dispute summary unavailable because synthesis failed." in exports.markdown
+    consensus = exports.markdown.split("### Consensus points", 1)[1].split("## Reasoning trace", 1)[0]
+    assert "None saved." not in consensus
+    payload = json.loads(exports.json)
+    assert payload["source"]["persistence"] == "unconfirmed"
+    assert payload["report"]["synthesis_status"] == "failed"
+    assert payload["report"]["consensus_points"] == []
+    assert payload["report"]["disputed_points"] == []
+    assert payload["report"]["reasoning_trace"] == report.model_dump(mode="json")["reasoning_trace"]
+
+
+def test_legacy_export_does_not_infer_synthesis_status_from_verdict(report):
+    legacy = report.model_dump(mode="json")
+    legacy.pop("synthesis_status")
+    legacy["verdict"] = "[Synthesis unavailable due to repeated parse failures]"
+    loaded = DebateReport.model_validate(legacy)
+    exports = build_report_exports(loaded, source="history")
+    assert json.loads(exports.json)["report"]["synthesis_status"] == "unknown"
+    assert "Recorded `synthesis_status`: **unknown**." in exports.markdown
+    assert "Synthesis failed: the final summary is unavailable" not in exports.markdown
+    assert legacy["verdict"] in _literal_quote_contents(exports.markdown)

@@ -29,6 +29,12 @@ _SOURCE_DESCRIPTIONS = {
     ),
 }
 
+_SYNTHESIS_DESCRIPTIONS = {
+    "complete": "A structured summary was generated. Its claims have not been fact-checked.",
+    "failed": "Synthesis failed: the final summary is unavailable. The recorded discussion remains available below.",
+    "unknown": "Synthesis status was not recorded for this report; it cannot be inferred from the verdict text.",
+}
+
 _INTERPRETATION = {
     "saved_values": "Saved report values are preserved, not recomputed during export.",
     "confidence_score": (
@@ -54,6 +60,12 @@ _INTERPRETATION = {
         "convergence_status records why the debate loop stopped. In particular, "
         "converged means the detector found no divergent agent pair; it does not "
         "verify factual correctness or establish real consensus."
+    ),
+    "synthesis_status": (
+        "synthesis_status records whether a structured summary was generated (complete), "
+        "generation exhausted its attempts and used a fallback (failed), or the status "
+        "was not recorded (unknown). It is independent of the stop reason, agreement "
+        "index, and whether the report was saved."
     ),
 }
 
@@ -147,6 +159,9 @@ def build_report_exports(
         _field("Created at (original timezone)", report.created_at.isoformat()),
         "## Topic",
         _text_block(report.topic),
+        "## Synthesis status",
+        f"Recorded `synthesis_status`: **{report.synthesis_status}**.",
+        _SYNTHESIS_DESCRIPTIONS[report.synthesis_status],
         "## How to read this report",
         *(_INTERPRETATION.values()),
         "## Outcome",
@@ -160,6 +175,8 @@ def build_report_exports(
     if report.consensus_points:
         for index, point in enumerate(report.consensus_points, 1):
             sections.extend([f"#### Consensus point {index}", _text_block(point)])
+    elif report.synthesis_status == "failed":
+        sections.append("Consensus summary unavailable because synthesis failed.")
     else:
         sections.append("None saved.")
     sections.append("### Disputed points")
@@ -168,6 +185,8 @@ def build_report_exports(
             sections.extend([f"#### Disputed point {index}", _field("Topic", point.topic)])
             for role, position in point.agent_positions.items():
                 sections.extend([_field("Role", role), _field("Position", position)])
+    elif report.synthesis_status == "failed":
+        sections.append("Dispute summary unavailable because synthesis failed.")
     else:
         sections.append("None saved.")
 

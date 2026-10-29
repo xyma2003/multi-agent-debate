@@ -57,6 +57,25 @@ def _pending_report_is_open() -> bool:
     )
 
 
+def _render_synthesis_status(report: DebateReport, *, streaming: bool = False) -> None:
+    """Show recorded synthesis status independently of routing and saving."""
+    if report.synthesis_status == "failed":
+        st.warning(
+            "Synthesis failed: the final summary is unavailable. "
+            "The recorded discussion remains available below."
+        )
+    elif report.synthesis_status == "complete":
+        if streaming:
+            st.success("Synthesis complete.")
+        else:
+            st.caption(
+                "Synthesis status: complete — a structured summary was generated. "
+                "Its claims have not been fact-checked."
+            )
+    else:
+        st.caption("Synthesis status: unknown — not recorded for this report.")
+
+
 def _render_save_recovery() -> None:
     """Keep a generated report recoverable while other reports are browsed."""
     pending = st.session_state.pending_save_report
@@ -442,7 +461,9 @@ if (
                     if report_obj is not None:
                         st.session_state.final_report = report_obj
                         generated_report = report_obj.model_copy(deep=True)
-                    st.success("Synthesis complete.")
+                        _render_synthesis_status(report_obj, streaming=True)
+                    else:
+                        st.warning("No synthesis report was returned.")
 
                 elif node_name == "save_node":
                     save_confirmed = True
@@ -487,6 +508,7 @@ def render_report(report: DebateReport) -> None:
     st.divider()
     st.subheader("Debate Result")
     st.markdown(f"**Topic:** {report.topic}")
+    _render_synthesis_status(report)
     pending_is_open = _pending_report_is_open()
     if pending_is_open:
         st.caption("Saving is unconfirmed. These downloads preserve the generated report.")
@@ -603,8 +625,10 @@ def render_report(report: DebateReport) -> None:
         if report.consensus_points:
             for point in report.consensus_points:
                 st.success(point)
+        elif report.synthesis_status == "failed":
+            st.caption("Consensus summary unavailable because synthesis failed.")
         else:
-            st.caption("No consensus reached.")
+            st.caption("No consensus points recorded.")
 
     with col_b:
         st.markdown("### Disputed Points")
@@ -614,6 +638,8 @@ def render_report(report: DebateReport) -> None:
                     # DisputedPoint.agent_positions is dict[str, str]
                     for role, stance in dp.agent_positions.items():
                         st.markdown(f"**{role.title()}:** {stance}")
+        elif report.synthesis_status == "failed":
+            st.caption("Dispute summary unavailable because synthesis failed.")
         else:
             st.caption("No disputed points recorded.")
 

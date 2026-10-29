@@ -172,6 +172,27 @@ def test_source_is_explicit_and_provenance_is_retained(report, source):
         assert "not model-quality evidence" in metadata["description"]
 
 
+def test_unsaved_live_exports_preserve_report_and_mark_unconfirmed_persistence(report):
+    original = report.model_dump(mode="json")
+    exports = build_report_exports(report, source="live", persistence="unconfirmed")
+    document = json.loads(exports.json)
+    assert document["schema_version"] == 1
+    assert document["source"]["kind"] == "live"
+    assert document["source"]["persistence"] == "unconfirmed"
+    assert "saving to local history has not been confirmed" in document["source"]["description"]
+    assert document["source"]["description"] in exports.markdown
+    assert "Saving to local history: **unconfirmed**." in exports.markdown
+    assert document["report"] == original
+    assert report.model_dump(mode="json") == original
+    assert "persistence" not in json.loads(build_report_exports(report, source="live").json)["source"]
+
+
+@pytest.mark.parametrize("source", ["history", "sample"])
+def test_unsaved_marker_cannot_be_applied_to_history_or_sample(report, source):
+    with pytest.raises(ValueError, match="only to a live report"):
+        build_report_exports(report, source=source, persistence="unconfirmed")
+
+
 def test_empty_report_keeps_empty_sections_and_original_score(report):
     report.reasoning_trace = []
     report.consensus_points = []

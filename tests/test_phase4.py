@@ -113,6 +113,47 @@ def test_upsert_replaces_existing_row(mem_conn):
     )
 
 
+@pytest.mark.parametrize("replace_existing", [False, True])
+def test_commit_lock_failure_rolls_back_before_retry(tmp_path, replace_existing):
+    """A failed commit must not appear saved through the reused connection."""
+    path = tmp_path / "commit-lock.sqlite3"
+    writer = sqlite3.connect(path, timeout=0)
+    reader = sqlite3.connect(path, timeout=0)
+    writer.row_factory = reader.row_factory = sqlite3.Row
+    try:
+        _init_schema(writer)
+        original = _make_report(debate_id="retry-same-id", topic="Original saved topic")
+        pending = _make_report(debate_id="retry-same-id", topic="Generated report to save")
+        if replace_existing:
+            save_debate(original, writer)
+        before = list(map(tuple, writer.execute("SELECT * FROM debates")))
+
+        # A real SQLite reader holds a shared lock: INSERT succeeds but COMMIT
+        # cannot acquire its exclusive lock. No timing, mocks or external DBs.
+        reader.execute("BEGIN")
+        assert list(map(tuple, reader.execute("SELECT * FROM debates"))) == before
+        with pytest.raises(sqlite3.OperationalError, match="locked"):
+            save_debate(pending, writer)
+
+        assert not writer.in_transaction
+        assert list(map(tuple, writer.execute("SELECT * FROM debates"))) == before
+        assert list(map(tuple, reader.execute("SELECT * FROM debates"))) == before
+        if replace_existing:
+            assert load_debate(original.debate_id, writer).model_dump() == original.model_dump()
+        else:
+            assert load_debate(pending.debate_id, writer) is None
+
+        reader.rollback()
+        save_debate(pending, writer)
+        assert not writer.in_transaction
+        assert len(list_debates(writer)) == len(list_debates(reader)) == 1
+        assert load_debate(pending.debate_id, writer).model_dump() == pending.model_dump()
+        assert load_debate(pending.debate_id, reader).model_dump() == pending.model_dump()
+    finally:
+        reader.close()
+        writer.close()
+
+
 # ---------------------------------------------------------------------------
 # STORE-02 unit tests: list_debates
 # ---------------------------------------------------------------------------

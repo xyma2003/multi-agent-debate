@@ -218,10 +218,10 @@ def _report_exports(app, export_media, report, source, *, provenance=None):
     return files
 
 
-def _assert_report(app, report):
+def _assert_report(app, report, *, expected_status="complete"):
     """Check visible report data, not just the absence of a Streamlit error."""
     assert not app.exception
-    assert app.session_state["debate_status"] == "complete"
+    assert app.session_state["debate_status"] == expected_status
     assert app.session_state["final_report"].debate_id == report.debate_id
     assert "Debate Result" in _values(app.subheader)
     assert report.verdict in _values(app.info)
@@ -323,6 +323,7 @@ def test_fake_credentials_allow_mocked_debate(
         {"optimist_node": {"current_round_arguments": [argument]}},
         {"divergence_check_node": {"divergence_score": 0.3, "diverged_pairs": []}},
         {"synthesize_stub": {"final_report": report}},
+        {"save_node": {}},
     ])
 
     app = offline_app.open()
@@ -731,17 +732,16 @@ def test_mocked_live_debate_refreshes_history_and_clears_prior_selection(
     offline_app.stream.assert_called_once()
 
 
-def test_persistence_failure_after_synthesis_remains_an_error(offline_app, sample_reports, monkeypatch):
+def _open_unsaved_report(offline_app, report, monkeypatch):
+    """Finish synthesis, then fail the real save node against a read-only DB."""
     from debate.nodes.save import save_node
 
-    report = sample_reports[0]
     offline_app.connection.execute("PRAGMA query_only = ON")
     monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
 
     def unsaved_stream(*args, **kwargs):
         yield {"synthesize_stub": {"final_report": report}}
         # The real persistence node must fail against the isolated read-only DB.
-        # Completing synthesis alone is not a successfully completed debate.
         save_node({"final_report": report})
         yield {"save_node": {}}
 
@@ -749,16 +749,263 @@ def test_persistence_failure_after_synthesis_remains_an_error(offline_app, sampl
     app = offline_app.open()
     app.text_input(key="debate_topic").input(report.topic).run()
     _start_button(app).click().run()
+    return app
 
-    assert not app.exception
-    assert app.session_state["debate_status"] == "error"
+
+def test_persistence_failure_after_synthesis_keeps_error_report_and_downloads(
+    offline_app, sample_reports, monkeypatch, export_media,
+):
+    report = sample_reports[0]
+    app = _open_unsaved_report(offline_app, report, monkeypatch)
+
+    _assert_report(app, report, expected_status="error")
     assert "readonly" in app.session_state["error_msg"].lower()
-    assert "Debate failed" in _values(app.error)
-    assert "Debate Result" not in _values(app.subheader)
-    assert not app.get("download_button")
-    assert app.session_state["final_report"].debate_id == report.debate_id
+    assert "Save failed" in _values(app.error)
+    assert "saving has not been confirmed" in _values(app.warning)
+    assert "only in this browser session" in _values(app.caption)
+    assert not any(button.key == "reset_btn" for button in app.button)
+    assert app.session_state["pending_save_report"].model_dump() == report.model_dump()
+    files = _report_exports(app, export_media, report, "live")
+    assert json.loads(files[".json"])["source"]["persistence"] == "unconfirmed"
+    assert "saving to local history has not been confirmed" in _markdown_export_text(files[".md"])
     assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
     offline_app.stream.assert_called_once()
+
+
+def test_retry_save_keeps_same_payload_needs_no_key_and_does_not_rerun_debate(
+    offline_app, sample_reports, monkeypatch, export_media,
+):
+    from debate.store import load_debate
+
+    report = sample_reports[0]
+    original = report.model_dump(mode="json")
+    app = _open_unsaved_report(offline_app, report, monkeypatch)
+    pending_key = f"pending_retry_{report.debate_id}"
+    # Repeated failure keeps the same complete report and downloadable bytes.
+    first_files = _report_exports(app, export_media, report, "live")
+    app.button(key=pending_key).click().run()
+    _assert_report(app, report, expected_status="error")
+    assert _report_exports(app, export_media, report, "live") == first_files
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
+
+    monkeypatch.delenv("GROQ_API_KEY")
+    app.run()
+    assert _start_button(app).disabled
+    assert not app.button(key=pending_key).disabled
+    offline_app.connection.execute("PRAGMA query_only = OFF")
+    app.button(key=pending_key).click().run()
+
+    _assert_report(app, report)
+    assert app.session_state["pending_save_report"] is None
+    assert app.session_state["pending_save_error"] is None
+    assert app.session_state["error_msg"] is None
+    assert "Report saved to Past Debates." in _values(app.success)
+    assert not any(button.key == pending_key for button in app.button)
+    assert _history_keys(app, [report]) == [report.debate_id]
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 1
+    assert load_debate(report.debate_id).model_dump(mode="json") == original
+    saved_files = _report_exports(app, export_media, report, "live")
+    assert "persistence" not in json.loads(saved_files[".json"])["source"]
+    app.run()
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 1
+    offline_app.stream.assert_called_once()
+
+
+@pytest.mark.parametrize("browse", ["history", "sample"])
+def test_browsing_keeps_pending_report_and_blocks_even_forged_new_debate(
+    offline_app, sample_reports, monkeypatch, export_media, browse,
+):
+    from debate.sample import load_offline_example
+    from debate.store import save_debate
+
+    pending, history = sample_reports
+    save_debate(history, conn=offline_app.connection)
+    app = _open_unsaved_report(offline_app, pending, monkeypatch)
+    if browse == "history":
+        app.sidebar.button(key=history.debate_id).click().run()
+        opened = history
+        _report_exports(app, export_media, opened, "history")
+    else:
+        _sample_button(app).click().run()
+        example = load_offline_example()
+        opened = example.report
+        _report_exports(app, export_media, opened, "sample", provenance=example.provenance)
+    assert app.session_state["pending_save_report"].model_dump() == pending.model_dump()
+    assert app.session_state["final_report"].debate_id == opened.debate_id
+    assert _start_button(app).disabled
+    _start_button(app).click().run()
+    assert app.session_state["final_report"].debate_id == opened.debate_id
+    assert app.session_state["pending_save_report"].model_dump() == pending.model_dump()
+    offline_app.stream.assert_called_once()
+
+    app.button(key=f"pending_view_{pending.debate_id}").click().run()
+    _assert_report(app, pending, expected_status="error")
+    files = _report_exports(app, export_media, pending, "live")
+    assert json.loads(files[".json"])["source"]["persistence"] == "unconfirmed"
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 1
+
+
+def test_retry_while_browsing_saves_pending_without_replacing_open_report(
+    offline_app, sample_reports, monkeypatch, export_media,
+):
+    from debate.store import load_debate, save_debate
+
+    pending, history = sample_reports
+    save_debate(history, conn=offline_app.connection)
+    app = _open_unsaved_report(offline_app, pending, monkeypatch)
+    app.sidebar.button(key=history.debate_id).click().run()
+    before = _report_exports(app, export_media, history, "history")
+    offline_app.connection.execute("PRAGMA query_only = OFF")
+    app.button(key=f"pending_retry_{pending.debate_id}").click().run()
+    _assert_report(app, history)
+    assert _report_exports(app, export_media, history, "history") == before
+    assert app.session_state["pending_save_report"] is None
+    assert load_debate(pending.debate_id).model_dump() == pending.model_dump()
+    assert load_debate(history.debate_id).model_dump() == history.model_dump()
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 2
+    offline_app.stream.assert_called_once()
+
+
+@pytest.mark.parametrize("browse", [False, True])
+def test_discard_is_explicit_and_keeps_saved_history(
+    offline_app, sample_reports, monkeypatch, browse,
+):
+    from debate.store import save_debate
+
+    pending, history = sample_reports
+    save_debate(history, conn=offline_app.connection)
+    before = list(map(tuple, offline_app.connection.execute("SELECT * FROM debates")))
+    app = _open_unsaved_report(offline_app, pending, monkeypatch)
+    if browse:
+        app.sidebar.button(key=history.debate_id).click().run()
+    app.button(key=f"pending_discard_{pending.debate_id}").click().run()
+    assert app.session_state["pending_save_report"] is None
+    assert app.session_state["pending_save_error"] is None
+    app.text_input(key="debate_topic").input("Another synthetic debate").run()
+    assert not _start_button(app).disabled
+    if browse:
+        _assert_report(app, history)
+    else:
+        assert app.session_state["debate_status"] == "idle"
+        assert app.session_state["final_report"] is None
+        assert not app.get("download_button")
+    assert list(map(tuple, offline_app.connection.execute("SELECT * FROM debates"))) == before
+    offline_app.stream.assert_called_once()
+
+
+@pytest.mark.parametrize("confirmation", [False, True])
+def test_lost_stream_confirmation_is_retryable_without_duplicate_history(
+    offline_app, sample_reports, monkeypatch, confirmation,
+):
+    from debate.nodes.save import save_node
+    from debate.store import load_debate
+
+    report = sample_reports[0]
+    monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
+
+    def stream(*args, **kwargs):
+        yield {"synthesize_stub": {"final_report": report}}
+        save_node({"final_report": report})
+        if confirmation:
+            yield {"save_node": {}}
+        raise RuntimeError("Synthetic stream transport failure")
+
+    offline_app.stream.side_effect = stream
+    app = offline_app.open()
+    app.text_input(key="debate_topic").input(report.topic).run()
+    _start_button(app).click().run()
+    assert app.session_state["debate_status"] == "error"
+    if confirmation:
+        assert app.session_state["pending_save_report"] is None
+        assert not app.get("download_button")
+        assert "Debate failed" in _values(app.error)
+    else:
+        assert app.session_state["pending_save_report"].model_dump() == report.model_dump()
+        app.button(key=f"pending_retry_{report.debate_id}").click().run()
+        _assert_report(app, report)
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 1
+    assert load_debate(report.debate_id).model_dump() == report.model_dump()
+    offline_app.stream.assert_called_once()
+
+
+def test_stream_ending_before_save_confirmation_retains_generated_report(
+    offline_app, sample_reports, monkeypatch,
+):
+    report = sample_reports[0]
+    monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
+    offline_app.stream.side_effect = lambda *a, **kw: iter([
+        {"synthesize_stub": {"final_report": report}},
+    ])
+    app = offline_app.open()
+    app.text_input(key="debate_topic").input(report.topic).run()
+    _start_button(app).click().run()
+    _assert_report(app, report, expected_status="error")
+    assert "without confirming" in app.session_state["pending_save_error"]
+    assert app.session_state["pending_save_report"].model_dump() == report.model_dump()
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
+    offline_app.stream.assert_called_once()
+
+
+def test_failure_before_this_runs_synthesis_does_not_capture_old_report(
+    offline_app, sample_reports, monkeypatch,
+):
+    monkeypatch.setenv("GROQ_API_KEY", "offline-test-placeholder")
+    app = offline_app.open()
+    _sample_button(app).click().run()
+    offline_app.stream.side_effect = RuntimeError("Synthetic agent failure")
+    app.text_input(key="debate_topic").input("A new synthetic debate").run()
+    _start_button(app).click().run()
+    assert app.session_state["debate_status"] == "error"
+    assert app.session_state["final_report"] is None
+    assert app.session_state["pending_save_report"] is None
+    assert not app.get("download_button")
+    assert "Debate failed" in _values(app.error)
+    offline_app.stream.assert_called_once()
+
+
+@pytest.mark.parametrize("action", ["view", "retry", "discard"])
+def test_running_state_rejects_forged_pending_report_actions(
+    offline_app, sample_reports, monkeypatch, action,
+):
+    report = sample_reports[0]
+    app = _open_unsaved_report(offline_app, report, monkeypatch)
+    app.session_state["debate_status"] = "running"
+    app.run()
+    button = app.button(key=f"pending_{action}_{report.debate_id}")
+    assert button.disabled
+    button.click().run()
+    assert not app.exception
+    assert app.session_state["debate_status"] == "running"
+    assert app.session_state["pending_save_report"].model_dump() == report.model_dump()
+    assert not app.get("download_button")
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
+    offline_app.stream.assert_called_once()
+
+
+def test_old_retry_event_cannot_save_a_different_pending_report(
+    offline_app, sample_reports, monkeypatch,
+):
+    from debate.nodes.save import save_node
+
+    first, second = sample_reports
+    app = _open_unsaved_report(offline_app, first, monkeypatch)
+    old_retry = app.button(key=f"pending_retry_{first.debate_id}")
+    app.button(key=f"pending_discard_{first.debate_id}").click().run()
+
+    def second_stream(*args, **kwargs):
+        yield {"synthesize_stub": {"final_report": second}}
+        save_node({"final_report": second})
+
+    offline_app.stream.side_effect = second_stream
+    app.text_input(key="debate_topic").input(second.topic).run()
+    _start_button(app).click().run()
+    assert app.session_state["pending_save_report"].debate_id == second.debate_id
+    offline_app.connection.execute("PRAGMA query_only = OFF")
+    old_retry.click().run()
+    assert not app.exception
+    assert app.session_state["pending_save_report"].model_dump() == second.model_dump()
+    assert offline_app.connection.execute("SELECT COUNT(*) FROM debates").fetchone()[0] == 0
+    assert offline_app.stream.call_count == 2
 
 
 @pytest.mark.parametrize("failure", ["missing", "invalid_json"])

@@ -108,11 +108,20 @@ def build_report_exports(
     *,
     source: Literal["history", "live", "sample"],
     provenance: str | None = None,
+    persistence: Literal["unconfirmed"] | None = None,
 ) -> ReportExports:
     """Serialize one report without reads, writes, model calls, or input mutation."""
     if source not in _SOURCE_DESCRIPTIONS:
         raise ValueError("source must be history, live, or sample")
-    source_info = {"kind": source, "description": _SOURCE_DESCRIPTIONS[source]}
+    if persistence is not None and (persistence != "unconfirmed" or source != "live"):
+        raise ValueError("unconfirmed persistence applies only to a live report")
+    description = (
+        "Report generated in this session; saving to local history has not been confirmed."
+        if persistence == "unconfirmed" else _SOURCE_DESCRIPTIONS[source]
+    )
+    source_info = {"kind": source, "description": description}
+    if persistence is not None:
+        source_info["persistence"] = persistence
     if provenance is not None:
         source_info["provenance"] = provenance
     payload = {
@@ -125,9 +134,11 @@ def build_report_exports(
     sections = [
         "# Debate report",
         "## Source",
-        _SOURCE_DESCRIPTIONS[source],
+        description,
         f"Source kind: `{source}`.",
     ]
+    if persistence is not None:
+        sections.append(f"Saving to local history: **{persistence}**.")
     if provenance is not None:
         sections.append(_field("Provenance", provenance))
     sections.extend([

@@ -19,7 +19,7 @@ import streamlit as st
 from debate.graph import graph  # module-level singleton — never store in session_state
 from debate.divergence import DIVERGENCE_MODE
 from debate.state import AgentArgument, DebateReport
-from debate.store import count_debates, list_debates, load_debate
+from debate.store import count_debates, list_debates, load_debate, save_debate
 from debate.sample import load_offline_example
 from debate.export import build_report_exports
 from debate.detector_display import detector_details, detector_summary
@@ -43,6 +43,85 @@ if "debate_status" not in st.session_state:
     st.session_state.error_msg = None
 st.session_state.setdefault("report_source", None)
 st.session_state.setdefault("sample_provenance", None)
+st.session_state.setdefault("pending_save_report", None)
+st.session_state.setdefault("pending_save_error", None)
+
+
+def _pending_report_is_open() -> bool:
+    pending = st.session_state.pending_save_report
+    opened = st.session_state.final_report
+    return (
+        pending is not None and opened is not None
+        and st.session_state.report_source == "live"
+        and pending.debate_id == opened.debate_id
+    )
+
+
+def _render_save_recovery() -> None:
+    """Keep a generated report recoverable while other reports are browsed."""
+    pending = st.session_state.pending_save_report
+    if pending is None:
+        return
+    busy = st.session_state.debate_status == "running"
+    with st.container(border=True):
+        st.warning("Report generated, but saving has not been confirmed.")
+        st.markdown(f"**Unsaved report:** {pending.topic}")
+        st.caption(
+            "Download it or retry saving before starting another debate. "
+            "This copy is kept only in this browser session; closing or reloading the page may lose it. "
+            "Discard removes this session copy, not any saved history."
+        )
+        if st.session_state.pending_save_error:
+            st.error(f"Save failed: {st.session_state.pending_save_error}")
+        view, retry, discard = st.columns(3)
+        # Bind each action to this report, so an old widget event cannot act on
+        # a later pending report that happens to occupy the same UI position.
+        if view.button(
+            "View unsaved report", key=f"pending_view_{pending.debate_id}",
+            disabled=busy or _pending_report_is_open(), use_container_width=True,
+        ) and not busy:
+            st.session_state.final_report = pending.model_copy(deep=True)
+            st.session_state.report_source = "live"
+            st.session_state.sample_provenance = None
+            st.session_state.thread_id = None
+            st.session_state.debate_status = "error"
+            st.session_state.error_msg = st.session_state.pending_save_error
+            st.rerun()
+        if retry.button(
+            "Retry save", key=f"pending_retry_{pending.debate_id}",
+            disabled=busy, use_container_width=True,
+        ) and not busy:
+            try:
+                # Retry only persistence with the same ID and complete payload.
+                # Never resume/reinvoke the graph or ask the model again.
+                save_debate(pending)
+            except Exception as exc:
+                st.session_state.pending_save_error = str(exc)
+                if _pending_report_is_open():
+                    st.session_state.debate_status = "error"
+                    st.session_state.error_msg = str(exc)
+            else:
+                if _pending_report_is_open():
+                    st.session_state.debate_status = "complete"
+                    st.session_state.error_msg = None
+                st.session_state.pending_save_report = None
+                st.session_state.pending_save_error = None
+                st.session_state.save_recovery_notice = "Report saved to Past Debates."
+            st.rerun()
+        if discard.button(
+            "Discard unsaved report", key=f"pending_discard_{pending.debate_id}",
+            disabled=busy, use_container_width=True,
+        ) and not busy:
+            if _pending_report_is_open():
+                st.session_state.final_report = None
+                st.session_state.report_source = None
+                st.session_state.sample_provenance = None
+                st.session_state.thread_id = None
+                st.session_state.debate_status = "idle"
+                st.session_state.error_msg = None
+            st.session_state.pending_save_report = None
+            st.session_state.pending_save_error = None
+            st.rerun()
 
 # ---------------------------------------------------------------------------
 # Credentials are required only when starting a new debate.
@@ -197,6 +276,9 @@ st.caption(
     "Enter any topic and watch three agents — Optimist, Pessimist, and Devil's Advocate — "
     f"debate it in real time using {DIVERGENCE_MODE.upper()} divergence detection."
 )
+if notice := st.session_state.pop("save_recovery_notice", None):
+    st.success(notice)
+_render_save_recovery()
 
 with st.container(border=True):
     st.markdown("### Explore a complete example")
@@ -240,7 +322,10 @@ col_btn, col_slider = st.columns([1, 3])
 with col_btn:
     start_clicked = st.button(
         "Start Debate",
-        disabled=(not _has_api_key or st.session_state.debate_status == "running" or not (topic or "").strip()),
+        disabled=(
+            not _has_api_key or st.session_state.debate_status == "running"
+            or st.session_state.pending_save_report is not None or not (topic or "").strip()
+        ),
         type="primary",
     )
 with col_slider:
@@ -313,7 +398,11 @@ def _render_agent_chunk(node_name: str, node_update: dict) -> None:
 # ---------------------------------------------------------------------------
 # Debate execution — fires only on Start Debate click (UI-02)
 # ---------------------------------------------------------------------------
-if start_clicked and _has_api_key and (topic or "").strip():
+if (
+    start_clicked and _has_api_key and (topic or "").strip()
+    and st.session_state.debate_status != "running"
+    and st.session_state.pending_save_report is None
+):
     st.session_state.debate_status = "running"
     st.session_state.thread_id = str(uuid.uuid4())
     st.session_state.final_report = None
@@ -328,6 +417,8 @@ if start_clicked and _has_api_key and (topic or "").strip():
         "recursion_limit": 30,
     }
 
+    generated_report = None
+    save_confirmed = False
     try:
         for chunk in graph.stream(
             {"topic": topic.strip(), "max_rounds": max_rounds},
@@ -350,15 +441,24 @@ if start_clicked and _has_api_key and (topic or "").strip():
                     report_obj = node_update.get("final_report")
                     if report_obj is not None:
                         st.session_state.final_report = report_obj
+                        generated_report = report_obj.model_copy(deep=True)
                     st.success("Synthesis complete.")
 
-                # initialize, collect_round1, save_node: no UI output needed
+                elif node_name == "save_node":
+                    save_confirmed = True
 
+                # initialize, collect_round1: no UI output needed
+
+        if generated_report is not None and not save_confirmed:
+            raise RuntimeError("The debate ended without confirming that its report was saved.")
         st.session_state.debate_status = "complete"
 
     except Exception as exc:
         st.session_state.debate_status = "error"
         st.session_state.error_msg = str(exc)
+        if generated_report is not None and not save_confirmed:
+            st.session_state.pending_save_report = generated_report
+            st.session_state.pending_save_error = str(exc)
 
     # Refresh navigation only after the stream finishes (or fails), never from
     # inside the loop. Keep the success/error state above so a persistence failure
@@ -368,7 +468,10 @@ if start_clicked and _has_api_key and (topic or "").strip():
 # ---------------------------------------------------------------------------
 # Error state (UI-04)
 # ---------------------------------------------------------------------------
-if st.session_state.debate_status == "error" and st.session_state.error_msg:
+if (
+    st.session_state.debate_status == "error" and st.session_state.error_msg
+    and not _pending_report_is_open()
+):
     st.error(f"Debate failed: {st.session_state.error_msg}")
     if st.button("Reset", key="reset_btn"):
         st.session_state.debate_status = "idle"
@@ -384,6 +487,9 @@ def render_report(report: DebateReport) -> None:
     st.divider()
     st.subheader("Debate Result")
     st.markdown(f"**Topic:** {report.topic}")
+    pending_is_open = _pending_report_is_open()
+    if pending_is_open:
+        st.caption("Saving is unconfirmed. These downloads preserve the generated report.")
     if st.session_state.report_source == "history":
         st.caption(
             f"Saved report · {_history_timestamp(report.created_at.isoformat())} · ID {report.debate_id}"
@@ -396,6 +502,7 @@ def render_report(report: DebateReport) -> None:
         exports = build_report_exports(
             report, source=st.session_state.report_source,
             provenance=st.session_state.sample_provenance,
+            persistence="unconfirmed" if pending_is_open else None,
         )
     except ValueError:
         st.warning(
@@ -551,5 +658,9 @@ def render_report(report: DebateReport) -> None:
                 st.caption(c.rationale)
 
 
-if st.session_state.debate_status == "complete" and st.session_state.final_report is not None:
+if (
+    st.session_state.debate_status == "complete" or (
+        st.session_state.debate_status == "error" and _pending_report_is_open()
+    )
+) and st.session_state.final_report is not None:
     render_report(st.session_state.final_report)

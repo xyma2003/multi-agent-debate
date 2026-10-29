@@ -76,7 +76,15 @@ recalculation. This agreement index and agent confidence are not calibrated
 accuracy. Exports do not infer the detector mode from current app settings.
 The offline example keeps its synthetic source label and provenance in both
 formats. Downloading requires no API credentials, runs no models, and does not
-write to history. Export is available only for a completed, open report.
+write to history. A generated report remains viewable and downloadable if its
+database save fails; those exports explicitly mark persistence as unconfirmed.
+
+Use **Retry save** to store the same report without running the debate again or
+requiring API credentials. Browsing history or the example keeps this pending
+report; **View unsaved report** brings it back. Finish saving or explicitly
+**Discard unsaved report** before starting another debate. Recovery is limited
+to the current browser session: download a copy before refreshing, closing it, or restarting
+the server. A download alone does not add the report to history.
 
 Starting a new debate uses the configured LLM API. On its first divergence check, the default NLI mode downloads `cross-encoder/nli-deberta-v3-small` (~180 MB). The optional cosine comparison mode downloads `BAAI/bge-small-en-v1.5` (~130 MB).
 

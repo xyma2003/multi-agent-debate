@@ -54,18 +54,24 @@ def save_debate(report: DebateReport, conn: Optional[sqlite3.Connection] = None)
     """Persist a DebateReport. Replaces existing row if debate_id already present."""
     if conn is None:
         conn = get_connection()
-    conn.execute(
-        "INSERT OR REPLACE INTO debates "
-        "(debate_id, topic, created_at, status, report_json) VALUES (?,?,?,?,?)",
-        (
-            report.debate_id,
-            report.topic,
-            report.created_at.isoformat(),
-            report.convergence_status,
-            report.model_dump_json(),
-        ),
-    )
-    conn.commit()
+    try:
+        conn.execute(
+            "INSERT OR REPLACE INTO debates "
+            "(debate_id, topic, created_at, status, report_json) VALUES (?,?,?,?,?)",
+            (
+                report.debate_id,
+                report.topic,
+                report.created_at.isoformat(),
+                report.convergence_status,
+                report.model_dump_json(),
+            ),
+        )
+        conn.commit()
+    except sqlite3.Error:
+        # A failed COMMIT can leave the inserted/replaced row visible through
+        # this reused connection. Roll it back before history reads or retries.
+        conn.rollback()
+        raise
 
 
 def load_debate(debate_id: str, conn: Optional[sqlite3.Connection] = None) -> Optional[DebateReport]:
